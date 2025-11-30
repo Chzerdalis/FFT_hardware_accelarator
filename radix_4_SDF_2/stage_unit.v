@@ -76,16 +76,52 @@ module SdfUnit4_fast #(
     reg [WIDTH/2 - 1:0] w_real [0:Num_of_samples-1];
     reg [WIDTH/2 - 1:0] w_imag [0:Num_of_samples-1];
 
-
-    initial begin
-        if (Num_of_samples == 16) begin
-            `include "gen_data/f_twiddle_16.vh"
-        end else if (Num_of_samples == 64) begin
-            `include "gen_data/f_twiddle_64.vh"
-        end else if (Num_of_samples == 256) begin
-            `include "gen_data/f_twiddle_256.vh"
+    //Include the correct twiddle factors depending on size of FFT and data width
+    generate
+        if (Num_of_samples == 16) begin : gen_twiddle_16
+            if(WIDTH == 32) begin : gen_twiddle_16_16bit
+                initial begin
+                    `include "gen_data/f_twiddle_16_16bit.vh"
+                end
+            end else if(WIDTH == 24) begin : gen_twiddle_16_24bit
+                initial begin
+                    `include "gen_data/f_twiddle_16_12bit.vh"
+                end
+            end else if(WIDTH == 16) begin : gen_twiddle_16_8bit
+                initial begin
+                    `include "gen_data/f_twiddle_16_8bit.vh"
+                end
+            end
+        end else if (Num_of_samples == 64) begin : gen_twiddle_64
+            if(WIDTH == 32) begin : gen_twiddle_64_16bit
+                initial begin
+                    `include "gen_data/f_twiddle_64_16bit.vh"
+                end
+            end else if(WIDTH == 24) begin : gen_twiddle_64_12bit
+                initial begin
+                    `include "gen_data/f_twiddle_64_12bit.vh"
+                end
+            end else if(WIDTH == 16) begin : gen_twiddle_64_8bit
+                initial begin
+                    `include "gen_data/f_twiddle_64_8bit.vh"
+                end
+            end
+        end else if (Num_of_samples == 256) begin : gen_twiddle_256
+            if(WIDTH == 32) begin : gen_twiddle_256_16bit
+                initial begin
+                    `include "gen_data/f_twiddle_256_16bit.vh"
+                end
+            end else if(WIDTH == 24) begin : gen_twiddle_256_12bit
+                initial begin
+                    `include "gen_data/f_twiddle_256_12bit.vh"
+                end
+            end else if(WIDTH == 16) begin : gen_twiddle_256_8bit
+                initial begin
+                    `include "gen_data/f_twiddle_256_8bit.vh"
+                end
+            end
         end
-    end
+    endgenerate
 
     //Manage counters
     if (STAGE_NUM > 1) begin : gen_input_logic

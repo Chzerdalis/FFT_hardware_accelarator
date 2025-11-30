@@ -2,8 +2,8 @@
 
 module tb_top;
 
-    parameter WIDTH = 32;
-    parameter Num_of_samples = 16;
+    parameter WIDTH = 16;
+    parameter Num_of_samples = 256;
 
     reg clock;
     reg reset;
@@ -48,7 +48,7 @@ module tb_top;
 
     integer output_count_b = 0;
 
-    integer i;
+    integer i, fd;
 
     initial begin
         // Initialize clock
@@ -58,11 +58,30 @@ module tb_top;
 
     initial begin
         if (Num_of_samples == 16) begin
-            `include "gen_data/f_input_rev_16.vh"
-        end else if (Num_of_samples == 64) begin
-            `include "gen_data/f_input_rev_64.vh"
+            if(WIDTH == 32) begin
+                `include "gen_data/f_input_rev_16_32bit.vh"
+            end else if(WIDTH == 24) begin
+                `include "gen_data/f_input_rev_16_24bit.vh"
+            end else if(WIDTH == 16) begin
+                `include "gen_data/f_input_rev_16_16bit.vh"
+            end
+        end 
+        else if (Num_of_samples == 64) begin
+            if(WIDTH == 32) begin
+                `include "gen_data/f_input_rev_64_32bit.vh"
+            end else if(WIDTH == 24) begin
+                `include "gen_data/f_input_rev_64_24bit.vh"
+            end else if(WIDTH == 16) begin
+                `include "gen_data/f_input_rev_64_16bit.vh"
+            end
         end else if (Num_of_samples == 256) begin
-            `include "gen_data/f_input_rev_256.vh"
+            if(WIDTH == 32) begin
+                `include "gen_data/f_input_rev_256_32bit.vh"
+            end else if(WIDTH == 24) begin
+                `include "gen_data/f_input_rev_256_24bit.vh"
+            end else if(WIDTH == 16) begin
+                `include "gen_data/f_input_rev_256_16bit.vh"
+            end
         end
     end
 
@@ -109,35 +128,21 @@ module tb_top;
         input_en <= 0;
 
         // Wait for output
-        #400;
+        #1000;
+
+        fd = $fopen("Outputs.txt", "w");
 
         for(i = 0; i < Num_of_samples; i = i + 1) begin
             $display("Output Index %d: Real = %d, Imag = %d", i, $signed(output_real_fast[i]), $signed(output_imag_fast[i]));
+            $fdisplay(fd, "%d %d", $signed(output_real_fast[i]), $signed(output_imag_fast[i]));
         end
+
         // Disable input
         $finish;
     end
     initial begin
         $dumpfile("tb_top_fft.vcd");
         $dumpvars(0, tb_top);
-        // if(STAGE_NUM > 1) begin
-        //     for(i=0; i<4; i=i+1) begin
-        //         //$dumpvars(1, tb_stageunit.uut.db0.buf_re[i]);
-        //         //$dumpvars(1, tb_stageunit.uut.db0.buf_im[i]);
-        //         // $dumpvars(0, tb_stageunit.uut.db0);
-        //         // $dumpvars(0, tb_stageunit.uut.db0);
-        //         //$dumpvars(1, tb_stageunit.uut.db1.buf_re[i]);
-        //         //$dumpvars(1, tb_stageunit.uut.db1.buf_im[i]);
-        //         //$dumpvars(0, tb_stageunit.uut.db2.buf_re[i]);
-        //         //$dumpvars(0, tb_stageunit.uut.db2.buf_im[i]);
-        //         // $dumpvars(0, tb_stageunit.uut.db3);
-        //         // $dumpvars(0, tb_stageunit.uut.db3);
-        //     end
-        //     for(i=0; i<3; i=i+1) begin
-        //         //$dumpvars(1, tb_stageunit.uut.db3.buf_re[i]);
-        //         //$dumpvars(1, tb_stageunit.uut.db3.buf_im[i]);
-        //     end
-        // end
     end
     
     always @(posedge clock) begin
