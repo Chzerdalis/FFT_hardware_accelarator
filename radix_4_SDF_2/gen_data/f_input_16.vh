@@ -1,0 +1,16 @@
+gen_input_real[0] = 32'sd0;
+gen_input_real[1] = 32'sd32767;
+gen_input_real[2] = -32'sd5281;
+gen_input_real[3] = -32'sd24720;
+gen_input_real[4] = 32'sd8124;
+gen_input_real[5] = 32'sd17003;
+gen_input_real[6] = -32'sd10026;
+gen_input_real[7] = -32'sd12635;
+gen_input_real[8] = 32'sd12635;
+gen_input_real[9] = 32'sd10026;
+gen_input_real[10] = -32'sd17003;
+gen_input_real[11] = -32'sd8124;
+gen_input_real[12] = 32'sd24720;
+gen_input_real[13] = 32'sd5281;
+gen_input_real[14] = -32'sd32767;
+gen_input_real[15] = 32'sd0;
