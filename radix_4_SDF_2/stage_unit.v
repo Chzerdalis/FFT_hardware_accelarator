@@ -91,6 +91,10 @@ module SdfUnit4_fast #(
                 initial begin
                     `include "gen_data/f_twiddle_16_8bit.vh"
                 end
+            end else if(WIDTH == 18) begin : gen_twiddle_16_9bit
+                initial begin
+                    `include "gen_data/f_twiddle_16_9bit.vh"
+                end
             end
         end else if (Num_of_samples == 64) begin : gen_twiddle_64
             if(WIDTH == 32) begin : gen_twiddle_64_16bit
@@ -105,6 +109,10 @@ module SdfUnit4_fast #(
                 initial begin
                     `include "gen_data/f_twiddle_64_8bit.vh"
                 end
+            end else if(WIDTH == 18) begin : gen_twiddle_64_9bit
+                initial begin
+                    `include "gen_data/f_twiddle_64_9bit.vh"
+                end
             end
         end else if (Num_of_samples == 256) begin : gen_twiddle_256
             if(WIDTH == 32) begin : gen_twiddle_256_16bit
@@ -118,6 +126,28 @@ module SdfUnit4_fast #(
             end else if(WIDTH == 16) begin : gen_twiddle_256_8bit
                 initial begin
                     `include "gen_data/f_twiddle_256_8bit.vh"
+                end
+            end else if(WIDTH == 18) begin : gen_twiddle_256_9bit
+                initial begin
+                    `include "gen_data/f_twiddle_256_9bit.vh"
+                end
+            end
+        end else if (Num_of_samples == 1024) begin : gen_twiddle_1024
+            if(WIDTH == 32) begin : gen_twiddle_1024_16bit
+                initial begin
+                    `include "gen_data/f_twiddle_1024_16bit.vh"
+                end
+            end else if(WIDTH == 24) begin : gen_twiddle_1024_12bit
+                initial begin
+                    `include "gen_data/f_twiddle_1024_12bit.vh"
+                end
+            end else if(WIDTH == 16) begin : gen_twiddle_1024_8bit
+                initial begin
+                    `include "gen_data/f_twiddle_1024_8bit.vh"
+                end
+            end else if(WIDTH == 18) begin : gen_twiddle_1024_9bit
+                initial begin
+                    `include "gen_data/f_twiddle_1024_9bit.vh"
                 end
             end
         end

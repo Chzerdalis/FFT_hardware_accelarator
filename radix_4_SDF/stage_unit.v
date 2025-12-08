@@ -22,6 +22,8 @@ localparam Stride = 1 << (2*STAGE_NUM);
 reg [sn-1:0] butterfly_en;
 reg [sn-1:0] flush_count;
 reg start_out;
+wire start;
+wire done;
 
 wire [$clog2(Num_of_samples)-1:0] twiddle_index_0, twiddle_index_1, twiddle_index_2;
 
@@ -98,9 +100,15 @@ assign x2_im = (butterfly_en[sn-1:sn-2] == 2'b11) ? delay_out_imag_2 : {WIDTH{1'
 assign x3_re = (butterfly_en[sn-1:sn-2] == 2'b11) ? input_real : {WIDTH{1'bx}};
 assign x3_im = (butterfly_en[sn-1:sn-2] == 2'b11) ? input_imag : {WIDTH{1'bx}};
 
-butterfly_radix4 #(
+assign start = (butterfly_en[sn-1:sn-2] == 2'b11) ? 1'b1 : 1'b0;
+
+ butterfly_radix4_pipeline #(
     .WIDTH(WIDTH)
 ) b4 (
+    .clock(clock),
+    .reset(reset),
+    .start(start),
+    .done(done),
     .ar(x0_re), .ai(x0_im),
     .br(x1_re), .bi(x1_im),
     .cr(x2_re), .ci(x2_im),
@@ -108,10 +116,10 @@ butterfly_radix4 #(
     .w0r(w_real[twiddle_index_0]), .w0i(w_imag[twiddle_index_0]),
     .w1r(w_real[twiddle_index_1]), .w1i(w_imag[twiddle_index_1]),
     .w2r(w_real[twiddle_index_2]), .w2i(w_imag[twiddle_index_2]),
-    .out0r(y0_re), .out0i(y0_im),
-    .out1r(y1_re), .out1i(y1_im),
-    .out2r(y2_re), .out2i(y2_im),
-    .out3r(y3_re), .out3i(y3_im)
+    .out1r(y0_re), .out1i(y0_im),
+    .out2r(y1_re), .out2i(y1_im),
+    .out3r(y2_re), .out3i(y2_im),
+    .out4r(y3_re), .out4i(y3_im)
 );
 
 DelayBuffer #(
@@ -187,7 +195,8 @@ always @(posedge clock or posedge reset) begin
         output_en <= 1'b0;
         start_out <= 1'b0;
     end else begin
-        if(input_en && (butterfly_en[sn-1:sn-2] == 2'b11)) begin
+        //if(input_en && (butterfly_en[sn-1:sn-2] == 2'b11)) begin
+        if(input_en && (done == 2'b11)) begin
             output_en <= 1'b1;
             start_out <= 1'b1;
         end else if(!input_en && flush_count > 0) begin

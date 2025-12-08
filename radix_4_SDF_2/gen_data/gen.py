@@ -2,7 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 
-np.random.seed(43)
+#np.random.seed(43)
+np.random.seed(87)
 
 try:
     N = int(sys.argv[1])
@@ -22,7 +23,8 @@ x = 2 * (x - x.min()) / (x.max() - x.min()) - 1
 
 x_32bit = (x * 0x7FFF).astype(int)
 x_24bit = (x * 0x7FF).astype(int)
-x_16bit = (x * 0x7F).astype(int)
+x_18bit = (x * 0xFF).astype(int)
+x_16bit = (x * 0x7F).astype(int) 
 
 x_fft_32bit = np.fft.fft(x_32bit, len(x_32bit))
 x_fft_32bit.real = x_fft_32bit.real.astype(int)
@@ -31,6 +33,10 @@ x_fft_32bit.imag = x_fft_32bit.imag.astype(int)
 x_fft_24bit = np.fft.fft(x_24bit, len(x_24bit))
 x_fft_24bit.real = x_fft_24bit.real.astype(int)
 x_fft_24bit.imag = x_fft_24bit.imag.astype(int)
+
+x_fft_18bit = np.fft.fft(x_18bit, len(x_18bit))
+x_fft_18bit.real = x_fft_18bit.real.astype(int)
+x_fft_18bit.imag = x_fft_18bit.imag.astype(int)
 
 x_fft_16bit = np.fft.fft(x_16bit, len(x_16bit))
 x_fft_16bit.real = x_fft_16bit.real.astype(int)
@@ -49,6 +55,9 @@ twiddle_imag_q_16 = np.clip(twiddles.imag * (1 << 15), -0x8000, 0x7FFF).astype(i
 
 twiddle_real_q_12 = np.clip(twiddles.real * (1 << 11), -0x800, 0x7FF).astype(int) & 0xFFF
 twiddle_imag_q_12 = np.clip(twiddles.imag * (1 << 11), -0x800, 0x7FF).astype(int) & 0xFFF
+
+twiddle_real_q_9 = np.clip(twiddles.real * (1 << 8), -0x100, 0xFF).astype(int) & 0x1FF
+twiddle_imag_q_9 = np.clip(twiddles.imag * (1 << 8), -0x100, 0xFF).astype(int) & 0x1FF
 
 twiddle_real_q_8 = np.clip(twiddles.real * (1 << 7), -0x80, 0x7F).astype(int) & 0xFF
 twiddle_imag_q_8 = np.clip(twiddles.imag * (1 << 7), -0x80, 0x7F).astype(int) & 0xFF
@@ -105,6 +114,11 @@ with open(f'f_input_rev_{N}_24bit.vh', 'w') as f:
         xir = int(xi)
         f.write(f'gen_input_real[{bitrev(i, int(np.log2(N)/2))}] = {sign(xir):}24\'sd{abs(xir)};\n')
 
+with open(f'f_input_rev_{N}_18bit.vh', 'w') as f:
+    for i, xi in enumerate(x_18bit):
+        xir = int(xi)
+        f.write(f'gen_input_real[{bitrev(i, int(np.log2(N)/2))}] = {sign(xir):}18\'sd{abs(xir)};\n')
+
 with open(f'f_input_rev_{N}_16bit.vh', 'w') as f:
     for i, xi in enumerate(x_16bit):
         xir = int(xi)
@@ -117,6 +131,11 @@ with open(f'f_correct_{N}_32bit.vh', 'w') as f:
 
 with open(f'f_correct_{N}_24bit.vh', 'w') as f:
     for i, xi in enumerate(x_fft_24bit):
+        xir, xii = int(xi.real), int(xi.imag)
+        f.write(f'{sign(xir)}{abs(xir)} {sign(xii)}{abs(xii)}\n')
+
+with open(f'f_correct_{N}_18bit.vh', 'w') as f:
+    for i, xi in enumerate(x_fft_18bit):
         xir, xii = int(xi.real), int(xi.imag)
         f.write(f'{sign(xir)}{abs(xir)} {sign(xii)}{abs(xii)}\n')
 
@@ -133,6 +152,10 @@ with open(f'f_twiddle_{N}_16bit.vh', 'w') as f:
 with open(f'f_twiddle_{N}_12bit.vh', 'w') as f:
     for i, (twr, twi) in enumerate(zip(twiddle_real_q_12, twiddle_imag_q_12)):
         f.write(f'w_real[{i}] = 12\'h{twr:03X}; w_imag[{i}] = 12\'h{twi:03X};\n')
+
+with open(f'f_twiddle_{N}_9bit.vh', 'w') as f:
+    for i, (twr, twi) in enumerate(zip(twiddle_real_q_9, twiddle_imag_q_9)):
+        f.write(f'w_real[{i}] = 9\'h{twr:03X}; w_imag[{i}] = 9\'h{twi:03X};\n')
 
 with open(f'f_twiddle_{N}_8bit.vh', 'w') as f:
     for i, (twr, twi) in enumerate(zip(twiddle_real_q_8, twiddle_imag_q_8)):

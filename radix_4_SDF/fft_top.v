@@ -1,7 +1,7 @@
 `timescale 1ns/1ps
 
 module fft_top #(
-    parameter WIDTH = 32,
+    parameter WIDTH = 16,
     parameter N = 256
 )(
     input                   clock,

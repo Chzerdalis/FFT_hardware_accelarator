@@ -1,8 +1,8 @@
 `timescale 1ns/1ps
 
 module fft_top #(
-    parameter WIDTH = 16,
-    parameter Num_of_samples = 4096
+    parameter WIDTH = 32,
+    parameter Num_of_samples = 1024
 )(
     input                   clock,
     input                   reset,
@@ -54,10 +54,15 @@ module fft_top #(
     assign input_real_stage_2[0] = input_real_2;
     assign input_real_stage_3[0] = input_real_3;
 
-    assign input_imag_stage_0[0] = input_imag_0;
-    assign input_imag_stage_1[0] = input_imag_1;
-    assign input_imag_stage_2[0] = input_imag_2;
-    assign input_imag_stage_3[0] = input_imag_3;
+   assign input_imag_stage_0[0] = input_imag_0;
+   assign input_imag_stage_1[0] = input_imag_1;
+   assign input_imag_stage_2[0] = input_imag_2;
+   assign input_imag_stage_3[0] = input_imag_3;
+    
+    // assign input_imag_stage_0[0] = 0;
+    // assign input_imag_stage_1[0] = 0;
+    // assign input_imag_stage_2[0] = 0;
+    // assign input_imag_stage_3[0] = 0;
 
     assign enable_stage[0] = input_en;
     assign output_en = enable_stage[STAGE_NUM];

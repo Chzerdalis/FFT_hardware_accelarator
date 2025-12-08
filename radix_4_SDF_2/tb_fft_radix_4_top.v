@@ -2,7 +2,7 @@
 
 module tb_top;
 
-    parameter WIDTH = 16;
+    parameter WIDTH = 24;
     parameter Num_of_samples = 256;
 
     reg clock;
@@ -16,7 +16,7 @@ module tb_top;
 
     reg [WIDTH-1:0] output_real_fast [0:Num_of_samples - 1];
     reg [WIDTH-1:0] output_imag_fast [0:Num_of_samples - 1];
-    reg signed [31:0] gen_input_real [0:255];
+    reg signed [31:0] gen_input_real [0:1023];
 
     integer output_count = 0;
 
@@ -64,6 +64,8 @@ module tb_top;
                 `include "gen_data/f_input_rev_16_24bit.vh"
             end else if(WIDTH == 16) begin
                 `include "gen_data/f_input_rev_16_16bit.vh"
+            end else if(WIDTH == 18) begin
+                `include "gen_data/f_input_rev_16_18bit.vh"
             end
         end 
         else if (Num_of_samples == 64) begin
@@ -73,6 +75,8 @@ module tb_top;
                 `include "gen_data/f_input_rev_64_24bit.vh"
             end else if(WIDTH == 16) begin
                 `include "gen_data/f_input_rev_64_16bit.vh"
+            end else if(WIDTH == 18) begin
+                `include "gen_data/f_input_rev_64_18bit.vh"
             end
         end else if (Num_of_samples == 256) begin
             if(WIDTH == 32) begin
@@ -81,6 +85,18 @@ module tb_top;
                 `include "gen_data/f_input_rev_256_24bit.vh"
             end else if(WIDTH == 16) begin
                 `include "gen_data/f_input_rev_256_16bit.vh"
+            end else if(WIDTH == 18) begin
+                `include "gen_data/f_input_rev_256_18bit.vh"
+            end
+        end else if (Num_of_samples == 1024) begin
+            if(WIDTH == 32) begin
+                `include "gen_data/f_input_rev_1024_32bit.vh"
+            end else if(WIDTH == 24) begin
+                `include "gen_data/f_input_rev_1024_24bit.vh"
+            end else if(WIDTH == 16) begin
+                `include "gen_data/f_input_rev_1024_16bit.vh"
+            end else if(WIDTH == 18) begin
+                `include "gen_data/f_input_rev_1024_18bit.vh"
             end
         end
     end
@@ -128,7 +144,7 @@ module tb_top;
         input_en <= 0;
 
         // Wait for output
-        #1000;
+        #3000;
 
         fd = $fopen("Outputs.txt", "w");
 
