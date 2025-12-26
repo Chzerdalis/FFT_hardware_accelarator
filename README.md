@@ -18,7 +18,7 @@ This project focuses on a high-performance hardware implementation of the **Radi
 ## 📂 Project Structure
 
 * [**fft_radix_2**](./fft_radix_2) - Verilog source files for the Radix-2 unrolled core and butterfly units.
-* * [**fft_radix_4**](./fft_radix_4) - Verilog source files for the Radix-4 unrolled core and butterfly units.
+* [**fft_radix_4**](./fft_radix_4) - Verilog source files for the Radix-4 unrolled core and butterfly units.
 * [**radix_2_SDF**](./radix_2_SDF) - Verilog source files for the Radix-2 SDF implementation.
 * [**radix_4_SDF**](./radix_4_SDF) - Verilog source files for initial unoptimized Radix-4 SDF implementation.
 * [**radix_4_SDF_Fast**](./radix_4_SDF_Fast) - Verilog source files for optimized Radix-4 SDF implementation.
