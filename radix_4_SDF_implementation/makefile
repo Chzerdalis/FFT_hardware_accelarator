@@ -1,0 +1,33 @@
+CC = iverilog
+FLAGS = -Wall -Winfloop
+EXE = test.out
+SRCS_buffer = delay_buffer_advaned.v tb_buffer.v
+SRCS_butterfly = butterfly.v tb_butterfly.v partial_mul.v butterfly_old.v
+SRCS_unit = tb_stageunit.v butterfly.v delay_buffer_advaned.v stage_unit.v ../radix_4_SDF/stage_unit.v ../radix_4_SDF/delay_buffer.v ../radix_4_SDF/butterfly.v
+SRCS_top_fft = tb_fft_radix_4_top.v butterfly.v delay_buffer_advaned.v stage_unit.v fft_radix_4_top.v
+SRCS_helper_top = tb_helper_top_module.v helper_top_module.v butterfly.v delay_buffer_advaned.v stage_unit.v fft_radix_4_top.v
+
+buffer:
+	$(CC) $(FLAGS) -o $(EXE) $(SRCS_buffer)
+	vvp $(EXE)
+	surfer -s waveforms/tb_buffer tb_dumpfile.vcd
+butterfly:
+	$(CC) $(FLAGS) -o $(EXE) $(SRCS_butterfly)
+	vvp $(EXE)
+	surfer -s waveforms/tb_butterfly tb_butterfly.vcd
+stage_unit:
+	$(CC) $(FLAGS) -o $(EXE) $(SRCS_unit)
+	vvp $(EXE)
+	surfer -s waveforms/tb_stageunit tb_stageunit.vcd
+top_fft:
+	$(CC) $(FLAGS) -o $(EXE) $(SRCS_top_fft)
+	vvp $(EXE)
+# 	surfer -s waveforms/fft_top tb_top_fft.vcd The waveform stopped working for some reason
+	surfer tb_top_fft.vcd
+helper_top:
+	$(CC) $(FLAGS) -o $(EXE) $(SRCS_helper_top)
+	vvp $(EXE)
+#	surfer -s waveforms/tb_helper_top_module tb_helper_top_module.vcd
+clean:
+	rm -rf $(EXE)
+	rm -rf *.vcd

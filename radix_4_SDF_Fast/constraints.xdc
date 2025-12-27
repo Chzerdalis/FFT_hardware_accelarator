@@ -1,0 +1,10 @@
+create_clock -period 2.00 -name sys_clk [get_ports clock]
+
+set_property PACKAGE_PIN Y9 [get_ports clock]
+set_property IOSTANDARD LVCMOS33 [get_ports clock]
+
+set_property PACKAGE_PIN P16 [get_ports reset]
+set_property IOSTANDARD LVCMOS18 [get_ports reset]
+
+set_property use_dsp no [get_cells -hierarchical -filter {NAME =~ fft_top}]
+
