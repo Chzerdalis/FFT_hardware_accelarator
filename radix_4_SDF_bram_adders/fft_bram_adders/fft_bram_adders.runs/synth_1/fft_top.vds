@@ -1,0 +1,1185 @@
+#-----------------------------------------------------------
+# Vivado v2018.3 (64-bit)
+# SW Build 2405991 on Thu Dec  6 23:36:41 MST 2018
+# IP Build 2404404 on Fri Dec  7 01:43:56 MST 2018
+# Start of session at: Tue Jan 20 20:38:34 2026
+# Process ID: 60050
+# Current directory: /home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/fft_bram_adders/fft_bram_adders.runs/synth_1
+# Command line: vivado -log fft_top.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source fft_top.tcl
+# Log file: /home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/fft_bram_adders/fft_bram_adders.runs/synth_1/fft_top.vds
+# Journal file: /home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/fft_bram_adders/fft_bram_adders.runs/synth_1/vivado.jou
+#-----------------------------------------------------------
+source fft_top.tcl -notrace
+Command: synth_design -top fft_top -part xc7a200tfbg676-2
+Starting synth_design
+Attempting to get a license for feature 'Synthesis' and/or device 'xc7a200t'
+INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xc7a200t'
+INFO: Launching helper process for spawning children vivado processes
+INFO: Helper process launched with PID 60063 
+---------------------------------------------------------------------------------
+Starting RTL Elaboration : Time (s): cpu = 00:00:01 ; elapsed = 00:00:02 . Memory (MB): peak = 1387.922 ; gain = 33.027 ; free physical = 5845 ; free virtual = 17426
+---------------------------------------------------------------------------------
+INFO: [Synth 8-6157] synthesizing module 'fft_top' [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/fft_radix_4_top.v:3]
+	Parameter WIDTH bound to: 16 - type: integer 
+	Parameter Num_of_samples bound to: 256 - type: integer 
+	Parameter STAGE_NUM bound to: 4 - type: integer 
+INFO: [Synth 8-6157] synthesizing module 'SdfUnit4_fast' [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:3]
+	Parameter WIDTH bound to: 16 - type: integer 
+	Parameter STAGE_NUM bound to: 1 - type: integer 
+	Parameter Num_of_samples bound to: 256 - type: integer 
+	Parameter sn bound to: 2 - type: integer 
+	Parameter Depth bound to: 1 - type: integer 
+	Parameter Stride bound to: 4 - type: integer 
+	Parameter stage_num_bits bound to: 0 - type: integer 
+	Parameter shift_value bound to: 6 - type: integer 
+	Parameter Num_of_samples_bits bound to: 6 - type: integer 
+INFO: [Synth 8-5534] Detected attribute (* ram_style = "distributed" *) [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:94]
+INFO: [Synth 8-5534] Detected attribute (* ram_style = "distributed" *) [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:95]
+INFO: [Synth 8-6157] synthesizing module 'butterfly_radix4_pipeline' [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/butterfly.v:3]
+	Parameter WIDTH bound to: 16 - type: integer 
+	Parameter TW bound to: 8 - type: integer 
+	Parameter PROD bound to: 24 - type: integer 
+INFO: [Synth 8-6157] synthesizing module 'multiplier_sythesis_2' [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/multiplier.v:184]
+	Parameter WIDTH bound to: 16 - type: integer 
+	Parameter B_WIDTH bound to: 8 - type: integer 
+	Parameter P_WIDTH bound to: 24 - type: integer 
+WARNING: [Synth 8-6014] Unused sequential element i_reg was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/multiplier.v:236]
+WARNING: [Synth 8-6014] Unused sequential element valid_pipe_reg[7] was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/multiplier.v:237]
+WARNING: [Synth 8-6014] Unused sequential element a_pipe_reg[7] was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/multiplier.v:238]
+WARNING: [Synth 8-6014] Unused sequential element b_pipe_reg[7] was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/multiplier.v:239]
+WARNING: [Synth 8-6014] Unused sequential element sum_pipe_reg[7] was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/multiplier.v:240]
+WARNING: [Synth 8-6014] Unused sequential element carry_pipe_reg[7] was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/multiplier.v:241]
+WARNING: [Synth 8-6014] Unused sequential element comb_pp_reg was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/multiplier.v:258]
+WARNING: [Synth 8-6014] Unused sequential element comb_sum_reg was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/multiplier.v:284]
+WARNING: [Synth 8-6014] Unused sequential element comb_carry_reg was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/multiplier.v:285]
+INFO: [Synth 8-6155] done synthesizing module 'multiplier_sythesis_2' (1#1) [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/multiplier.v:184]
+INFO: [Synth 8-6155] done synthesizing module 'butterfly_radix4_pipeline' (2#1) [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/butterfly.v:3]
+WARNING: [Synth 8-6014] Unused sequential element butterfly_op_counter_reg_reg was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:339]
+WARNING: [Synth 8-6014] Unused sequential element butterfly_op_counter_reg_reg_reg was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:340]
+WARNING: [Synth 8-6014] Unused sequential element butterfly_op_counter_reg_reg_reg_reg was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:341]
+WARNING: [Synth 8-6014] Unused sequential element butterfly_op_counter_reg_reg_reg_reg_reg was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:342]
+WARNING: [Synth 8-6014] Unused sequential element stride_segment_counter_reg_reg was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:343]
+WARNING: [Synth 8-6014] Unused sequential element input_real_0_rr_reg was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:381]
+WARNING: [Synth 8-6014] Unused sequential element input_imag_0_rr_reg was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:382]
+WARNING: [Synth 8-6014] Unused sequential element input_real_0_rrr_reg was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:383]
+WARNING: [Synth 8-6014] Unused sequential element input_imag_0_rrr_reg was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:384]
+WARNING: [Synth 8-6014] Unused sequential element input_real_0_rrrr_reg was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:385]
+WARNING: [Synth 8-6014] Unused sequential element input_imag_0_rrrr_reg was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:386]
+WARNING: [Synth 8-6014] Unused sequential element input_en_r_reg was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:387]
+WARNING: [Synth 8-6014] Unused sequential element butterfly_op_counter_en_r_reg was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:388]
+WARNING: [Synth 8-6014] Unused sequential element mem_counter_reg_reg was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:390]
+WARNING: [Synth 8-6014] Unused sequential element mem_counter_read_reg_reg was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:391]
+WARNING: [Synth 8-6014] Unused sequential element butterfly_op_counter_en_rr_reg was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:392]
+WARNING: [Synth 8-6014] Unused sequential element butterfly_op_counter_en_rrr_reg was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:393]
+INFO: [Synth 8-4471] merging register 'twiddle_index_1_r_reg[7:0]' into 'twiddle_index_0_r_reg[7:0]' [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:345]
+INFO: [Synth 8-4471] merging register 'twiddle_index_2_r_reg[7:0]' into 'twiddle_index_0_r_reg[7:0]' [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:346]
+WARNING: [Synth 8-6014] Unused sequential element twiddle_index_1_r_reg was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:345]
+WARNING: [Synth 8-6014] Unused sequential element twiddle_index_2_r_reg was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:346]
+INFO: [Synth 8-4471] merging register 'twiddle_index_1_rr_reg[7:0]' into 'twiddle_index_0_rr_reg[7:0]' [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:349]
+INFO: [Synth 8-4471] merging register 'twiddle_index_2_rr_reg[7:0]' into 'twiddle_index_0_rr_reg[7:0]' [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:351]
+INFO: [Synth 8-4471] merging register 'twiddle_index_1_rrr_reg[7:0]' into 'twiddle_index_0_rrr_reg[7:0]' [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:243]
+INFO: [Synth 8-4471] merging register 'twiddle_index_2_rrr_reg[7:0]' into 'twiddle_index_0_rrr_reg[7:0]' [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:245]
+WARNING: [Synth 8-6014] Unused sequential element twiddle_index_1_rr_reg was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:349]
+WARNING: [Synth 8-6014] Unused sequential element twiddle_index_1_rrr_reg was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:243]
+WARNING: [Synth 8-6014] Unused sequential element twiddle_index_2_rr_reg was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:351]
+WARNING: [Synth 8-6014] Unused sequential element twiddle_index_2_rrr_reg was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:245]
+INFO: [Synth 8-6155] done synthesizing module 'SdfUnit4_fast' (3#1) [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:3]
+INFO: [Synth 8-6157] synthesizing module 'SdfUnit4_fast__parameterized0' [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:3]
+	Parameter WIDTH bound to: 16 - type: integer 
+	Parameter STAGE_NUM bound to: 2 - type: integer 
+	Parameter Num_of_samples bound to: 256 - type: integer 
+	Parameter sn bound to: 4 - type: integer 
+	Parameter Depth bound to: 4 - type: integer 
+	Parameter Stride bound to: 16 - type: integer 
+	Parameter stage_num_bits bound to: 1 - type: integer 
+	Parameter shift_value bound to: 4 - type: integer 
+	Parameter Num_of_samples_bits bound to: 6 - type: integer 
+WARNING: [Synth 8-693] zero replication count - replication ignored [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:190]
+WARNING: [Synth 8-693] zero replication count - replication ignored [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:190]
+INFO: [Synth 8-6157] synthesizing module 'memory' [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/memory.v:188]
+	Parameter WIDTH bound to: 16 - type: integer 
+	Parameter DEPTH bound to: 4 - type: integer 
+	Parameter stage_num_bits bound to: 1 - type: integer 
+	Parameter inter_offset_size bound to: 2 - type: integer 
+	Parameter intra_offset_size bound to: 0 - type: integer 
+	Parameter vertical_offset_1 bound to: 1 - type: integer 
+	Parameter vertical_offset_2 bound to: 2 - type: integer 
+	Parameter vertical_offset_3 bound to: 3 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'memory' (4#1) [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/memory.v:188]
+WARNING: [Synth 8-6014] Unused sequential element gen_input_logic.stride_segment_counter_en_reg was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:185]
+WARNING: [Synth 8-6014] Unused sequential element input_en_r_reg was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:387]
+INFO: [Synth 8-6155] done synthesizing module 'SdfUnit4_fast__parameterized0' (4#1) [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:3]
+INFO: [Synth 8-6157] synthesizing module 'SdfUnit4_fast__parameterized1' [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:3]
+	Parameter WIDTH bound to: 16 - type: integer 
+	Parameter STAGE_NUM bound to: 3 - type: integer 
+	Parameter Num_of_samples bound to: 256 - type: integer 
+	Parameter sn bound to: 6 - type: integer 
+	Parameter Depth bound to: 16 - type: integer 
+	Parameter Stride bound to: 64 - type: integer 
+	Parameter stage_num_bits bound to: 3 - type: integer 
+	Parameter shift_value bound to: 2 - type: integer 
+	Parameter Num_of_samples_bits bound to: 6 - type: integer 
+INFO: [Synth 8-6157] synthesizing module 'memory__parameterized0' [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/memory.v:188]
+	Parameter WIDTH bound to: 16 - type: integer 
+	Parameter DEPTH bound to: 16 - type: integer 
+	Parameter stage_num_bits bound to: 3 - type: integer 
+	Parameter inter_offset_size bound to: 4 - type: integer 
+	Parameter intra_offset_size bound to: 2 - type: integer 
+	Parameter vertical_offset_1 bound to: 4 - type: integer 
+	Parameter vertical_offset_2 bound to: 8 - type: integer 
+	Parameter vertical_offset_3 bound to: 12 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'memory__parameterized0' (4#1) [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/memory.v:188]
+WARNING: [Synth 8-6014] Unused sequential element gen_input_logic.stride_segment_counter_en_reg was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:185]
+WARNING: [Synth 8-6014] Unused sequential element input_en_r_reg was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:387]
+INFO: [Synth 8-6155] done synthesizing module 'SdfUnit4_fast__parameterized1' (4#1) [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:3]
+INFO: [Synth 8-6157] synthesizing module 'SdfUnit4_fast__parameterized2' [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:3]
+	Parameter WIDTH bound to: 16 - type: integer 
+	Parameter STAGE_NUM bound to: 4 - type: integer 
+	Parameter Num_of_samples bound to: 256 - type: integer 
+	Parameter sn bound to: 8 - type: integer 
+	Parameter Depth bound to: 64 - type: integer 
+	Parameter Stride bound to: 256 - type: integer 
+	Parameter stage_num_bits bound to: 5 - type: integer 
+	Parameter shift_value bound to: 0 - type: integer 
+	Parameter Num_of_samples_bits bound to: 6 - type: integer 
+INFO: [Synth 8-6157] synthesizing module 'memory__parameterized1' [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/memory.v:188]
+	Parameter WIDTH bound to: 16 - type: integer 
+	Parameter DEPTH bound to: 64 - type: integer 
+	Parameter stage_num_bits bound to: 5 - type: integer 
+	Parameter inter_offset_size bound to: 6 - type: integer 
+	Parameter intra_offset_size bound to: 4 - type: integer 
+	Parameter vertical_offset_1 bound to: 16 - type: integer 
+	Parameter vertical_offset_2 bound to: 32 - type: integer 
+	Parameter vertical_offset_3 bound to: 48 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'memory__parameterized1' (4#1) [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/memory.v:188]
+WARNING: [Synth 8-6014] Unused sequential element gen_input_logic.stride_segment_counter_en_reg was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:185]
+WARNING: [Synth 8-6014] Unused sequential element input_en_r_reg was removed.  [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:387]
+INFO: [Synth 8-6155] done synthesizing module 'SdfUnit4_fast__parameterized2' (4#1) [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/stage_unit.v:3]
+INFO: [Synth 8-6155] done synthesizing module 'fft_top' (5#1) [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/fft_radix_4_top.v:3]
+WARNING: [Synth 8-3331] design memory__parameterized1 has unconnected port stride_segment_counter[3]
+WARNING: [Synth 8-3331] design memory__parameterized1 has unconnected port stride_segment_counter[2]
+WARNING: [Synth 8-3331] design memory__parameterized1 has unconnected port stride_segment_counter[1]
+WARNING: [Synth 8-3331] design memory__parameterized1 has unconnected port stride_segment_counter[0]
+WARNING: [Synth 8-3331] design memory__parameterized1 has unconnected port mem_counter_read[5]
+WARNING: [Synth 8-3331] design memory__parameterized1 has unconnected port mem_counter_read[4]
+WARNING: [Synth 8-3331] design memory__parameterized1 has unconnected port mem_counter_read[3]
+WARNING: [Synth 8-3331] design memory__parameterized1 has unconnected port mem_counter_read[2]
+WARNING: [Synth 8-3331] design memory__parameterized1 has unconnected port mem_counter_read[1]
+WARNING: [Synth 8-3331] design memory__parameterized1 has unconnected port mem_counter_read[0]
+WARNING: [Synth 8-3331] design memory__parameterized0 has unconnected port stride_segment_counter[1]
+WARNING: [Synth 8-3331] design memory__parameterized0 has unconnected port stride_segment_counter[0]
+WARNING: [Synth 8-3331] design memory__parameterized0 has unconnected port mem_counter_read[3]
+WARNING: [Synth 8-3331] design memory__parameterized0 has unconnected port mem_counter_read[2]
+WARNING: [Synth 8-3331] design memory__parameterized0 has unconnected port mem_counter_read[1]
+WARNING: [Synth 8-3331] design memory__parameterized0 has unconnected port mem_counter_read[0]
+WARNING: [Synth 8-3331] design memory has unconnected port mem_counter_read[1]
+WARNING: [Synth 8-3331] design memory has unconnected port mem_counter_read[0]
+---------------------------------------------------------------------------------
+Finished RTL Elaboration : Time (s): cpu = 00:00:02 ; elapsed = 00:00:03 . Memory (MB): peak = 1443.672 ; gain = 88.777 ; free physical = 5801 ; free virtual = 17383
+---------------------------------------------------------------------------------
+
+Report Check Netlist: 
++------+------------------+-------+---------+-------+------------------+
+|      |Item              |Errors |Warnings |Status |Description       |
++------+------------------+-------+---------+-------+------------------+
+|1     |multi_driven_nets |      0|        0|Passed |Multi driven nets |
++------+------------------+-------+---------+-------+------------------+
+---------------------------------------------------------------------------------
+Start Handling Custom Attributes
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:02 ; elapsed = 00:00:03 . Memory (MB): peak = 1443.672 ; gain = 88.777 ; free physical = 5801 ; free virtual = 17383
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:02 ; elapsed = 00:00:03 . Memory (MB): peak = 1443.672 ; gain = 88.777 ; free physical = 5801 ; free virtual = 17383
+---------------------------------------------------------------------------------
+INFO: [Device 21-403] Loading part xc7a200tfbg676-2
+INFO: [Project 1-570] Preparing netlist for logic optimization
+
+Processing XDC Constraints
+Initializing timing engine
+Parsing XDC File [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/constraints.xdc]
+Finished Parsing XDC File [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/constraints.xdc]
+INFO: [Project 1-236] Implementation specific constraints were found while reading constraint file [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/constraints.xdc]. These constraints will be ignored for synthesis but will be used in implementation. Impacted constraints are listed in the file [.Xil/fft_top_propImpl.xdc].
+Resolution: To avoid this warning, move constraints listed in [.Xil/fft_top_propImpl.xdc] to another XDC file and exclude this new file from synthesis with the used_in_synthesis property (File Properties dialog in GUI) and re-run elaboration/synthesis.
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 1936.758 ; gain = 0.000 ; free physical = 5494 ; free virtual = 17074
+Completed Processing XDC Constraints
+
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 1936.758 ; gain = 0.000 ; free physical = 5494 ; free virtual = 17074
+INFO: [Project 1-111] Unisim Transformation Summary:
+No Unisim elements were transformed.
+
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 1936.758 ; gain = 0.000 ; free physical = 5494 ; free virtual = 17074
+Constraint Validation Runtime : Time (s): cpu = 00:00:00.01 ; elapsed = 00:00:00.01 . Memory (MB): peak = 1936.758 ; gain = 0.000 ; free physical = 5494 ; free virtual = 17074
+---------------------------------------------------------------------------------
+Finished Constraint Validation : Time (s): cpu = 00:00:11 ; elapsed = 00:00:11 . Memory (MB): peak = 1936.758 ; gain = 581.863 ; free physical = 5659 ; free virtual = 17239
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Loading Part and Timing Information
+---------------------------------------------------------------------------------
+Loading part: xc7a200tfbg676-2
+---------------------------------------------------------------------------------
+Finished Loading Part and Timing Information : Time (s): cpu = 00:00:11 ; elapsed = 00:00:11 . Memory (MB): peak = 1936.758 ; gain = 581.863 ; free physical = 5659 ; free virtual = 17239
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Applying 'set_property' XDC Constraints
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:00:11 ; elapsed = 00:00:11 . Memory (MB): peak = 1936.758 ; gain = 581.863 ; free physical = 5661 ; free virtual = 17240
+---------------------------------------------------------------------------------
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "w_real". This will be implemented in logic
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "w_imag". This will be implemented in logic
+INFO: [Synth 8-5546] ROM "stride_segment_counter" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "flush_count" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "w_real". This will be implemented in logic
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "w_imag". This will be implemented in logic
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "w_real". This will be implemented in logic
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "w_imag". This will be implemented in logic
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "w_real". This will be implemented in logic
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "w_imag". This will be implemented in logic
+INFO: [Synth 8-5546] ROM "stride_segment_counter" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "flush_count" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "w_real". This will be implemented in logic
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "w_imag". This will be implemented in logic
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "w_real". This will be implemented in logic
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "w_imag". This will be implemented in logic
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "w_real". This will be implemented in logic
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "w_imag". This will be implemented in logic
+INFO: [Synth 8-5546] ROM "stride_segment_counter" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "flush_count" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "w_real". This will be implemented in logic
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "w_imag". This will be implemented in logic
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "w_real". This will be implemented in logic
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "w_imag". This will be implemented in logic
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "w_real". This will be implemented in logic
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "w_imag". This will be implemented in logic
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 2 : Time (s): cpu = 00:00:12 ; elapsed = 00:00:12 . Memory (MB): peak = 1936.758 ; gain = 581.863 ; free physical = 5650 ; free virtual = 17231
+---------------------------------------------------------------------------------
+
+Report RTL Partitions: 
++------+-----------------------------------+------------+----------+
+|      |RTL Partition                      |Replication |Instances |
++------+-----------------------------------+------------+----------+
+|1     |butterfly_radix4_pipeline          |           4|     25751|
+|2     |SdfUnit4_fast__GC0                 |           1|       402|
+|3     |SdfUnit4_fast__parameterized0__GC0 |           1|      3110|
+|4     |SdfUnit4_fast__parameterized1__GC0 |           1|      3069|
+|5     |SdfUnit4_fast__parameterized2__GC0 |           1|      3154|
++------+-----------------------------------+------------+----------+
+---------------------------------------------------------------------------------
+Start RTL Component Statistics 
+---------------------------------------------------------------------------------
+Detailed RTL Component Info : 
++---Adders : 
+	   4 Input     24 Bit       Adders := 48    
+	   3 Input     24 Bit       Adders := 12    
+	   2 Input     24 Bit       Adders := 12    
+	   2 Input     16 Bit       Adders := 32    
+	   3 Input     16 Bit       Adders := 32    
+	   2 Input      8 Bit       Adders := 3     
+	   2 Input      7 Bit       Adders := 2     
+	   2 Input      6 Bit       Adders := 5     
+	   2 Input      5 Bit       Adders := 2     
+	   2 Input      4 Bit       Adders := 2     
+	   2 Input      3 Bit       Adders := 2     
+	   2 Input      2 Bit       Adders := 2     
++---XORs : 
+	   3 Input     24 Bit         XORs := 288   
++---Registers : 
+	               32 Bit    Registers := 24    
+	               24 Bit    Registers := 1272  
+	               16 Bit    Registers := 258   
+	                8 Bit    Registers := 400   
+	                7 Bit    Registers := 4     
+	                6 Bit    Registers := 12    
+	                5 Bit    Registers := 4     
+	                4 Bit    Registers := 9     
+	                3 Bit    Registers := 4     
+	                2 Bit    Registers := 9     
+	                1 Bit    Registers := 520   
++---RAMs : 
+	               4K Bit         RAMs := 4     
+	             1024 Bit         RAMs := 4     
+	              256 Bit         RAMs := 4     
++---Muxes : 
+	   4 Input     32 Bit        Muxes := 24    
+	   2 Input     24 Bit        Muxes := 48    
+	   2 Input     16 Bit        Muxes := 6     
+	   4 Input      8 Bit        Muxes := 4     
+	   4 Input      6 Bit        Muxes := 4     
+	   4 Input      4 Bit        Muxes := 4     
+	   2 Input      1 Bit        Muxes := 112   
+	   3 Input      1 Bit        Muxes := 1     
+---------------------------------------------------------------------------------
+Finished RTL Component Statistics 
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start RTL Hierarchical Component Statistics 
+---------------------------------------------------------------------------------
+Hierarchical RTL Component report 
+Module multiplier_sythesis_2__1 
+Detailed RTL Component Info : 
++---Adders : 
+	   4 Input     24 Bit       Adders := 1     
++---XORs : 
+	   3 Input     24 Bit         XORs := 6     
++---Registers : 
+	               24 Bit    Registers := 25    
+	                8 Bit    Registers := 7     
+	                1 Bit    Registers := 10    
++---Muxes : 
+	   2 Input     24 Bit        Muxes := 1     
+	   2 Input      1 Bit        Muxes := 2     
+Module multiplier_sythesis_2__2 
+Detailed RTL Component Info : 
++---Adders : 
+	   4 Input     24 Bit       Adders := 1     
++---XORs : 
+	   3 Input     24 Bit         XORs := 6     
++---Registers : 
+	               24 Bit    Registers := 25    
+	                8 Bit    Registers := 7     
+	                1 Bit    Registers := 10    
++---Muxes : 
+	   2 Input     24 Bit        Muxes := 1     
+	   2 Input      1 Bit        Muxes := 2     
+Module multiplier_sythesis_2__3 
+Detailed RTL Component Info : 
++---Adders : 
+	   4 Input     24 Bit       Adders := 1     
++---XORs : 
+	   3 Input     24 Bit         XORs := 6     
++---Registers : 
+	               24 Bit    Registers := 25    
+	                8 Bit    Registers := 7     
+	                1 Bit    Registers := 10    
++---Muxes : 
+	   2 Input     24 Bit        Muxes := 1     
+	   2 Input      1 Bit        Muxes := 2     
+Module multiplier_sythesis_2__4 
+Detailed RTL Component Info : 
++---Adders : 
+	   4 Input     24 Bit       Adders := 1     
++---XORs : 
+	   3 Input     24 Bit         XORs := 6     
++---Registers : 
+	               24 Bit    Registers := 25    
+	                8 Bit    Registers := 7     
+	                1 Bit    Registers := 10    
++---Muxes : 
+	   2 Input     24 Bit        Muxes := 1     
+	   2 Input      1 Bit        Muxes := 2     
+Module multiplier_sythesis_2__5 
+Detailed RTL Component Info : 
++---Adders : 
+	   4 Input     24 Bit       Adders := 1     
++---XORs : 
+	   3 Input     24 Bit         XORs := 6     
++---Registers : 
+	               24 Bit    Registers := 25    
+	                8 Bit    Registers := 7     
+	                1 Bit    Registers := 10    
++---Muxes : 
+	   2 Input     24 Bit        Muxes := 1     
+	   2 Input      1 Bit        Muxes := 2     
+Module multiplier_sythesis_2__6 
+Detailed RTL Component Info : 
++---Adders : 
+	   4 Input     24 Bit       Adders := 1     
++---XORs : 
+	   3 Input     24 Bit         XORs := 6     
++---Registers : 
+	               24 Bit    Registers := 25    
+	                8 Bit    Registers := 7     
+	                1 Bit    Registers := 10    
++---Muxes : 
+	   2 Input     24 Bit        Muxes := 1     
+	   2 Input      1 Bit        Muxes := 2     
+Module multiplier_sythesis_2__7 
+Detailed RTL Component Info : 
++---Adders : 
+	   4 Input     24 Bit       Adders := 1     
++---XORs : 
+	   3 Input     24 Bit         XORs := 6     
++---Registers : 
+	               24 Bit    Registers := 25    
+	                8 Bit    Registers := 7     
+	                1 Bit    Registers := 10    
++---Muxes : 
+	   2 Input     24 Bit        Muxes := 1     
+	   2 Input      1 Bit        Muxes := 2     
+Module multiplier_sythesis_2__8 
+Detailed RTL Component Info : 
++---Adders : 
+	   4 Input     24 Bit       Adders := 1     
++---XORs : 
+	   3 Input     24 Bit         XORs := 6     
++---Registers : 
+	               24 Bit    Registers := 25    
+	                8 Bit    Registers := 7     
+	                1 Bit    Registers := 10    
++---Muxes : 
+	   2 Input     24 Bit        Muxes := 1     
+	   2 Input      1 Bit        Muxes := 2     
+Module multiplier_sythesis_2__9 
+Detailed RTL Component Info : 
++---Adders : 
+	   4 Input     24 Bit       Adders := 1     
++---XORs : 
+	   3 Input     24 Bit         XORs := 6     
++---Registers : 
+	               24 Bit    Registers := 25    
+	                8 Bit    Registers := 7     
+	                1 Bit    Registers := 10    
++---Muxes : 
+	   2 Input     24 Bit        Muxes := 1     
+	   2 Input      1 Bit        Muxes := 2     
+Module multiplier_sythesis_2__10 
+Detailed RTL Component Info : 
++---Adders : 
+	   4 Input     24 Bit       Adders := 1     
++---XORs : 
+	   3 Input     24 Bit         XORs := 6     
++---Registers : 
+	               24 Bit    Registers := 25    
+	                8 Bit    Registers := 7     
+	                1 Bit    Registers := 10    
++---Muxes : 
+	   2 Input     24 Bit        Muxes := 1     
+	   2 Input      1 Bit        Muxes := 2     
+Module multiplier_sythesis_2__11 
+Detailed RTL Component Info : 
++---Adders : 
+	   4 Input     24 Bit       Adders := 1     
++---XORs : 
+	   3 Input     24 Bit         XORs := 6     
++---Registers : 
+	               24 Bit    Registers := 25    
+	                8 Bit    Registers := 7     
+	                1 Bit    Registers := 10    
++---Muxes : 
+	   2 Input     24 Bit        Muxes := 1     
+	   2 Input      1 Bit        Muxes := 2     
+Module multiplier_sythesis_2 
+Detailed RTL Component Info : 
++---Adders : 
+	   4 Input     24 Bit       Adders := 1     
++---XORs : 
+	   3 Input     24 Bit         XORs := 6     
++---Registers : 
+	               24 Bit    Registers := 25    
+	                8 Bit    Registers := 7     
+	                1 Bit    Registers := 10    
++---Muxes : 
+	   2 Input     24 Bit        Muxes := 1     
+	   2 Input      1 Bit        Muxes := 2     
+Module butterfly_radix4_pipeline 
+Detailed RTL Component Info : 
++---Adders : 
+	   3 Input     24 Bit       Adders := 3     
+	   2 Input     24 Bit       Adders := 3     
+	   2 Input     16 Bit       Adders := 8     
+	   3 Input     16 Bit       Adders := 8     
++---Registers : 
+	               24 Bit    Registers := 18    
+	               16 Bit    Registers := 44    
+	                8 Bit    Registers := 6     
+	                1 Bit    Registers := 5     
+Module SdfUnit4_fast 
+Detailed RTL Component Info : 
++---Registers : 
+	               16 Bit    Registers := 16    
+	                8 Bit    Registers := 4     
+	                1 Bit    Registers := 2     
+Module memory 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 8     
+	                2 Bit    Registers := 2     
++---RAMs : 
+	              256 Bit         RAMs := 4     
++---Muxes : 
+	   4 Input     32 Bit        Muxes := 8     
+	   4 Input      4 Bit        Muxes := 4     
+Module SdfUnit4_fast__parameterized0 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      8 Bit       Adders := 1     
+	   2 Input      6 Bit       Adders := 1     
+	   2 Input      3 Bit       Adders := 2     
+	   2 Input      2 Bit       Adders := 2     
++---Registers : 
+	               16 Bit    Registers := 22    
+	                8 Bit    Registers := 12    
+	                6 Bit    Registers := 1     
+	                3 Bit    Registers := 4     
+	                2 Bit    Registers := 7     
+	                1 Bit    Registers := 6     
++---Muxes : 
+	   2 Input     16 Bit        Muxes := 2     
+	   2 Input      1 Bit        Muxes := 4     
+	   3 Input      1 Bit        Muxes := 1     
+Module memory__parameterized0 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 8     
+	                4 Bit    Registers := 2     
++---RAMs : 
+	             1024 Bit         RAMs := 4     
++---Muxes : 
+	   4 Input     32 Bit        Muxes := 8     
+	   4 Input      6 Bit        Muxes := 4     
+Module SdfUnit4_fast__parameterized1 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      8 Bit       Adders := 1     
+	   2 Input      6 Bit       Adders := 1     
+	   2 Input      5 Bit       Adders := 2     
+	   2 Input      4 Bit       Adders := 2     
++---Registers : 
+	               16 Bit    Registers := 22    
+	                8 Bit    Registers := 12    
+	                6 Bit    Registers := 1     
+	                5 Bit    Registers := 4     
+	                4 Bit    Registers := 7     
+	                1 Bit    Registers := 6     
++---Muxes : 
+	   2 Input     16 Bit        Muxes := 2     
+	   2 Input      1 Bit        Muxes := 6     
+Module memory__parameterized1 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 8     
+	                6 Bit    Registers := 2     
++---RAMs : 
+	               4K Bit         RAMs := 4     
++---Muxes : 
+	   4 Input     32 Bit        Muxes := 8     
+	   4 Input      8 Bit        Muxes := 4     
+Module SdfUnit4_fast__parameterized2 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      8 Bit       Adders := 1     
+	   2 Input      7 Bit       Adders := 2     
+	   2 Input      6 Bit       Adders := 3     
++---Registers : 
+	               16 Bit    Registers := 22    
+	                8 Bit    Registers := 12    
+	                7 Bit    Registers := 4     
+	                6 Bit    Registers := 8     
+	                1 Bit    Registers := 6     
++---Muxes : 
+	   2 Input     16 Bit        Muxes := 2     
+	   2 Input      1 Bit        Muxes := 6     
+---------------------------------------------------------------------------------
+Finished RTL Hierarchical Component Statistics
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Part Resource Summary
+---------------------------------------------------------------------------------
+Part Resources:
+DSPs: 740 (col length:100)
+BRAMs: 730 (col length: RAMB18 100 RAMB36 50)
+---------------------------------------------------------------------------------
+Finished Part Resource Summary
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Cross Boundary and Area Optimization
+---------------------------------------------------------------------------------
+Warning: Parallel synthesis criteria is not met 
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "p_0_out". This will be implemented in logic
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "p_0_out". This will be implemented in logic
+INFO: [Synth 8-5546] ROM "stride_segment_counter" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "p_0_out". This will be implemented in logic
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "p_0_out". This will be implemented in logic
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "p_0_out". This will be implemented in logic
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "p_0_out". This will be implemented in logic
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "p_0_out". This will be implemented in logic
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "p_0_out". This will be implemented in logic
+INFO: [Synth 8-5546] ROM "flush_count" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "stride_segment_counter" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "p_0_out". This will be implemented in logic
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "p_0_out". This will be implemented in logic
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "p_0_out". This will be implemented in logic
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "p_0_out". This will be implemented in logic
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "p_0_out". This will be implemented in logic
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "p_0_out". This will be implemented in logic
+INFO: [Synth 8-5546] ROM "flush_count" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "stride_segment_counter" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "p_0_out". This will be implemented in logic
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "p_0_out". This will be implemented in logic
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "p_0_out". This will be implemented in logic
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "p_0_out". This will be implemented in logic
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "p_0_out". This will be implemented in logic
+INFO: [Synth 8-5542] Attribute ram_style/rom_style = distributed specified for ROM  "p_0_out". This will be implemented in logic
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][23]' (FD) to 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][0]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][0]' (FD) to 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][1]' (FD) to 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][2]' (FD) to 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][3]' (FD) to 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][4]' (FD) to 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][5]' (FD) to 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][6]' (FD) to 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][7]' (FD) to 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][8]' (FD) to 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][9]' (FD) to 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][10]' (FD) to 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][11]' (FD) to 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][12]' (FD) to 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][13]' (FD) to 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][14]' (FD) to 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][15]' (FD) to 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/sum_pipe_reg[0][23]' (FDR) to 'butterfly_radix4_pipeline:/pm1i/sum_pipe_reg[0][15]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/sum_pipe_reg[0][15]' (FDR) to 'butterfly_radix4_pipeline:/pm1i/sum_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][22]' (FD) to 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][21]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/a_pipe_reg[0][23]' (FDR) to 'butterfly_radix4_pipeline:/pm1i/a_pipe_reg[0][21]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/a_pipe_reg[0][22]' (FDR) to 'butterfly_radix4_pipeline:/pm1i/a_pipe_reg[0][21]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/a_pipe_reg[0][21]' (FDR) to 'butterfly_radix4_pipeline:/pm1i/a_pipe_reg[0][20]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/sum_pipe_reg[0][22]' (FDR) to 'butterfly_radix4_pipeline:/pm1i/sum_pipe_reg[0][21]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][16]' (FD) to 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][21]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/sum_pipe_reg[0][16]' (FDR) to 'butterfly_radix4_pipeline:/pm1i/sum_pipe_reg[0][21]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][17]' (FD) to 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][21]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/sum_pipe_reg[0][17]' (FDR) to 'butterfly_radix4_pipeline:/pm1i/sum_pipe_reg[0][21]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/a_pipe_reg[0][16]' (FDR) to 'butterfly_radix4_pipeline:/pm1i/a_pipe_reg[0][20]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][18]' (FD) to 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][21]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/sum_pipe_reg[0][18]' (FDR) to 'butterfly_radix4_pipeline:/pm1i/sum_pipe_reg[0][21]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/a_pipe_reg[0][17]' (FDR) to 'butterfly_radix4_pipeline:/pm1i/a_pipe_reg[0][20]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][19]' (FD) to 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][21]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/sum_pipe_reg[0][19]' (FDR) to 'butterfly_radix4_pipeline:/pm1i/sum_pipe_reg[0][21]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/a_pipe_reg[0][18]' (FDR) to 'butterfly_radix4_pipeline:/pm1i/a_pipe_reg[0][20]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][20]' (FD) to 'butterfly_radix4_pipeline:/pm1i/carry_pipe_reg[0][21]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/sum_pipe_reg[0][20]' (FDR) to 'butterfly_radix4_pipeline:/pm1i/sum_pipe_reg[0][21]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/a_pipe_reg[0][19]' (FDR) to 'butterfly_radix4_pipeline:/pm1i/a_pipe_reg[0][20]'
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm1i/\carry_pipe_reg[0][21] )
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i/a_pipe_reg[0][20]' (FDR) to 'butterfly_radix4_pipeline:/pm1i/a_pipe_reg[0][15]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][23]' (FD) to 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][0]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][0]' (FD) to 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][1]' (FD) to 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][2]' (FD) to 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][3]' (FD) to 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][4]' (FD) to 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][5]' (FD) to 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][6]' (FD) to 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][7]' (FD) to 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][8]' (FD) to 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][9]' (FD) to 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][10]' (FD) to 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][11]' (FD) to 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][12]' (FD) to 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][13]' (FD) to 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][14]' (FD) to 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][15]' (FD) to 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/sum_pipe_reg[0][23]' (FDR) to 'butterfly_radix4_pipeline:/pm1i_2/sum_pipe_reg[0][15]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/sum_pipe_reg[0][15]' (FDR) to 'butterfly_radix4_pipeline:/pm1i_2/sum_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][22]' (FD) to 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][21]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/a_pipe_reg[0][23]' (FDR) to 'butterfly_radix4_pipeline:/pm1i_2/a_pipe_reg[0][21]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/a_pipe_reg[0][22]' (FDR) to 'butterfly_radix4_pipeline:/pm1i_2/a_pipe_reg[0][21]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/a_pipe_reg[0][21]' (FDR) to 'butterfly_radix4_pipeline:/pm1i_2/a_pipe_reg[0][20]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/sum_pipe_reg[0][22]' (FDR) to 'butterfly_radix4_pipeline:/pm1i_2/sum_pipe_reg[0][21]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][16]' (FD) to 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][21]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/sum_pipe_reg[0][16]' (FDR) to 'butterfly_radix4_pipeline:/pm1i_2/sum_pipe_reg[0][21]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][17]' (FD) to 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][21]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/sum_pipe_reg[0][17]' (FDR) to 'butterfly_radix4_pipeline:/pm1i_2/sum_pipe_reg[0][21]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/a_pipe_reg[0][16]' (FDR) to 'butterfly_radix4_pipeline:/pm1i_2/a_pipe_reg[0][20]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][18]' (FD) to 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][21]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/sum_pipe_reg[0][18]' (FDR) to 'butterfly_radix4_pipeline:/pm1i_2/sum_pipe_reg[0][21]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/a_pipe_reg[0][17]' (FDR) to 'butterfly_radix4_pipeline:/pm1i_2/a_pipe_reg[0][20]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][19]' (FD) to 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][21]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/sum_pipe_reg[0][19]' (FDR) to 'butterfly_radix4_pipeline:/pm1i_2/sum_pipe_reg[0][21]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/a_pipe_reg[0][18]' (FDR) to 'butterfly_radix4_pipeline:/pm1i_2/a_pipe_reg[0][20]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][20]' (FD) to 'butterfly_radix4_pipeline:/pm1i_2/carry_pipe_reg[0][21]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/sum_pipe_reg[0][20]' (FDR) to 'butterfly_radix4_pipeline:/pm1i_2/sum_pipe_reg[0][21]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/a_pipe_reg[0][19]' (FDR) to 'butterfly_radix4_pipeline:/pm1i_2/a_pipe_reg[0][20]'
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm1i_2/\carry_pipe_reg[0][21] )
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm1i_2/a_pipe_reg[0][20]' (FDR) to 'butterfly_radix4_pipeline:/pm1i_2/a_pipe_reg[0][15]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][23]' (FD) to 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][0]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][0]' (FD) to 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][1]' (FD) to 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][2]' (FD) to 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][3]' (FD) to 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][4]' (FD) to 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][5]' (FD) to 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][6]' (FD) to 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][7]' (FD) to 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][8]' (FD) to 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][9]' (FD) to 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][10]' (FD) to 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][11]' (FD) to 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][12]' (FD) to 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][13]' (FD) to 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][14]' (FD) to 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][15]' (FD) to 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm0i/sum_pipe_reg[0][23]' (FDR) to 'butterfly_radix4_pipeline:/pm0i/sum_pipe_reg[0][15]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm0i/sum_pipe_reg[0][15]' (FDR) to 'butterfly_radix4_pipeline:/pm0i/sum_pipe_reg[0][22]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][22]' (FD) to 'butterfly_radix4_pipeline:/pm0i/carry_pipe_reg[0][21]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm0i/a_pipe_reg[0][23]' (FDR) to 'butterfly_radix4_pipeline:/pm0i/a_pipe_reg[0][21]'
+INFO: [Synth 8-3886] merging instance 'butterfly_radix4_pipeline:/pm0i/a_pipe_reg[0][22]' (FDR) to 'butterfly_radix4_pipeline:/pm0i/a_pipe_reg[0][21]'
+INFO: [Common 17-14] Message 'Synth 8-3886' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm0i/\carry_pipe_reg[0][21] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm0i_2/\carry_pipe_reg[0][21] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm2i/\carry_pipe_reg[0][21] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm2i_2/\carry_pipe_reg[0][21] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm1r/\carry_pipe_reg[0][21] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm1r_2/\carry_pipe_reg[0][21] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm0r/\carry_pipe_reg[0][21] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm0r_2/\carry_pipe_reg[0][21] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm2r/\carry_pipe_reg[0][21] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm2r_2/\carry_pipe_reg[0][21] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm1i/\carry_pipe_reg[6][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm1i_2/\carry_pipe_reg[6][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm0i/\carry_pipe_reg[6][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm0i_2/\carry_pipe_reg[6][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm2i/\carry_pipe_reg[6][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm2i_2/\carry_pipe_reg[6][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm1r/\carry_pipe_reg[6][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm1r_2/\carry_pipe_reg[6][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm0r/\carry_pipe_reg[6][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm0r_2/\carry_pipe_reg[6][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm2r/\carry_pipe_reg[6][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm2r_2/\carry_pipe_reg[6][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm1i/\final_pp_reg[6] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm1i_2/\final_pp_reg[6] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm0i/\final_pp_reg[6] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm0i_2/\final_pp_reg[6] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm2i/\final_pp_reg[6] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm2i_2/\final_pp_reg[6] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm1r/\final_pp_reg[6] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm1r_2/\final_pp_reg[6] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm0r/\final_pp_reg[6] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm0r_2/\final_pp_reg[6] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm2r/\final_pp_reg[6] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm2r_2/\final_pp_reg[6] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm1i/\carry_pipe_reg[6][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm1i_2/\carry_pipe_reg[6][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm0i/\carry_pipe_reg[6][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm0i_2/\carry_pipe_reg[6][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm2i/\carry_pipe_reg[6][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm2i_2/\carry_pipe_reg[6][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm1r/\carry_pipe_reg[6][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm1r_2/\carry_pipe_reg[6][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm0r/\carry_pipe_reg[6][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm0r_2/\carry_pipe_reg[6][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm2r/\carry_pipe_reg[6][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline:/pm2r_2/\carry_pipe_reg[6][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[0].stage_insti_0 /\twiddle_index_0_r_reg[5] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[1].stage_insti_1 /\twiddle_index_0_r_reg[6] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[1].stage_insti_1 /\twiddle_index_0_r_reg[6] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[1].stage_insti_1 /\twiddle_index_0_r_reg[6] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[2].stage_insti_2 /\twiddle_index_0_r_reg[6] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[2].stage_insti_2 /\twiddle_index_0_r_reg[6] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[2].stage_insti_2 /\twiddle_index_0_r_reg[6] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[3].stage_insti_3 /\twiddle_index_1_r_reg[7] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[3].stage_insti_3 /\twiddle_index_1_r_reg[7] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[3].stage_insti_3 /\twiddle_index_1_r_reg[7] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[0].stage_inst/b4 /\w1r_reg_reg[7] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[0].stage_inst/b4 /\w1i_reg_reg[7] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[0].stage_inst/b4 /\w1i_reg_reg[5] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[0].stage_inst/b4 /\w1i_reg_reg[4] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[0].stage_inst/b4 /\w1i_reg_reg[3] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[0].stage_inst/b4 /\w1i_reg_reg[2] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[0].stage_inst/b4 /\w1i_reg_reg[1] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[0].stage_inst/b4 /\w1i_reg_reg[0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[0].stage_inst/b4 /\w1i_reg_reg[6] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[0].stage_inst/b4 /\w0r_reg_reg[7] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[0].stage_inst/b4 /\w0i_reg_reg[7] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[0].stage_inst/b4 /\w0i_reg_reg[5] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[0].stage_inst/b4 /\w0i_reg_reg[4] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[0].stage_inst/b4 /\w0i_reg_reg[3] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[0].stage_inst/b4 /\w0i_reg_reg[2] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[0].stage_inst/b4 /\w0i_reg_reg[1] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[0].stage_inst/b4 /\w0i_reg_reg[0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[0].stage_inst/b4 /\w0i_reg_reg[6] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[0].stage_inst/b4 /\w2r_reg_reg[7] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[0].stage_inst/b4 /\w2i_reg_reg[7] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[0].stage_inst/b4 /\w2i_reg_reg[5] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[0].stage_inst/b4 /\w2i_reg_reg[4] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[0].stage_inst/b4 /\w2i_reg_reg[3] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[0].stage_inst/b4 /\w2i_reg_reg[2] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[0].stage_inst/b4 /\w2i_reg_reg[1] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[0].stage_inst/b4 /\w2i_reg_reg[0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[0].stage_inst/b4 /\w2i_reg_reg[6] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[1].stage_inst/b4 /\w1i_reg_reg[4] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[1].stage_inst/b4 /\w1i_reg_reg[3] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[1].stage_inst/b4 /\w1i_reg_reg[0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[1].stage_inst/b4 /\w1i_reg_reg[6] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[1].stage_inst/b4 /\w0r_reg_reg[7] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\gen_stages[1].stage_inst/b4 /\w0i_reg_reg[0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (butterfly_radix4_pipeline__2:/\w0r_reg_reg[7] )
+---------------------------------------------------------------------------------
+Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:00:26 ; elapsed = 00:00:28 . Memory (MB): peak = 1936.758 ; gain = 581.863 ; free physical = 5605 ; free virtual = 17197
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start ROM, RAM, DSP and Shift Register Reporting
+---------------------------------------------------------------------------------
+
+ROM:
++--------------+------------+---------------+----------------+
+|Module Name   | RTL Object | Depth x Width | Implemented As | 
++--------------+------------+---------------+----------------+
+|SdfUnit4_fast | p_0_out    | 256x8         | LUT            | 
+|SdfUnit4_fast | p_0_out    | 256x8         | LUT            | 
+|SdfUnit4_fast | p_0_out    | 256x8         | LUT            | 
+|SdfUnit4_fast | p_0_out    | 256x8         | LUT            | 
+|SdfUnit4_fast | p_0_out    | 256x8         | LUT            | 
+|SdfUnit4_fast | p_0_out    | 256x8         | LUT            | 
+|SdfUnit4_fast | p_0_out    | 256x8         | LUT            | 
+|SdfUnit4_fast | p_0_out    | 256x8         | LUT            | 
+|SdfUnit4_fast | p_0_out    | 256x8         | LUT            | 
+|SdfUnit4_fast | p_0_out    | 256x8         | LUT            | 
+|SdfUnit4_fast | p_0_out    | 256x8         | LUT            | 
+|SdfUnit4_fast | p_0_out    | 256x8         | LUT            | 
+|SdfUnit4_fast | p_0_out    | 256x8         | LUT            | 
+|SdfUnit4_fast | p_0_out    | 256x8         | LUT            | 
+|SdfUnit4_fast | p_0_out    | 256x8         | LUT            | 
+|SdfUnit4_fast | p_0_out    | 256x8         | LUT            | 
+|SdfUnit4_fast | p_0_out    | 256x8         | LUT            | 
+|SdfUnit4_fast | p_0_out    | 256x8         | LUT            | 
+|SdfUnit4_fast | p_0_out    | 256x8         | LUT            | 
+|SdfUnit4_fast | p_0_out    | 256x8         | LUT            | 
+|fft_top       | p_0_out    | 256x8         | LUT            | 
+|fft_top       | p_0_out    | 256x8         | LUT            | 
+|fft_top       | p_0_out    | 256x8         | LUT            | 
+|fft_top       | p_0_out    | 256x8         | LUT            | 
+|fft_top       | p_0_out    | 256x8         | LUT            | 
+|fft_top       | p_0_out    | 256x8         | LUT            | 
+|fft_top       | p_0_out    | 256x8         | LUT            | 
+|fft_top       | p_0_out    | 256x8         | LUT            | 
+|fft_top       | p_0_out    | 256x8         | LUT            | 
+|fft_top       | p_0_out    | 256x8         | LUT            | 
+|fft_top       | p_0_out    | 256x8         | LUT            | 
+|fft_top       | p_0_out    | 256x8         | LUT            | 
+|fft_top       | p_0_out    | 256x8         | LUT            | 
+|fft_top       | p_0_out    | 256x8         | LUT            | 
+|fft_top       | p_0_out    | 256x8         | LUT            | 
+|fft_top       | p_0_out    | 256x8         | LUT            | 
+|fft_top       | p_0_out    | 256x8         | LUT            | 
+|fft_top       | p_0_out    | 256x8         | LUT            | 
+|fft_top       | p_0_out    | 256x8         | LUT            | 
+|fft_top       | p_0_out    | 256x8         | LUT            | 
++--------------+------------+---------------+----------------+
+
+
+Block RAM: Preliminary Mapping  Report (see note below)
++------------------------+------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
+|Module Name             | RTL Object | PORT A (Depth x Width) | W | R | PORT B (Depth x Width) | W | R | Ports driving FF | RAMB18 | RAMB36 | 
++------------------------+------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
+|memory__parameterized0: | mem_D_reg  | 32 x 32(READ_FIRST)    | W |   | 32 x 32(WRITE_FIRST)   |   | R | Port A and B     | 1      | 0      | 
+|memory__parameterized0: | mem_C_reg  | 32 x 32(READ_FIRST)    | W |   | 32 x 32(WRITE_FIRST)   |   | R | Port A and B     | 1      | 0      | 
+|memory__parameterized0: | mem_B_reg  | 32 x 32(READ_FIRST)    | W |   | 32 x 32(WRITE_FIRST)   |   | R | Port A and B     | 1      | 0      | 
+|memory__parameterized0: | mem_A_reg  | 32 x 32(READ_FIRST)    | W |   | 32 x 32(WRITE_FIRST)   |   | R | Port A and B     | 1      | 0      | 
+|memory__parameterized1: | mem_D_reg  | 128 x 32(READ_FIRST)   | W |   | 128 x 32(WRITE_FIRST)  |   | R | Port A and B     | 1      | 0      | 
+|memory__parameterized1: | mem_C_reg  | 128 x 32(READ_FIRST)   | W |   | 128 x 32(WRITE_FIRST)  |   | R | Port A and B     | 1      | 0      | 
+|memory__parameterized1: | mem_B_reg  | 128 x 32(READ_FIRST)   | W |   | 128 x 32(WRITE_FIRST)  |   | R | Port A and B     | 1      | 0      | 
+|memory__parameterized1: | mem_A_reg  | 128 x 32(READ_FIRST)   | W |   | 128 x 32(WRITE_FIRST)  |   | R | Port A and B     | 1      | 0      | 
++------------------------+------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
+
+Note: The table above is a preliminary report that shows the Block RAMs at the current stage of the synthesis flow. Some Block RAMs may be reimplemented as non Block RAM primitives later in the synthesis flow. Multiple instantiated Block RAMs are reported only once. 
+
+Distributed RAM: Preliminary Mapping  Report (see note below)
++------------+--------------------------+-----------+----------------------+--------------+
+|Module Name | RTL Object               | Inference | Size (Depth x Width) | Primitives   | 
++------------+--------------------------+-----------+----------------------+--------------+
+|fft_top     | gen_memory.mem/mem_D_reg | Implied   | 8 x 32               | RAM32M x 6   | 
+|fft_top     | gen_memory.mem/mem_C_reg | Implied   | 8 x 32               | RAM32M x 6   | 
+|fft_top     | gen_memory.mem/mem_B_reg | Implied   | 8 x 32               | RAM32M x 6   | 
+|fft_top     | gen_memory.mem/mem_A_reg | Implied   | 8 x 32               | RAM32M x 6   | 
++------------+--------------------------+-----------+----------------------+--------------+
+
+Note: The table above is a preliminary report that shows the Distributed RAMs at the current stage of the synthesis flow. Some Distributed RAMs may be reimplemented as non Distributed RAM primitives later in the synthesis flow. Multiple instantiated RAMs are reported only once.
+---------------------------------------------------------------------------------
+Finished ROM, RAM, DSP and Shift Register Reporting
+---------------------------------------------------------------------------------
+INFO: [Synth 8-6837] The timing for the instance gen_stages[2].stage_insti_2/i_0/gen_memory.mem/mem_D_reg (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the block ram. Providing additional output register may help in improving timing.
+INFO: [Synth 8-6837] The timing for the instance gen_stages[2].stage_insti_2/i_1/gen_memory.mem/mem_C_reg (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the block ram. Providing additional output register may help in improving timing.
+INFO: [Synth 8-6837] The timing for the instance gen_stages[2].stage_insti_2/i_2/gen_memory.mem/mem_B_reg (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the block ram. Providing additional output register may help in improving timing.
+INFO: [Synth 8-6837] The timing for the instance gen_stages[2].stage_insti_2/i_3/gen_memory.mem/mem_A_reg (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the block ram. Providing additional output register may help in improving timing.
+INFO: [Synth 8-6837] The timing for the instance gen_stages[3].stage_insti_3/i_0/gen_memory.mem/mem_D_reg (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the block ram. Providing additional output register may help in improving timing.
+INFO: [Synth 8-6837] The timing for the instance gen_stages[3].stage_insti_3/i_1/gen_memory.mem/mem_C_reg (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the block ram. Providing additional output register may help in improving timing.
+INFO: [Synth 8-6837] The timing for the instance gen_stages[3].stage_insti_3/i_2/gen_memory.mem/mem_B_reg (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the block ram. Providing additional output register may help in improving timing.
+INFO: [Synth 8-6837] The timing for the instance gen_stages[3].stage_insti_3/i_3/gen_memory.mem/mem_A_reg (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the block ram. Providing additional output register may help in improving timing.
+
+Report RTL Partitions: 
++------+-----------------------------------+------------+----------+
+|      |RTL Partition                      |Replication |Instances |
++------+-----------------------------------+------------+----------+
+|1     |butterfly_radix4_pipeline          |           1|      8230|
+|2     |SdfUnit4_fast__GC0                 |           1|       258|
+|3     |SdfUnit4_fast__parameterized0__GC0 |           1|      1706|
+|4     |SdfUnit4_fast__parameterized1__GC0 |           1|      1866|
+|5     |SdfUnit4_fast__parameterized2__GC0 |           1|      2239|
+|6     |butterfly_radix4_pipeline__1       |           1|     16172|
+|7     |butterfly_radix4_pipeline__2       |           2|     17470|
++------+-----------------------------------+------------+----------+
+---------------------------------------------------------------------------------
+Start Applying XDC Timing Constraints
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Applying XDC Timing Constraints : Time (s): cpu = 00:00:30 ; elapsed = 00:00:32 . Memory (MB): peak = 1936.758 ; gain = 581.863 ; free physical = 5495 ; free virtual = 17086
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Timing Optimization
+---------------------------------------------------------------------------------
+INFO: [Synth 8-5584] The signal gen_memory.mem/mem_D_reg is implemented as distributed LUT RAM for the following reason(s): The timing constraints suggest that the chosen mapping will yield better timing results.
+INFO: [Synth 8-5584] The signal gen_memory.mem/mem_D_reg is implemented as distributed LUT RAM for the following reason(s): The timing constraints suggest that the chosen mapping will yield better timing results.
+INFO: [Synth 8-5584] The signal gen_memory.mem/mem_C_reg is implemented as distributed LUT RAM for the following reason(s): The timing constraints suggest that the chosen mapping will yield better timing results.
+INFO: [Synth 8-5584] The signal gen_memory.mem/mem_C_reg is implemented as distributed LUT RAM for the following reason(s): The timing constraints suggest that the chosen mapping will yield better timing results.
+INFO: [Synth 8-5584] The signal gen_memory.mem/mem_B_reg is implemented as distributed LUT RAM for the following reason(s): The timing constraints suggest that the chosen mapping will yield better timing results.
+INFO: [Synth 8-5584] The signal gen_memory.mem/mem_B_reg is implemented as distributed LUT RAM for the following reason(s): The timing constraints suggest that the chosen mapping will yield better timing results.
+INFO: [Synth 8-5584] The signal gen_memory.mem/mem_A_reg is implemented as distributed LUT RAM for the following reason(s): The timing constraints suggest that the chosen mapping will yield better timing results.
+INFO: [Synth 8-5584] The signal gen_memory.mem/mem_A_reg is implemented as distributed LUT RAM for the following reason(s): The timing constraints suggest that the chosen mapping will yield better timing results.
+INFO: [Synth 8-5584] The signal gen_memory.mem/mem_D_reg is implemented as distributed LUT RAM for the following reason(s): The timing constraints suggest that the chosen mapping will yield better timing results.
+INFO: [Synth 8-5584] The signal gen_memory.mem/mem_D_reg is implemented as distributed LUT RAM for the following reason(s): The timing constraints suggest that the chosen mapping will yield better timing results.
+INFO: [Synth 8-5584] The signal gen_memory.mem/mem_C_reg is implemented as distributed LUT RAM for the following reason(s): The timing constraints suggest that the chosen mapping will yield better timing results.
+INFO: [Synth 8-5584] The signal gen_memory.mem/mem_C_reg is implemented as distributed LUT RAM for the following reason(s): The timing constraints suggest that the chosen mapping will yield better timing results.
+INFO: [Synth 8-5584] The signal gen_memory.mem/mem_B_reg is implemented as distributed LUT RAM for the following reason(s): The timing constraints suggest that the chosen mapping will yield better timing results.
+INFO: [Synth 8-5584] The signal gen_memory.mem/mem_B_reg is implemented as distributed LUT RAM for the following reason(s): The timing constraints suggest that the chosen mapping will yield better timing results.
+INFO: [Synth 8-5584] The signal gen_memory.mem/mem_A_reg is implemented as distributed LUT RAM for the following reason(s): The timing constraints suggest that the chosen mapping will yield better timing results.
+INFO: [Synth 8-5584] The signal gen_memory.mem/mem_A_reg is implemented as distributed LUT RAM for the following reason(s): The timing constraints suggest that the chosen mapping will yield better timing results.
+---------------------------------------------------------------------------------
+Finished Timing Optimization : Time (s): cpu = 00:00:31 ; elapsed = 00:00:34 . Memory (MB): peak = 1936.758 ; gain = 581.863 ; free physical = 5463 ; free virtual = 17054
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start ROM, RAM, DSP and Shift Register Reporting
+---------------------------------------------------------------------------------
+
+Distributed RAM: Final Mapping  Report
++------------+--------------------------+-----------+----------------------+--------------+
+|Module Name | RTL Object               | Inference | Size (Depth x Width) | Primitives   | 
++------------+--------------------------+-----------+----------------------+--------------+
+|fft_top     | gen_memory.mem/mem_D_reg | Implied   | 8 x 32               | RAM32M x 6   | 
+|fft_top     | gen_memory.mem/mem_C_reg | Implied   | 8 x 32               | RAM32M x 6   | 
+|fft_top     | gen_memory.mem/mem_B_reg | Implied   | 8 x 32               | RAM32M x 6   | 
+|fft_top     | gen_memory.mem/mem_A_reg | Implied   | 8 x 32               | RAM32M x 6   | 
++------------+--------------------------+-----------+----------------------+--------------+
+
+---------------------------------------------------------------------------------
+Finished ROM, RAM, DSP and Shift Register Reporting
+---------------------------------------------------------------------------------
+
+Report RTL Partitions: 
++------+-----------------------------------+------------+----------+
+|      |RTL Partition                      |Replication |Instances |
++------+-----------------------------------+------------+----------+
+|1     |butterfly_radix4_pipeline          |           1|      8230|
+|2     |SdfUnit4_fast__GC0                 |           1|       258|
+|3     |SdfUnit4_fast__parameterized0__GC0 |           1|      1706|
+|4     |SdfUnit4_fast__parameterized1__GC0 |           1|      1868|
+|5     |SdfUnit4_fast__parameterized2__GC0 |           1|      2735|
+|6     |butterfly_radix4_pipeline__1       |           1|     16172|
+|7     |butterfly_radix4_pipeline__2       |           2|     17470|
++------+-----------------------------------+------------+----------+
+---------------------------------------------------------------------------------
+Start Technology Mapping
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Technology Mapping : Time (s): cpu = 00:00:39 ; elapsed = 00:00:42 . Memory (MB): peak = 1936.758 ; gain = 581.863 ; free physical = 5411 ; free virtual = 17002
+---------------------------------------------------------------------------------
+
+Report RTL Partitions: 
++-+--------------+------------+----------+
+| |RTL Partition |Replication |Instances |
++-+--------------+------------+----------+
++-+--------------+------------+----------+
+---------------------------------------------------------------------------------
+Start IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Final Netlist Cleanup
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Final Netlist Cleanup
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished IO Insertion : Time (s): cpu = 00:00:41 ; elapsed = 00:00:44 . Memory (MB): peak = 1936.758 ; gain = 581.863 ; free physical = 5410 ; free virtual = 17002
+---------------------------------------------------------------------------------
+
+Report Check Netlist: 
++------+------------------+-------+---------+-------+------------------+
+|      |Item              |Errors |Warnings |Status |Description       |
++------+------------------+-------+---------+-------+------------------+
+|1     |multi_driven_nets |      0|        0|Passed |Multi driven nets |
++------+------------------+-------+---------+-------+------------------+
+---------------------------------------------------------------------------------
+Start Renaming Generated Instances
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Instances : Time (s): cpu = 00:00:41 ; elapsed = 00:00:44 . Memory (MB): peak = 1936.758 ; gain = 581.863 ; free physical = 5410 ; free virtual = 17002
+---------------------------------------------------------------------------------
+
+Report RTL Partitions: 
++-+--------------+------------+----------+
+| |RTL Partition |Replication |Instances |
++-+--------------+------------+----------+
++-+--------------+------------+----------+
+---------------------------------------------------------------------------------
+Start Rebuilding User Hierarchy
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Rebuilding User Hierarchy : Time (s): cpu = 00:00:43 ; elapsed = 00:00:46 . Memory (MB): peak = 1936.758 ; gain = 581.863 ; free physical = 5415 ; free virtual = 17006
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Ports
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Ports : Time (s): cpu = 00:00:43 ; elapsed = 00:00:46 . Memory (MB): peak = 1936.758 ; gain = 581.863 ; free physical = 5415 ; free virtual = 17006
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Handling Custom Attributes
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:44 ; elapsed = 00:00:46 . Memory (MB): peak = 1936.758 ; gain = 581.863 ; free physical = 5416 ; free virtual = 17007
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Nets
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Nets : Time (s): cpu = 00:00:44 ; elapsed = 00:00:46 . Memory (MB): peak = 1936.758 ; gain = 581.863 ; free physical = 5416 ; free virtual = 17007
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start ROM, RAM, DSP and Shift Register Reporting
+---------------------------------------------------------------------------------
+
+Static Shift Register Report:
++------------+---------------------------------------------------+--------+-------+--------------+--------------------+-------------------+--------+---------+
+|Module Name | RTL Name                                          | Length | Width | Reset Signal | Pull out first Reg | Pull out last Reg | SRL16E | SRLC32E | 
++------------+---------------------------------------------------+--------+-------+--------------+--------------------+-------------------+--------+---------+
+|fft_top     | gen_stages[0].stage_inst/b4/pm0r/final_sum_reg[4] | 4      | 56    | YES          | NO                 | YES               | 56     | 0       | 
+|fft_top     | gen_stages[0].stage_inst/b4/pm0r/final_sum_reg[3] | 5      | 56    | YES          | NO                 | YES               | 56     | 0       | 
+|fft_top     | gen_stages[0].stage_inst/b4/pm0r/final_sum_reg[2] | 6      | 57    | YES          | NO                 | YES               | 57     | 0       | 
+|fft_top     | gen_stages[0].stage_inst/b4/pm0r/final_sum_reg[1] | 7      | 86    | YES          | NO                 | YES               | 86     | 0       | 
+|fft_top     | gen_stages[0].stage_inst/b4/ar_reg_1_reg[15]      | 12     | 128   | YES          | NO                 | YES               | 128    | 0       | 
+|fft_top     | gen_stages[0].stage_inst/b4/pm0r/final_valid_reg  | 10     | 1     | YES          | NO                 | YES               | 1      | 0       | 
+|fft_top     | gen_stages[1].stage_inst/b4/pm1r/b_pipe_reg[6][7] | 8      | 15    | YES          | NO                 | YES               | 15     | 0       | 
+|fft_top     | gen_stages[1].stage_inst/b4/pm0r/final_valid_reg  | 13     | 3     | YES          | NO                 | YES               | 3      | 0       | 
++------------+---------------------------------------------------+--------+-------+--------------+--------------------+-------------------+--------+---------+
+
+---------------------------------------------------------------------------------
+Finished ROM, RAM, DSP and Shift Register Reporting
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Writing Synthesis Report
+---------------------------------------------------------------------------------
+
+Report BlackBoxes: 
++-+--------------+----------+
+| |BlackBox name |Instances |
++-+--------------+----------+
++-+--------------+----------+
+
+Report Cell Usage: 
++------+---------+------+
+|      |Cell     |Count |
++------+---------+------+
+|1     |BUFG     |     1|
+|2     |CARRY4   |   612|
+|3     |LUT1     |   125|
+|4     |LUT2     |  2526|
+|5     |LUT3     |  1656|
+|6     |LUT4     |  7194|
+|7     |LUT5     |   478|
+|8     |LUT6     |   900|
+|9     |MUXF7    |    44|
+|10    |MUXF8    |    22|
+|11    |RAM32M   |    48|
+|12    |RAM64M   |    80|
+|13    |RAM64X1D |    16|
+|14    |SRL16E   |   402|
+|15    |FDRE     | 19754|
+|16    |IBUF     |   131|
+|17    |OBUF     |   129|
++------+---------+------+
+
+Report Instance Areas: 
++------+-----------------------------+------------------------------+------+
+|      |Instance                     |Module                        |Cells |
++------+-----------------------------+------------------------------+------+
+|1     |top                          |                              | 34118|
+|2     |  \gen_stages[0].stage_inst  |SdfUnit4_fast                 |  4848|
+|3     |    b4                       |butterfly_radix4_pipeline_37  |  4622|
+|4     |      pm0i_2                 |multiplier_sythesis_2_38      |   549|
+|5     |      pm0r                   |multiplier_sythesis_2_39      |   592|
+|6     |      pm1i_2                 |multiplier_sythesis_2_40      |   549|
+|7     |      pm1r                   |multiplier_sythesis_2_41      |   594|
+|8     |      pm2i_2                 |multiplier_sythesis_2_42      |   549|
+|9     |      pm2r                   |multiplier_sythesis_2_43      |   588|
+|10    |  \gen_stages[1].stage_inst  |SdfUnit4_fast__parameterized0 |  9315|
+|11    |    b4                       |butterfly_radix4_pipeline_24  |  8345|
+|12    |      pm0i                   |multiplier_sythesis_2_25      |   607|
+|13    |      pm0i_2                 |multiplier_sythesis_2_26      |   478|
+|14    |      pm0r                   |multiplier_sythesis_2_27      |   535|
+|15    |      pm0r_2                 |multiplier_sythesis_2_28      |   587|
+|16    |      pm1i                   |multiplier_sythesis_2_29      |   499|
+|17    |      pm1i_2                 |multiplier_sythesis_2_30      |   513|
+|18    |      pm1r                   |multiplier_sythesis_2_31      |   654|
+|19    |      pm1r_2                 |multiplier_sythesis_2_32      |   596|
+|20    |      pm2i                   |multiplier_sythesis_2_33      |   560|
+|21    |      pm2i_2                 |multiplier_sythesis_2_34      |   515|
+|22    |      pm2r                   |multiplier_sythesis_2_35      |   672|
+|23    |      pm2r_2                 |multiplier_sythesis_2_36      |   659|
+|24    |    \gen_memory.mem          |memory                        |   549|
+|25    |  \gen_stages[2].stage_inst  |SdfUnit4_fast__parameterized1 |  9717|
+|26    |    b4                       |butterfly_radix4_pipeline_11  |  8633|
+|27    |      pm0i                   |multiplier_sythesis_2_12      |   661|
+|28    |      pm0i_2                 |multiplier_sythesis_2_13      |   484|
+|29    |      pm0r                   |multiplier_sythesis_2_14      |   521|
+|30    |      pm0r_2                 |multiplier_sythesis_2_15      |   651|
+|31    |      pm1i                   |multiplier_sythesis_2_16      |   560|
+|32    |      pm1i_2                 |multiplier_sythesis_2_17      |   515|
+|33    |      pm1r                   |multiplier_sythesis_2_18      |   672|
+|34    |      pm1r_2                 |multiplier_sythesis_2_19      |   659|
+|35    |      pm2i                   |multiplier_sythesis_2_20      |   567|
+|36    |      pm2i_2                 |multiplier_sythesis_2_21      |   515|
+|37    |      pm2r                   |multiplier_sythesis_2_22      |   679|
+|38    |      pm2r_2                 |multiplier_sythesis_2_23      |   659|
+|39    |    \gen_memory.mem          |memory__parameterized0        |   552|
+|40    |  \gen_stages[3].stage_inst  |SdfUnit4_fast__parameterized2 |  9965|
+|41    |    b4                       |butterfly_radix4_pipeline     |  8683|
+|42    |      pm0i                   |multiplier_sythesis_2         |   649|
+|43    |      pm0i_2                 |multiplier_sythesis_2_0       |   484|
+|44    |      pm0r                   |multiplier_sythesis_2_1       |   533|
+|45    |      pm0r_2                 |multiplier_sythesis_2_2       |   651|
+|46    |      pm1i                   |multiplier_sythesis_2_3       |   560|
+|47    |      pm1i_2                 |multiplier_sythesis_2_4       |   515|
+|48    |      pm1r                   |multiplier_sythesis_2_5       |   672|
+|49    |      pm1r_2                 |multiplier_sythesis_2_6       |   659|
+|50    |      pm2i                   |multiplier_sythesis_2_7       |   581|
+|51    |      pm2i_2                 |multiplier_sythesis_2_8       |   515|
+|52    |      pm2r                   |multiplier_sythesis_2_9       |   693|
+|53    |      pm2r_2                 |multiplier_sythesis_2_10      |   659|
+|54    |    \gen_memory.mem          |memory__parameterized1        |   759|
++------+-----------------------------+------------------------------+------+
+---------------------------------------------------------------------------------
+Finished Writing Synthesis Report : Time (s): cpu = 00:00:44 ; elapsed = 00:00:46 . Memory (MB): peak = 1936.758 ; gain = 581.863 ; free physical = 5416 ; free virtual = 17007
+---------------------------------------------------------------------------------
+Synthesis finished with 0 errors, 0 critical warnings and 0 warnings.
+Synthesis Optimization Runtime : Time (s): cpu = 00:00:36 ; elapsed = 00:00:40 . Memory (MB): peak = 1936.758 ; gain = 88.777 ; free physical = 5465 ; free virtual = 17056
+Synthesis Optimization Complete : Time (s): cpu = 00:00:44 ; elapsed = 00:00:46 . Memory (MB): peak = 1936.758 ; gain = 581.863 ; free physical = 5465 ; free virtual = 17056
+INFO: [Project 1-571] Translating synthesized netlist
+INFO: [Netlist 29-17] Analyzing 822 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
+INFO: [Project 1-570] Preparing netlist for logic optimization
+INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
+Netlist sorting complete. Time (s): cpu = 00:00:00.01 ; elapsed = 00:00:00 . Memory (MB): peak = 1952.625 ; gain = 0.000 ; free physical = 5449 ; free virtual = 17040
+INFO: [Project 1-111] Unisim Transformation Summary:
+  A total of 144 instances were transformed.
+  RAM32M => RAM32M (RAMD32, RAMD32, RAMD32, RAMD32, RAMD32, RAMD32, RAMS32, RAMS32): 48 instances
+  RAM64M => RAM64M (RAMD64E, RAMD64E, RAMD64E, RAMD64E): 80 instances
+  RAM64X1D => RAM64X1D (RAMD64E, RAMD64E): 16 instances
+
+INFO: [Common 17-83] Releasing license: Synthesis
+308 Infos, 58 Warnings, 0 Critical Warnings and 0 Errors encountered.
+synth_design completed successfully
+synth_design: Time (s): cpu = 00:00:48 ; elapsed = 00:00:50 . Memory (MB): peak = 1952.625 ; gain = 597.730 ; free physical = 5485 ; free virtual = 17076
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.01 . Memory (MB): peak = 1952.625 ; gain = 0.000 ; free physical = 5485 ; free virtual = 17076
+WARNING: [Constraints 18-5210] No constraints selected for write.
+Resolution: This message can indicate that there are no constraints for the design, or it can indicate that the used_in flags are set such that the constraints are ignored. This later case is used when running synth_design to not write synthesis constraints to the resulting checkpoint. Instead, project constraints are read when the synthesized design is opened.
+INFO: [Common 17-1381] The checkpoint '/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram_adders/fft_bram_adders/fft_bram_adders.runs/synth_1/fft_top.dcp' has been generated.
+INFO: [runtcl-4] Executing : report_utilization -file fft_top_utilization_synth.rpt -pb fft_top_utilization_synth.pb
+INFO: [Common 17-206] Exiting Vivado at Tue Jan 20 20:39:34 2026...

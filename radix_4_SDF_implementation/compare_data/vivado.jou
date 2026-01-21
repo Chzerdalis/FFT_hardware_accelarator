@@ -1,0 +1,22 @@
+#-----------------------------------------------------------
+# Vivado v2018.3 (64-bit)
+# SW Build 2405991 on Thu Dec  6 23:36:41 MST 2018
+# IP Build 2404404 on Fri Dec  7 01:43:56 MST 2018
+# Start of session at: Wed Jan 14 00:42:57 2026
+# Process ID: 24387
+# Current directory: /home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_implementation/compare_data
+# Command line: vivado
+# Log file: /home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_implementation/compare_data/vivado.log
+# Journal file: /home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_implementation/compare_data/vivado.jou
+#-----------------------------------------------------------
+start_gui
+open_project /home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_implementation/vivado_helper_implementation/vivado_helper_implementation.xpr
+update_compile_order -fileset sources_1
+set_property STEPS.SYNTH_DESIGN.ARGS.CASCADE_DSP force [get_runs synth_1]
+reset_run synth_1
+launch_runs synth_1 -jobs 4
+wait_on_run synth_1
+set_property strategy Performance_ExtraTimingOpt [get_runs Net_delay_low]
+launch_runs Net_delay_low -jobs 4
+wait_on_run Net_delay_low
+open_run Net_delay_low

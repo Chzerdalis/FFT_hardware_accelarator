@@ -2,7 +2,7 @@
 
 module tb_top;
 
-    parameter WIDTH = 24;
+    parameter WIDTH = 16;
     parameter Num_of_samples = 256;
 
     reg clock;

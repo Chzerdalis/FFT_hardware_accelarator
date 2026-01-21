@@ -1,10 +1,10 @@
 CC = iverilog
-FLAGS = -Wall -Winfloop
+FLAGS = -g2012 -Wall -Winfloop
 EXE = test.out
 SRCS_buffer = delay_buffer_advaned.v tb_buffer.v
 SRCS_butterfly = butterfly.v tb_butterfly.v partial_mul.v butterfly_old.v
-SRCS_unit = tb_stageunit.v butterfly.v delay_buffer_advaned.v stage_unit.v ../radix_4_SDF/stage_unit.v ../radix_4_SDF/delay_buffer.v ../radix_4_SDF/butterfly.v
-SRCS_top_fft = tb_fft_radix_4_top.v butterfly.v delay_buffer_advaned.v stage_unit.v fft_radix_4_top.v
+SRCS_unit = tb_stageunit.v butterfly.v delay_buffer_advaned.v stage_unit.v ../radix_4_SDF/stage_unit.v ../radix_4_SDF/delay_buffer.v ../radix_4_SDF/butterfly.v ../radix_4_SDF/f_twiddle_16.vh
+SRCS_top_fft = tb_fft_radix_4_top.v butterfly.v delay_buffer_advaned.v stage_unit.v fft_radix_4_top.v twiddle_rom.v
 SRCS_helper_top = tb_helper_top_module.v helper_top_module.v butterfly.v delay_buffer_advaned.v stage_unit.v fft_radix_4_top.v
 
 buffer:

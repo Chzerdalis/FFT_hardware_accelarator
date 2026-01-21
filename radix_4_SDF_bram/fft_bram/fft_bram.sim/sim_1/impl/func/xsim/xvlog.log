@@ -1,0 +1,16 @@
+INFO: [VRFC 10-2263] Analyzing Verilog file "/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/fft_bram/fft_bram.sim/sim_1/impl/func/xsim/tb_top_func_impl.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module SdfUnit4_fast
+INFO: [VRFC 10-311] analyzing module SdfUnit4_fast__parameterized0
+INFO: [VRFC 10-311] analyzing module SdfUnit4_fast__parameterized1
+INFO: [VRFC 10-311] analyzing module SdfUnit4_fast__parameterized2
+INFO: [VRFC 10-311] analyzing module butterfly_radix4_pipeline
+INFO: [VRFC 10-311] analyzing module butterfly_radix4_pipeline_0
+INFO: [VRFC 10-311] analyzing module butterfly_radix4_pipeline_1
+INFO: [VRFC 10-311] analyzing module butterfly_radix4_pipeline_2
+INFO: [VRFC 10-311] analyzing module fft_top
+INFO: [VRFC 10-311] analyzing module memory
+INFO: [VRFC 10-311] analyzing module memory__parameterized0
+INFO: [VRFC 10-311] analyzing module memory__parameterized1
+INFO: [VRFC 10-311] analyzing module glbl
+INFO: [VRFC 10-2263] Analyzing Verilog file "/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/tb_fft_radix_4_top.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module tb_top

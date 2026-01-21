@@ -1,0 +1,8 @@
+INFO: [VRFC 10-2263] Analyzing Verilog file "/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/butterfly.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module butterfly_radix4_pipeline
+INFO: [VRFC 10-2263] Analyzing Verilog file "/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/fft_radix_4_top.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module fft_top
+INFO: [VRFC 10-2263] Analyzing Verilog file "/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/memory.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module memory
+ERROR: [VRFC 10-2989] 'Depth' is not declared [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/memory.v:97]
+ERROR: [VRFC 10-2865] module 'memory' ignored due to previous errors [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/memory.v:4]

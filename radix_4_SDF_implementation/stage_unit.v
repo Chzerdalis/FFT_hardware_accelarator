@@ -3,7 +3,7 @@
 module SdfUnit4_fast #(
     parameter WIDTH = 32, // Data Bit Lenght
     parameter STAGE_NUM = 1, //Butterfly Stage
-    parameter Num_of_samples = 16 //How many inputs
+    parameter Num_of_samples = 256 //How many inputs
 )(
     input                   clock,       //  System Clock
     input                   reset,        //  Active High Asynchronous Reset
@@ -19,55 +19,66 @@ module SdfUnit4_fast #(
     localparam Depth = 1 << (2*(STAGE_NUM - 1));
     localparam Stride = 1 << (2*STAGE_NUM); 
     localparam stage_num_bits = (STAGE_NUM > 1) ? (sn-3) : 0;
+    localparam shift_value = $clog2(Num_of_samples/Stride);
+    localparam Num_of_samples_bits = $clog2(Num_of_samples/4);
 
     //Wires needed for stages > 1
     //if (STAGE_NUM > 1) begin : gen_counter_and_flush
         //Counters to calculate the twiddle factors and manage the delay buffers
-        reg [stage_num_bits:0] butterfly_op_counter;
-        reg [stage_num_bits:0] stride_segment_counter;
-        reg butterfly_op_counter_en;
-        reg stride_segment_counter_en;
+    reg [stage_num_bits:0] butterfly_op_counter;
+    reg [stage_num_bits:0] stride_segment_counter;
+    reg [stage_num_bits:0] butterfly_op_counter_reg, butterfly_op_counter_reg_reg;
+    reg [stage_num_bits:0] stride_segment_counter_reg;
+    reg butterfly_op_counter_en;
+    reg stride_segment_counter_en;
 
-        //Counter to flush the pipeline at the end of the data
-        reg [sn-1:0] flush_count;
-        reg start_out;
+    //Counter to flush the pipeline at the end of the data
+    reg [Num_of_samples_bits-1:0] flush_count;
+    reg start_out;
 
-        //Delay buffer enable signals
-        wire db0_write_en, db0_read_first_en, db0_read_last_en, db0_rotate;
-        wire db1_write_en, db1_read_first_en, db1_read_last_en, db1_rotate;
-        wire db2_write_en, db2_read_en;
-        wire db3_write_en, db3_read_en;
+    //Delay buffer enable signals
+    wire db0_write_en, db0_read_first_en, db0_read_last_en, db0_rotate;
+    wire db1_write_en, db1_read_first_en, db1_read_last_en, db1_rotate;
+    wire db2_write_en, db2_read_en;
+    wire db3_write_en, db3_read_en;
 
-        //Delay buffer input/output wires
-        wire [WIDTH-1:0] db0_in_re_0, db0_in_imag_0;
-        wire [WIDTH-1:0] db0_in_re_1, db0_in_imag_1;
-        wire [WIDTH-1:0] db0_in_re_2, db0_in_imag_2;
-        wire [WIDTH-1:0] db0_in_re_3, db0_in_imag_3;
+    //Delay buffer input/output wires
+    wire [WIDTH-1:0] db0_in_re_0, db0_in_imag_0;
+    wire [WIDTH-1:0] db0_in_re_1, db0_in_imag_1;
+    wire [WIDTH-1:0] db0_in_re_2, db0_in_imag_2;
+    wire [WIDTH-1:0] db0_in_re_3, db0_in_imag_3;
 
-        wire [WIDTH-1:0] db1_in_re_0, db1_in_imag_0;
-        wire [WIDTH-1:0] db1_in_re_1, db1_in_imag_1;
-        wire [WIDTH-1:0] db1_in_re_2, db1_in_imag_2;
-        wire [WIDTH-1:0] db1_in_re_3, db1_in_imag_3;
+    wire [WIDTH-1:0] db1_in_re_0, db1_in_imag_0;
+    wire [WIDTH-1:0] db1_in_re_1, db1_in_imag_1;
+    wire [WIDTH-1:0] db1_in_re_2, db1_in_imag_2;
+    wire [WIDTH-1:0] db1_in_re_3, db1_in_imag_3;
 
-        wire [WIDTH-1:0] db2_in_re_0, db2_in_imag_0;
-        wire [WIDTH-1:0] db2_in_re_1, db2_in_imag_1;
-        wire [WIDTH-1:0] db2_in_re_2, db2_in_imag_2;
-        wire [WIDTH-1:0] db2_in_re_3, db2_in_imag_3;
+    wire [WIDTH-1:0] db2_in_re_0, db2_in_imag_0;
+    wire [WIDTH-1:0] db2_in_re_1, db2_in_imag_1;
+    wire [WIDTH-1:0] db2_in_re_2, db2_in_imag_2;
+    wire [WIDTH-1:0] db2_in_re_3, db2_in_imag_3;
 
-        wire [WIDTH-1:0] db3_in_re_1, db3_in_imag_1;
-        wire [WIDTH-1:0] db3_in_re_2, db3_in_imag_2;
-        wire [WIDTH-1:0] db3_in_re_3, db3_in_imag_3;
+    wire [WIDTH-1:0] db3_in_re_1, db3_in_imag_1;
+    wire [WIDTH-1:0] db3_in_re_2, db3_in_imag_2;
+    wire [WIDTH-1:0] db3_in_re_3, db3_in_imag_3;
 
-        wire [WIDTH-1:0] delay_out_real_0, delay_out_imag_0;
-        wire [WIDTH-1:0] delay_out_real_1, delay_out_imag_1;
-        wire [WIDTH-1:0] delay_out_real_2, delay_out_imag_2;
-        wire [WIDTH-1:0] delay_out_real_3, delay_out_imag_3;
+    wire [WIDTH-1:0] delay_out_real_0, delay_out_imag_0;
+    wire [WIDTH-1:0] delay_out_real_1, delay_out_imag_1;
+    wire [WIDTH-1:0] delay_out_real_2, delay_out_imag_2;
+    wire [WIDTH-1:0] delay_out_real_3, delay_out_imag_3;
     //end
+
+    reg [WIDTH-1:0] input_real_0_r, input_real_1_r, input_real_2_r, input_real_3_r;
+    reg [WIDTH-1:0] input_imag_0_r, input_imag_1_r, input_imag_2_r, input_imag_3_r;
+    reg [WIDTH-1:0] input_real_0_rr, input_imag_0_rr;
+    reg input_en_r, butterfly_op_counter_en_r, start_butterfly_r;
 
     wire butterfly_out_ready, start_butterfly;
 
     //(* use_dsp = "yes" *) wire [$clog2(Num_of_samples)-1:0] twiddle_index_0, twiddle_index_1, twiddle_index_2;
     wire [$clog2(Num_of_samples)-1:0] twiddle_index_0, twiddle_index_1, twiddle_index_2;
+    reg [$clog2(Num_of_samples)-1:0] twiddle_index_0_r, twiddle_index_1_r, twiddle_index_2_r;
+
 
     wire [WIDTH-1:0] x0_re, x0_im, y0_re, y0_im;
     wire [WIDTH-1:0] x1_re, x1_im, y1_re, y1_im;
@@ -199,41 +210,57 @@ module SdfUnit4_fast #(
     end
 
     //Manage twiddle factors based on stage number
-    // assign twiddle_index_0 = (STAGE_NUM == 1) ? 3'b0 : (butterfly_op_counter * (Num_of_samples/Stride));
-    // assign twiddle_index_1 = (STAGE_NUM == 1) ? 3'b0 : (butterfly_op_counter * (Num_of_samples/Stride) * 2);
-    // assign twiddle_index_2 = (STAGE_NUM == 1) ? 3'b0 : (butterfly_op_counter * (Num_of_samples/Stride) * 3);
+    assign twiddle_index_0 = (STAGE_NUM == 1) ? 0 : (butterfly_op_counter_reg<< shift_value);
+    assign twiddle_index_1 = (STAGE_NUM == 1) ? 0 : (butterfly_op_counter_reg<< (shift_value + 1));
+    assign twiddle_index_2 = (STAGE_NUM == 1) ? 0 : ((butterfly_op_counter_reg<< (shift_value + 1)) + (butterfly_op_counter_reg<< shift_value));
 
-    assign twiddle_index_0 = (STAGE_NUM == 1) ? 3'b0 : (butterfly_op_counter << (Num_of_samples/Stride));
-    assign twiddle_index_1 = (STAGE_NUM == 1) ? 3'b0 : (butterfly_op_counter << ((Num_of_samples/Stride) + 1));
-    assign twiddle_index_2 = (STAGE_NUM == 1) ? 3'b0 : (butterfly_op_counter << ((Num_of_samples/Stride) + 1) + (Num_of_samples/Stride));
+    // twiddle_rom_256 twiddle_rom_inst_0 (
+    //     .clk(clock),
+    //     .addr(twiddle_index_0),
+    //     .w_real(w0re),
+    //     .w_imag(w0i)
+    // );
+
+    // twiddle_rom_256 twiddle_rom_inst_1 (
+    //     .clk(clock),
+    //     .addr(twiddle_index_1),
+    //     .w_real(w1re),
+    //     .w_imag(w1i)
+    // );
+
+    // twiddle_rom_256 twiddle_rom_inst_2 (
+    //     .clk(clock),
+    //     .addr(twiddle_index_2),
+    //     .w_real(w2re),
+    //     .w_imag(w2i)
+    // );
 
     //Assign twiddle factors
-    assign w0re = w_real[twiddle_index_0];
-    assign w0i = w_imag[twiddle_index_0];
-    assign w1re = w_real[twiddle_index_1];
-    assign w1i = w_imag[twiddle_index_1];
-    assign w2re = w_real[twiddle_index_2];
-    assign w2i = w_imag[twiddle_index_2];
+    assign w0re = w_real[twiddle_index_0_r];
+    assign w0i = w_imag[twiddle_index_0_r];
+    assign w1re = w_real[twiddle_index_1_r];
+    assign w1i = w_imag[twiddle_index_1_r];
+    assign w2re = w_real[twiddle_index_2_r];
+    assign w2i = w_imag[twiddle_index_2_r];
 
     //Manage butterfly inputs based on stage number
-    assign x0_re = (STAGE_NUM == 1) ? input_real_0 : delay_out_real_0;
-    assign x0_im = (STAGE_NUM == 1) ? input_imag_0 : delay_out_imag_0;
+    assign x0_re = (STAGE_NUM == 1) ? input_real_0_r : delay_out_real_0;
+    assign x0_im = (STAGE_NUM == 1) ? input_imag_0_r : delay_out_imag_0;
 
-    assign x1_re = (STAGE_NUM == 1) ? input_real_1 : delay_out_real_1;
-    assign x1_im = (STAGE_NUM == 1) ? input_imag_1 : delay_out_imag_1;
-
-    assign x2_re = (STAGE_NUM == 1) ? input_real_2 : delay_out_real_2;
-    assign x2_im = (STAGE_NUM == 1) ? input_imag_2 : delay_out_imag_2;
+    assign x1_re = (STAGE_NUM == 1) ? input_real_1_r : delay_out_real_1;
+    assign x1_im = (STAGE_NUM == 1) ? input_imag_1_r : delay_out_imag_1;
+    assign x2_re = (STAGE_NUM == 1) ? input_real_2_r : delay_out_real_2;
+    assign x2_im = (STAGE_NUM == 1) ? input_imag_2_r : delay_out_imag_2;
 
     if(STAGE_NUM > 1) begin : gen_4th_butterfly_input
-        assign x3_re = (butterfly_op_counter[sn-3:sn-4] == 2'b00) ? input_real_0 : delay_out_real_3;
-        assign x3_im = (butterfly_op_counter[sn-3:sn-4] == 2'b00) ? input_imag_0 : delay_out_imag_3; 
+        assign x3_re = (butterfly_op_counter_reg_reg[sn-3:sn-4] == 2'b00) ? input_real_0_rr : delay_out_real_3;
+        assign x3_im = (butterfly_op_counter_reg_reg[sn-3:sn-4] == 2'b00) ? input_imag_0_rr : delay_out_imag_3; 
     end else begin
-        assign x3_re = input_real_3;
-        assign x3_im = input_imag_3;
+        assign x3_re = input_real_3_r;
+        assign x3_im = input_imag_3_r;
     end
 
-    assign start_butterfly = (STAGE_NUM == 1) ? input_en : butterfly_op_counter_en;
+    assign start_butterfly = (STAGE_NUM == 1) ? input_en : butterfly_op_counter_en_r;
 
     butterfly_radix4_pipeline #(
         .WIDTH(WIDTH)
@@ -250,7 +277,7 @@ module SdfUnit4_fast #(
         .out2r(y1_re), .out2i(y1_im),
         .out3r(y2_re), .out3i(y2_im),
         .out4r(y3_re), .out4i(y3_im),
-        .start(start_butterfly),
+        .start(start_butterfly_r),
         .done(butterfly_out_ready)
     );
 
@@ -266,14 +293,14 @@ module SdfUnit4_fast #(
             .enable_read_first(db0_read_first_en),
             .enable_read_last(db0_read_last_en),
             .rotate(db0_rotate),
-            .input_real_0(input_real_0),
-            .input_real_1(input_real_1),
-            .input_real_2(input_real_2),
-            .input_real_3(input_real_3),
-            .input_imag_0(input_imag_0),
-            .input_imag_1(input_imag_1),
-            .input_imag_2(input_imag_2),
-            .input_imag_3(input_imag_3),
+            .input_real_0(input_real_0_r),
+            .input_real_1(input_real_1_r),
+            .input_real_2(input_real_2_r),
+            .input_real_3(input_real_3_r),
+            .input_imag_0(input_imag_0_r),
+            .input_imag_1(input_imag_1_r),
+            .input_imag_2(input_imag_2_r),
+            .input_imag_3(input_imag_3_r),
             .out_real(delay_out_real_0),
             .out_imag(delay_out_imag_0)
         );
@@ -287,15 +314,15 @@ module SdfUnit4_fast #(
             .enable_write(db1_write_en),
             .enable_read_first(db1_read_first_en),
             .enable_read_last(db1_read_last_en),
-            .rotate(db1_rotate),
-            .input_real_0(input_real_0),
-            .input_real_1(input_real_1),
-            .input_real_2(input_real_2),
-            .input_real_3(input_real_3),
-            .input_imag_0(input_imag_0),
-            .input_imag_1(input_imag_1),
-            .input_imag_2(input_imag_2),
-            .input_imag_3(input_imag_3),
+            .rotate(db0_rotate),
+            .input_real_0(input_real_0_r),
+            .input_real_1(input_real_1_r),
+            .input_real_2(input_real_2_r),
+            .input_real_3(input_real_3_r),
+            .input_imag_0(input_imag_0_r),
+            .input_imag_1(input_imag_1_r),
+            .input_imag_2(input_imag_2_r),
+            .input_imag_3(input_imag_3_r),
             .out_real(delay_out_real_1),
             .out_imag(delay_out_imag_1)
         );
@@ -308,14 +335,14 @@ module SdfUnit4_fast #(
             .reset(reset),
             .enable_write(db2_write_en),
             .enable_read(db2_read_en),
-            .input_real_0(input_real_0),
-            .input_real_1(input_real_1),
-            .input_real_2(input_real_2),
-            .input_real_3(input_real_3),
-            .input_imag_0(input_imag_0),
-            .input_imag_1(input_imag_1),
-            .input_imag_2(input_imag_2),
-            .input_imag_3(input_imag_3),
+            .input_real_0(input_real_0_r),
+            .input_real_1(input_real_1_r),
+            .input_real_2(input_real_2_r),
+            .input_real_3(input_real_3_r),
+            .input_imag_0(input_imag_0_r),
+            .input_imag_1(input_imag_1_r),
+            .input_imag_2(input_imag_2_r),
+            .input_imag_3(input_imag_3_r),
             .out_real(delay_out_real_2),
             .out_imag(delay_out_imag_2)
         );
@@ -328,38 +355,38 @@ module SdfUnit4_fast #(
             .reset(reset),
             .enable_write(db3_write_en),
             .enable_read(db3_read_en),
-            .input_real_1(input_real_1),
-            .input_real_2(input_real_2),
-            .input_real_3(input_real_3),
-            .input_imag_1(input_imag_1),
-            .input_imag_2(input_imag_2),
-            .input_imag_3(input_imag_3),
+            .input_real_1(input_real_1_r),
+            .input_real_2(input_real_2_r),
+            .input_real_3(input_real_3_r),
+            .input_imag_1(input_imag_1_r),
+            .input_imag_2(input_imag_2_r),
+            .input_imag_3(input_imag_3_r),
             .out_real(delay_out_real_3),
             .out_imag(delay_out_imag_3)
         );
 
-        wire [1:0] sel_stride = stride_segment_counter[sn-3:sn-4];
-        wire [1:0] sel_butterfly = butterfly_op_counter[sn-3:sn-4];
+        wire [1:0] sel_stride = stride_segment_counter_reg[sn-3:sn-4];
+        wire [1:0] sel_butterfly = butterfly_op_counter_reg[sn-3:sn-4];
 
         //db0 control signals
         assign db0_write_en = (sel_stride == 2'b00) ? 1'b1 : 1'b0;
-        assign db0_read_first_en = (sel_butterfly[1] == 1'b0 && butterfly_op_counter_en) ? 1'b1 : 1'b0;
-        assign db0_read_last_en = (sel_butterfly[1] == 1'b1 && butterfly_op_counter_en) ? 1'b1 : 1'b0;
-        assign db0_rotate = (stride_segment_counter == {2'b10, {(sn-4){1'b1}}}) ? 1'b1 : 1'b0;
+        assign db0_read_first_en = (sel_butterfly[1] == 1'b0 && butterfly_op_counter_en_r) ? 1'b1 : 1'b0;
+        assign db0_read_last_en = (sel_butterfly[1] == 1'b1 && butterfly_op_counter_en_r) ? 1'b1 : 1'b0;
+        assign db0_rotate = (stride_segment_counter_reg == {2'b10, {(sn-4){1'b1}}}) ? 1'b1 : 1'b0;
 
         //db1 control signals
         assign db1_write_en = (sel_stride == 2'b01) ? 1'b1 : 1'b0;
-        assign db1_read_first_en = (sel_butterfly != 2'b11 && butterfly_op_counter_en) ? 1'b1 : 1'b0;
-        assign db1_read_last_en = (sel_butterfly == 2'b11 && butterfly_op_counter_en) ? 1'b1 : 1'b0;
-        assign db1_rotate = (stride_segment_counter == {2'b10, {(sn-4){1'b1}}}) ? 1'b1 : 1'b0; 
+        assign db1_read_first_en = (sel_butterfly != 2'b11 && butterfly_op_counter_en_r) ? 1'b1 : 1'b0;
+        assign db1_read_last_en = (sel_butterfly == 2'b11 && butterfly_op_counter_en_r) ? 1'b1 : 1'b0;
+        //assign db1_rotate = (stride_segment_counter_reg == {2'b10, {(sn-4){1'b1}}}) ? 1'b1 : 1'b0; 
 
         //db2 control signals
         assign db2_write_en = (sel_stride == 2'b10) ? 1'b1 : 1'b0;
-        assign db2_read_en = (butterfly_op_counter_en) ? 1'b1 : 1'b0; 
+        assign db2_read_en = (butterfly_op_counter_en_r) ? 1'b1 : 1'b0; 
 
         //db3 control signals
         assign db3_write_en = (sel_stride == 2'b11) ? 1'b1 : 1'b0;
-        assign db3_read_en = (sel_butterfly != 2'b00 && butterfly_op_counter_en) ? 1'b1 : 1'b0;
+        assign db3_read_en = (sel_butterfly != 2'b00 && butterfly_op_counter_en_r) ? 1'b1 : 1'b0;
     end
 
     always @(posedge clock) begin
@@ -389,12 +416,55 @@ module SdfUnit4_fast #(
             output_imag_3 <= y3_im;
         end
     end
-    // assign output_real_0 = y0_re;
-    // assign output_imag_0 = y0_im;
-    // assign output_real_1 = y1_re;
-    // assign output_imag_1 = y1_im;
-    // assign output_real_2 = y2_re;
-    // assign output_imag_2 = y2_im;
-    // assign output_real_3 = y3_re;
-    // assign output_imag_3 = y3_im;
+    
+    always @(posedge clock) begin
+        if (reset) begin
+            butterfly_op_counter_reg <= {(stage_num_bits+1){1'b0}};
+            butterfly_op_counter_reg_reg <= {(stage_num_bits+1){1'b0}};
+            stride_segment_counter_reg <= {(stage_num_bits+1){1'b0}};
+            twiddle_index_0_r <= {(stage_num_bits+1){1'b0}};
+            twiddle_index_1_r <= {(stage_num_bits+1){1'b0}};
+            twiddle_index_2_r <= {(stage_num_bits+1){1'b0}};
+        end else begin
+            butterfly_op_counter_reg <= butterfly_op_counter;
+            butterfly_op_counter_reg_reg <= butterfly_op_counter_reg;
+            stride_segment_counter_reg <= stride_segment_counter;
+            twiddle_index_0_r <= twiddle_index_0;
+            twiddle_index_1_r <= twiddle_index_1;
+            twiddle_index_2_r <= twiddle_index_2;
+        end
+    end
+
+    always @(posedge clock) begin
+        if (reset) begin
+            input_real_0_r <= {WIDTH{1'b0}};
+            input_real_1_r <= {WIDTH{1'b0}};
+            input_real_2_r <= {WIDTH{1'b0}};
+            input_real_3_r <= {WIDTH{1'b0}};
+            input_imag_0_r <= {WIDTH{1'b0}};
+            input_imag_1_r <= {WIDTH{1'b0}};
+            input_imag_2_r <= {WIDTH{1'b0}};
+            input_imag_3_r <= {WIDTH{1'b0}};
+            input_real_0_rr <= {WIDTH{1'b0}};
+            input_imag_0_rr <= {WIDTH{1'b0}};
+            input_en_r <= 1'b0;
+            butterfly_op_counter_en_r <= 1'b0;
+            start_butterfly_r <= 1'b0;
+        end else begin
+            input_real_0_r <= input_real_0;
+            input_real_1_r <= input_real_1;
+            input_real_2_r <= input_real_2;
+            input_real_3_r <= input_real_3;
+            input_imag_0_r <= input_imag_0;
+            input_imag_1_r <= input_imag_1;
+            input_imag_2_r <= input_imag_2;
+            input_imag_3_r <= input_imag_3;
+            input_real_0_rr <= input_real_0_r;
+            input_imag_0_rr <= input_imag_0_r;
+            input_en_r <= input_en;
+            butterfly_op_counter_en_r <= butterfly_op_counter_en;
+            start_butterfly_r <= start_butterfly;
+        end
+    end
+
 endmodule

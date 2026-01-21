@@ -1,9 +1,9 @@
 `timescale 1ns/1ps
 
 module tb_top;
-
-    parameter WIDTH = 24;
+    parameter WIDTH = 16;
     parameter Num_of_samples = 256;
+    parameter Num_of_windows = 1;
 
     reg clock;
     reg reset;
@@ -14,11 +14,13 @@ module tb_top;
     wire [WIDTH-1:0] output_real_0, output_real_1, output_real_2, output_real_3;
     wire [WIDTH-1:0] output_imag_0, output_imag_1, output_imag_2, output_imag_3;
 
-    reg [WIDTH-1:0] output_real_fast [0:Num_of_samples - 1];
-    reg [WIDTH-1:0] output_imag_fast [0:Num_of_samples - 1];
-    reg signed [31:0] gen_input_real [0:1023];
+    reg [WIDTH-1:0] output_real_fast [0:Num_of_windows*Num_of_samples-1];
+    reg [WIDTH-1:0] output_imag_fast [0:Num_of_windows*Num_of_samples-1];
+    reg signed [WIDTH-1:0] gen_input_real [0:Num_of_windows*Num_of_samples-1];
+    reg signed [WIDTH-1:0] gen_input_imag [0:Num_of_windows*Num_of_samples-1];
 
     integer output_count = 0;
+    integer window_count = 0;
 
     fft_top #(
         .WIDTH(WIDTH),
@@ -57,46 +59,53 @@ module tb_top;
     end
 
     initial begin
-        if (Num_of_samples == 16) begin
-            if(WIDTH == 32) begin
-                `include "gen_data/f_input_rev_16_32bit.vh"
-            end else if(WIDTH == 24) begin
-                `include "gen_data/f_input_rev_16_24bit.vh"
-            end else if(WIDTH == 16) begin
-                `include "gen_data/f_input_rev_16_16bit.vh"
-            end else if(WIDTH == 18) begin
-                `include "gen_data/f_input_rev_16_18bit.vh"
+        if (Num_of_windows > 1) begin: large_dataset
+            if (Num_of_windows == 20 && Num_of_samples == 256 && WIDTH == 16) begin
+                `include "gen_data/large_dataset_20x256_16bit_Random1.vh"
             end
-        end 
-        else if (Num_of_samples == 64) begin
-            if(WIDTH == 32) begin
-                `include "gen_data/f_input_rev_64_32bit.vh"
-            end else if(WIDTH == 24) begin
-                `include "gen_data/f_input_rev_64_24bit.vh"
-            end else if(WIDTH == 16) begin
-                `include "gen_data/f_input_rev_64_16bit.vh"
-            end else if(WIDTH == 18) begin
-                `include "gen_data/f_input_rev_64_18bit.vh"
-            end
-        end else if (Num_of_samples == 256) begin
-            if(WIDTH == 32) begin
-                `include "gen_data/f_input_rev_256_32bit.vh"
-            end else if(WIDTH == 24) begin
-                `include "gen_data/f_input_rev_256_24bit.vh"
-            end else if(WIDTH == 16) begin
-                `include "gen_data/f_input_rev_256_16bit.vh"
-            end else if(WIDTH == 18) begin
-                `include "gen_data/f_input_rev_256_18bit.vh"
-            end
-        end else if (Num_of_samples == 1024) begin
-            if(WIDTH == 32) begin
-                `include "gen_data/f_input_rev_1024_32bit.vh"
-            end else if(WIDTH == 24) begin
-                `include "gen_data/f_input_rev_1024_24bit.vh"
-            end else if(WIDTH == 16) begin
-                `include "gen_data/f_input_rev_1024_16bit.vh"
-            end else if(WIDTH == 18) begin
-                `include "gen_data/f_input_rev_1024_18bit.vh"
+        end else begin: single_window_dataset
+            if (Num_of_samples == 16) begin
+                if(WIDTH == 16) begin
+                    `include "gen_data/f_input_rev_16_16bit.vh"
+                end else if(WIDTH == 18) begin
+                    `include "gen_data/f_input_rev_16_18bit.vh"
+                end
+                else if(WIDTH == 24) begin
+                    `include "gen_data/f_input_rev_16_24bit.vh"
+                end
+                else if(WIDTH == 32) begin
+                    `include "gen_data/f_input_rev_16_32bit.vh"
+                end
+            end else if (Num_of_samples == 64) begin
+                if(WIDTH == 16) begin
+                    `include "gen_data/f_input_rev_64_16bit.vh"
+                end else if(WIDTH == 18) begin
+                    `include "gen_data/f_input_rev_64_18bit.vh"
+                end else if(WIDTH == 24) begin
+                    `include "gen_data/f_input_rev_64_24bit.vh"
+                end else if(WIDTH == 32) begin
+                    `include "gen_data/f_input_rev_64_32bit.vh"
+                end
+            end else if (Num_of_samples == 256) begin
+                if(WIDTH == 16) begin
+                    `include "gen_data/f_input_rev_256_16bit.vh"
+                end else if(WIDTH == 18) begin
+                    `include "gen_data/f_input_rev_256_18bit.vh"
+                end else if(WIDTH == 24) begin
+                    `include "gen_data/f_input_rev_256_24bit.vh"
+                end else if(WIDTH == 32) begin
+                    `include "gen_data/f_input_rev_256_32bit.vh"
+                end
+            end else if (Num_of_samples == 1024) begin
+                if(WIDTH == 16) begin
+                    `include "gen_data/f_input_rev_1024_16bit.vh"
+                end else if(WIDTH == 18) begin
+                    `include "gen_data/f_input_rev_1024_18bit.vh"
+                end else if(WIDTH == 24) begin
+                    `include "gen_data/f_input_rev_1024_24bit.vh"
+                end else if(WIDTH == 32) begin
+                    `include "gen_data/f_input_rev_1024_32bit.vh"
+                end
             end
         end
     end
@@ -123,14 +132,14 @@ module tb_top;
         input_en = 0;
         // Apply reset
         reset = 1;
-        #10;
+        #100;
         @ (posedge clock);
         reset = 0;
         #10
 
         // Enable input
         input_en <= 1;
-        for (i = 0; i < Num_of_samples; i = i + 4) begin
+        for (i = 0; i < Num_of_windows*Num_of_samples; i = i + 4) begin
             input_real_0 <= gen_input_real[i];
             input_imag_0 <= 0;
             input_real_1 <= gen_input_real[i + 1];
@@ -148,7 +157,7 @@ module tb_top;
 
         fd = $fopen("Outputs.txt", "w");
 
-        for(i = 0; i < Num_of_samples; i = i + 1) begin
+        for(i = 0; i < Num_of_windows*Num_of_samples; i = i + 1) begin
             $display("Output Index %d: Real = %d, Imag = %d", i, $signed(output_real_fast[i]), $signed(output_imag_fast[i]));
             $fdisplay(fd, "%d %d", $signed(output_real_fast[i]), $signed(output_imag_fast[i]));
         end
@@ -172,7 +181,12 @@ module tb_top;
             output_imag_fast[output_count + Num_of_samples/4] = output_imag_1;
             output_imag_fast[output_count + Num_of_samples/2] = output_imag_2;
             output_imag_fast[output_count + 3*Num_of_samples/4] = output_imag_3;
-            output_count = output_count + 1;
+            if(output_count == (Num_of_samples/4 - 1) + window_count*Num_of_samples) begin
+                window_count = window_count + 1;
+                output_count = Num_of_samples*window_count;
+            end else begin
+                output_count = output_count + 1;
+            end
         end
     end
 endmodule

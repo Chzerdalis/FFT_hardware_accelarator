@@ -1,0 +1,309 @@
+#-----------------------------------------------------------
+# Vivado v2018.3 (64-bit)
+# SW Build 2405991 on Thu Dec  6 23:36:41 MST 2018
+# IP Build 2404404 on Fri Dec  7 01:43:56 MST 2018
+# Start of session at: Tue Jan 20 01:20:08 2026
+# Process ID: 41646
+# Current directory: /home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram
+# Command line: vivado
+# Log file: /home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/vivado.log
+# Journal file: /home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/vivado.jou
+#-----------------------------------------------------------
+start_gui
+open_project /home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/fft_bram/fft_bram.xpr
+Scanning sources...
+Finished scanning sources
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1704] No user IP repositories specified
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository '/tools/Xilinx/Vivado/2018.3/data/ip'.
+update_compile_order -fileset sources_1
+add_files -fileset constrs_1 -norecurse /home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/constraints.xdc
+launch_runs synth_1 -jobs 4
+[Tue Jan 20 01:20:54 2026] Launched synth_1...
+Run output will be captured here: /home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/fft_bram/fft_bram.runs/synth_1/runme.log
+open_run synth_1 -name synth_1
+Design is defaulting to impl run constrset: constrs_1
+Design is defaulting to synth run part: xc7a200tfbg676-2
+INFO: [Netlist 29-17] Analyzing 914 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
+INFO: [Project 1-479] Netlist was created with Vivado 2018.3
+INFO: [Device 21-403] Loading part xc7a200tfbg676-2
+INFO: [Project 1-570] Preparing netlist for logic optimization
+Parsing XDC File [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/constraints.xdc]
+CRITICAL WARNING: [Common 17-69] Command failed: 'Y9' is not a valid site or package pin name. [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/constraints.xdc:3]
+Finished Parsing XDC File [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/constraints.xdc]
+INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 6789.879 ; gain = 0.000 ; free physical = 7748 ; free virtual = 18097
+INFO: [Project 1-111] Unisim Transformation Summary:
+  A total of 576 instances were transformed.
+  RAM32M => RAM32M (RAMD32, RAMD32, RAMD32, RAMD32, RAMD32, RAMD32, RAMS32, RAMS32): 192 instances
+  RAM64M => RAM64M (RAMD64E, RAMD64E, RAMD64E, RAMD64E): 320 instances
+  RAM64X1D => RAM64X1D (RAMD64E, RAMD64E): 64 instances
+
+open_run: Time (s): cpu = 00:00:14 ; elapsed = 00:00:08 . Memory (MB): peak = 6964.453 ; gain = 481.383 ; free physical = 7579 ; free virtual = 17932
+launch_runs impl_1 -jobs 4
+Netlist sorting complete. Time (s): cpu = 00:00:00.01 ; elapsed = 00:00:00 . Memory (MB): peak = 7354.680 ; gain = 0.000 ; free physical = 7177 ; free virtual = 17560
+INFO: [Timing 38-480] Writing timing data to binary archive.
+Writing placer database...
+Writing XDEF routing.
+Writing XDEF routing logical nets.
+Writing XDEF routing special nets.
+Write XDEF Complete: Time (s): cpu = 00:00:00.16 ; elapsed = 00:00:00.05 . Memory (MB): peak = 7378.691 ; gain = 0.000 ; free physical = 7165 ; free virtual = 17563
+Netlist sorting complete. Time (s): cpu = 00:00:00.01 ; elapsed = 00:00:00 . Memory (MB): peak = 7378.691 ; gain = 0.000 ; free physical = 7166 ; free virtual = 17568
+[Tue Jan 20 01:23:42 2026] Launched impl_1...
+Run output will be captured here: /home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/fft_bram/fft_bram.runs/impl_1/runme.log
+open_run impl_1
+INFO: [Netlist 29-17] Analyzing 914 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
+INFO: [Project 1-479] Netlist was created with Vivado 2018.3
+INFO: [Project 1-570] Preparing netlist for logic optimization
+INFO: [Timing 38-478] Restoring timing data from binary archive.
+INFO: [Timing 38-479] Binary timing data restore complete.
+INFO: [Project 1-856] Restoring constraints from binary archive.
+INFO: [Project 1-853] Binary constraint restore complete.
+Reading XDEF placement.
+Reading placer database...
+Reading XDEF routing.
+Read XDEF File: Time (s): cpu = 00:00:00.41 ; elapsed = 00:00:00.41 . Memory (MB): peak = 7563.898 ; gain = 10.000 ; free physical = 6679 ; free virtual = 17186
+Restored from archive | CPU: 0.410000 secs | Memory: 11.543533 MB |
+Finished XDEF File Restore: Time (s): cpu = 00:00:00.41 ; elapsed = 00:00:00.41 . Memory (MB): peak = 7563.898 ; gain = 10.000 ; free physical = 6679 ; free virtual = 17186
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 7563.898 ; gain = 0.000 ; free physical = 6679 ; free virtual = 17186
+INFO: [Project 1-111] Unisim Transformation Summary:
+  A total of 576 instances were transformed.
+  RAM32M => RAM32M (RAMD32, RAMD32, RAMD32, RAMD32, RAMD32, RAMD32, RAMS32, RAMS32): 192 instances
+  RAM64M => RAM64M (RAMD64E, RAMD64E, RAMD64E, RAMD64E): 320 instances
+  RAM64X1D => RAM64X1D (RAMD64E, RAMD64E): 64 instances
+
+CRITICAL WARNING: [Timing 38-282] The design failed to meet the timing requirements. Please see the timing summary report for details on the timing violations.
+close_design
+close_design
+close_project
+open_project /home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/fft_bram/fft_bram.xpr
+Scanning sources...
+Finished scanning sources
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1704] No user IP repositories specified
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository '/tools/Xilinx/Vivado/2018.3/data/ip'.
+update_compile_order -fileset sources_1
+reset_run synth_1
+launch_runs impl_1 -jobs 4
+[Tue Jan 20 01:35:22 2026] Launched synth_1...
+Run output will be captured here: /home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/fft_bram/fft_bram.runs/synth_1/runme.log
+[Tue Jan 20 01:35:22 2026] Launched impl_1...
+Run output will be captured here: /home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/fft_bram/fft_bram.runs/impl_1/runme.log
+open_run impl_1
+INFO: [Netlist 29-17] Analyzing 892 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
+INFO: [Project 1-479] Netlist was created with Vivado 2018.3
+INFO: [Project 1-570] Preparing netlist for logic optimization
+INFO: [Timing 38-478] Restoring timing data from binary archive.
+INFO: [Timing 38-479] Binary timing data restore complete.
+INFO: [Project 1-856] Restoring constraints from binary archive.
+INFO: [Project 1-853] Binary constraint restore complete.
+Reading XDEF placement.
+Reading placer database...
+Reading XDEF routing.
+Read XDEF File: Time (s): cpu = 00:00:00.43 ; elapsed = 00:00:00.42 . Memory (MB): peak = 7793.148 ; gain = 0.000 ; free physical = 6693 ; free virtual = 17152
+Restored from archive | CPU: 0.440000 secs | Memory: 11.763618 MB |
+Finished XDEF File Restore: Time (s): cpu = 00:00:00.43 ; elapsed = 00:00:00.42 . Memory (MB): peak = 7793.148 ; gain = 0.000 ; free physical = 6693 ; free virtual = 17152
+Netlist sorting complete. Time (s): cpu = 00:00:00.01 ; elapsed = 00:00:00 . Memory (MB): peak = 7793.148 ; gain = 0.000 ; free physical = 6693 ; free virtual = 17152
+INFO: [Project 1-111] Unisim Transformation Summary:
+  A total of 576 instances were transformed.
+  RAM32M => RAM32M (RAMD32, RAMD32, RAMD32, RAMD32, RAMD32, RAMD32, RAMS32, RAMS32): 192 instances
+  RAM64M => RAM64M (RAMD64E, RAMD64E, RAMD64E, RAMD64E): 320 instances
+  RAM64X1D => RAM64X1D (RAMD64E, RAMD64E): 64 instances
+
+CRITICAL WARNING: [Timing 38-282] The design failed to meet the timing requirements. Please see the timing summary report for details on the timing violations.
+close_design
+close_project
+open_project /home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/fft_bram/fft_bram.xpr
+Scanning sources...
+Finished scanning sources
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1704] No user IP repositories specified
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository '/tools/Xilinx/Vivado/2018.3/data/ip'.
+reset_run synth_1
+update_compile_order -fileset sources_1
+launch_runs impl_1 -jobs 4
+[Tue Jan 20 01:40:09 2026] Launched synth_1...
+Run output will be captured here: /home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/fft_bram/fft_bram.runs/synth_1/runme.log
+[Tue Jan 20 01:40:09 2026] Launched impl_1...
+Run output will be captured here: /home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/fft_bram/fft_bram.runs/impl_1/runme.log
+open_run impl_1
+INFO: [Netlist 29-17] Analyzing 914 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
+INFO: [Project 1-479] Netlist was created with Vivado 2018.3
+INFO: [Project 1-570] Preparing netlist for logic optimization
+INFO: [Timing 38-478] Restoring timing data from binary archive.
+INFO: [Timing 38-479] Binary timing data restore complete.
+INFO: [Project 1-856] Restoring constraints from binary archive.
+INFO: [Project 1-853] Binary constraint restore complete.
+Reading XDEF placement.
+Reading placer database...
+Reading XDEF routing.
+Read XDEF File: Time (s): cpu = 00:00:00.40 ; elapsed = 00:00:00.41 . Memory (MB): peak = 7825.152 ; gain = 0.000 ; free physical = 6460 ; free virtual = 16930
+Restored from archive | CPU: 0.400000 secs | Memory: 11.543655 MB |
+Finished XDEF File Restore: Time (s): cpu = 00:00:00.40 ; elapsed = 00:00:00.41 . Memory (MB): peak = 7825.152 ; gain = 0.000 ; free physical = 6460 ; free virtual = 16930
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 7825.152 ; gain = 0.000 ; free physical = 6460 ; free virtual = 16930
+INFO: [Project 1-111] Unisim Transformation Summary:
+  A total of 576 instances were transformed.
+  RAM32M => RAM32M (RAMD32, RAMD32, RAMD32, RAMD32, RAMD32, RAMD32, RAMS32, RAMS32): 192 instances
+  RAM64M => RAM64M (RAMD64E, RAMD64E, RAMD64E, RAMD64E): 320 instances
+  RAM64X1D => RAM64X1D (RAMD64E, RAMD64E): 64 instances
+
+CRITICAL WARNING: [Timing 38-282] The design failed to meet the timing requirements. Please see the timing summary report for details on the timing violations.
+close_design
+reset_run synth_1
+launch_runs synth_1 -jobs 4
+[Tue Jan 20 01:51:56 2026] Launched synth_1...
+Run output will be captured here: /home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/fft_bram/fft_bram.runs/synth_1/runme.log
+launch_runs impl_1 -jobs 4
+[Tue Jan 20 01:57:05 2026] Launched impl_1...
+Run output will be captured here: /home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/fft_bram/fft_bram.runs/impl_1/runme.log
+open_run impl_1
+INFO: [Netlist 29-17] Analyzing 914 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
+INFO: [Project 1-479] Netlist was created with Vivado 2018.3
+INFO: [Project 1-570] Preparing netlist for logic optimization
+INFO: [Timing 38-478] Restoring timing data from binary archive.
+INFO: [Timing 38-479] Binary timing data restore complete.
+INFO: [Project 1-856] Restoring constraints from binary archive.
+INFO: [Project 1-853] Binary constraint restore complete.
+Reading XDEF placement.
+Reading placer database...
+Reading XDEF routing.
+Read XDEF File: Time (s): cpu = 00:00:00.44 ; elapsed = 00:00:00.43 . Memory (MB): peak = 7825.152 ; gain = 0.000 ; free physical = 6850 ; free virtual = 17251
+Restored from archive | CPU: 0.440000 secs | Memory: 11.543510 MB |
+Finished XDEF File Restore: Time (s): cpu = 00:00:00.44 ; elapsed = 00:00:00.43 . Memory (MB): peak = 7825.152 ; gain = 0.000 ; free physical = 6850 ; free virtual = 17251
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 7825.152 ; gain = 0.000 ; free physical = 6850 ; free virtual = 17251
+INFO: [Project 1-111] Unisim Transformation Summary:
+  A total of 576 instances were transformed.
+  RAM32M => RAM32M (RAMD32, RAMD32, RAMD32, RAMD32, RAMD32, RAMD32, RAMS32, RAMS32): 192 instances
+  RAM64M => RAM64M (RAMD64E, RAMD64E, RAMD64E, RAMD64E): 320 instances
+  RAM64X1D => RAM64X1D (RAMD64E, RAMD64E): 64 instances
+
+CRITICAL WARNING: [Timing 38-282] The design failed to meet the timing requirements. Please see the timing summary report for details on the timing violations.
+close_design
+reset_run synth_1
+launch_runs impl_1 -jobs 4
+[Tue Jan 20 02:08:11 2026] Launched synth_1...
+Run output will be captured here: /home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/fft_bram/fft_bram.runs/synth_1/runme.log
+[Tue Jan 20 02:08:11 2026] Launched impl_1...
+Run output will be captured here: /home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/fft_bram/fft_bram.runs/impl_1/runme.log
+open_run impl_1
+INFO: [Netlist 29-17] Analyzing 914 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
+INFO: [Project 1-479] Netlist was created with Vivado 2018.3
+INFO: [Project 1-570] Preparing netlist for logic optimization
+INFO: [Timing 38-478] Restoring timing data from binary archive.
+INFO: [Timing 38-479] Binary timing data restore complete.
+INFO: [Project 1-856] Restoring constraints from binary archive.
+INFO: [Project 1-853] Binary constraint restore complete.
+Reading XDEF placement.
+Reading placer database...
+Reading XDEF routing.
+Read XDEF File: Time (s): cpu = 00:00:00.45 ; elapsed = 00:00:00.44 . Memory (MB): peak = 7833.160 ; gain = 0.000 ; free physical = 6719 ; free virtual = 17122
+Restored from archive | CPU: 0.460000 secs | Memory: 11.655273 MB |
+Finished XDEF File Restore: Time (s): cpu = 00:00:00.45 ; elapsed = 00:00:00.44 . Memory (MB): peak = 7833.160 ; gain = 0.000 ; free physical = 6719 ; free virtual = 17122
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 7833.160 ; gain = 0.000 ; free physical = 6719 ; free virtual = 17122
+INFO: [Project 1-111] Unisim Transformation Summary:
+  A total of 576 instances were transformed.
+  RAM32M => RAM32M (RAMD32, RAMD32, RAMD32, RAMD32, RAMD32, RAMD32, RAMS32, RAMS32): 192 instances
+  RAM64M => RAM64M (RAMD64E, RAMD64E, RAMD64E, RAMD64E): 320 instances
+  RAM64X1D => RAM64X1D (RAMD64E, RAMD64E): 64 instances
+
+CRITICAL WARNING: [Timing 38-282] The design failed to meet the timing requirements. Please see the timing summary report for details on the timing violations.
+close_design
+update_compile_order -fileset sources_1
+reset_run synth_1
+launch_runs impl_1 -jobs 4
+[Tue Jan 20 02:19:27 2026] Launched synth_1...
+Run output will be captured here: /home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/fft_bram/fft_bram.runs/synth_1/runme.log
+[Tue Jan 20 02:19:27 2026] Launched impl_1...
+Run output will be captured here: /home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/fft_bram/fft_bram.runs/impl_1/runme.log
+reset_run synth_1
+update_compile_order -fileset sources_1
+launch_runs impl_1 -jobs 4
+[Tue Jan 20 02:22:21 2026] Launched synth_1...
+Run output will be captured here: /home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/fft_bram/fft_bram.runs/synth_1/runme.log
+[Tue Jan 20 02:22:21 2026] Launched impl_1...
+Run output will be captured here: /home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/fft_bram/fft_bram.runs/impl_1/runme.log
+open_run impl_1
+INFO: [Netlist 29-17] Analyzing 442 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
+INFO: [Project 1-479] Netlist was created with Vivado 2018.3
+INFO: [Project 1-570] Preparing netlist for logic optimization
+INFO: [Timing 38-478] Restoring timing data from binary archive.
+INFO: [Timing 38-479] Binary timing data restore complete.
+INFO: [Project 1-856] Restoring constraints from binary archive.
+INFO: [Project 1-853] Binary constraint restore complete.
+Reading XDEF placement.
+Reading placer database...
+Reading XDEF routing.
+Read XDEF File: Time (s): cpu = 00:00:00.31 ; elapsed = 00:00:00.27 . Memory (MB): peak = 7913.219 ; gain = 0.000 ; free physical = 6704 ; free virtual = 17082
+Restored from archive | CPU: 0.320000 secs | Memory: 12.186607 MB |
+Finished XDEF File Restore: Time (s): cpu = 00:00:00.31 ; elapsed = 00:00:00.27 . Memory (MB): peak = 7913.219 ; gain = 0.000 ; free physical = 6704 ; free virtual = 17082
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.01 . Memory (MB): peak = 7913.219 ; gain = 0.000 ; free physical = 6704 ; free virtual = 17082
+INFO: [Project 1-111] Unisim Transformation Summary:
+  A total of 96 instances were transformed.
+  RAM32M => RAM32M (RAMD32, RAMD32, RAMD32, RAMD32, RAMD32, RAMD32, RAMS32, RAMS32): 96 instances
+
+CRITICAL WARNING: [Timing 38-282] The design failed to meet the timing requirements. Please see the timing summary report for details on the timing violations.
+close_design
+WARNING: [IP_Flow 19-3899] Cannot get the environment domain name variable for the component vendor name. Setting the vendor name to 'user.org'.
+reset_run synth_1
+launch_runs impl_1 -jobs 4
+[Tue Jan 20 02:26:49 2026] Launched synth_1...
+Run output will be captured here: /home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/fft_bram/fft_bram.runs/synth_1/runme.log
+[Tue Jan 20 02:26:49 2026] Launched impl_1...
+Run output will be captured here: /home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/fft_bram/fft_bram.runs/impl_1/runme.log
+open_run impl_1
+INFO: [Netlist 29-17] Analyzing 554 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
+INFO: [Project 1-479] Netlist was created with Vivado 2018.3
+INFO: [Project 1-570] Preparing netlist for logic optimization
+INFO: [Timing 38-478] Restoring timing data from binary archive.
+INFO: [Timing 38-479] Binary timing data restore complete.
+INFO: [Project 1-856] Restoring constraints from binary archive.
+INFO: [Project 1-853] Binary constraint restore complete.
+Reading XDEF placement.
+Reading placer database...
+Reading XDEF routing.
+Read XDEF File: Time (s): cpu = 00:00:00.32 ; elapsed = 00:00:00.30 . Memory (MB): peak = 7985.254 ; gain = 0.000 ; free physical = 6406 ; free virtual = 16814
+Restored from archive | CPU: 0.330000 secs | Memory: 8.716148 MB |
+Finished XDEF File Restore: Time (s): cpu = 00:00:00.32 ; elapsed = 00:00:00.31 . Memory (MB): peak = 7985.254 ; gain = 0.000 ; free physical = 6406 ; free virtual = 16814
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 7985.254 ; gain = 0.000 ; free physical = 6406 ; free virtual = 16814
+INFO: [Project 1-111] Unisim Transformation Summary:
+  A total of 216 instances were transformed.
+  RAM32M => RAM32M (RAMD32, RAMD32, RAMD32, RAMD32, RAMD32, RAMD32, RAMS32, RAMS32): 120 instances
+  RAM64M => RAM64M (RAMD64E, RAMD64E, RAMD64E, RAMD64E): 80 instances
+  RAM64X1D => RAM64X1D (RAMD64E, RAMD64E): 16 instances
+
+CRITICAL WARNING: [Timing 38-282] The design failed to meet the timing requirements. Please see the timing summary report for details on the timing violations.
+close_design
+reset_run synth_1
+launch_runs impl_1 -jobs 4
+[Tue Jan 20 04:09:54 2026] Launched synth_1...
+Run output will be captured here: /home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/fft_bram/fft_bram.runs/synth_1/runme.log
+[Tue Jan 20 04:09:54 2026] Launched impl_1...
+Run output will be captured here: /home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/fft_bram/fft_bram.runs/impl_1/runme.log
+WARNING: [IP_Flow 19-3899] Cannot get the environment domain name variable for the component vendor name. Setting the vendor name to 'user.org'.
+WARNING: [filemgmt 56-199] Attempt to get parsing info during refresh. "On-the-fly" syntax checking information may be incorrect. [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/fft_radix_4_top.v:]
+WARNING: [filemgmt 56-199] Attempt to get parsing info during refresh. "On-the-fly" syntax checking information may be incorrect. [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/memory.v:]
+WARNING: [filemgmt 56-199] Attempt to get parsing info during refresh. "On-the-fly" syntax checking information may be incorrect. [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/stage_unit.v:]
+WARNING: [filemgmt 56-199] Attempt to get parsing info during refresh. "On-the-fly" syntax checking information may be incorrect. [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/fft_radix_4_top.v:]
+WARNING: [filemgmt 56-199] Attempt to get parsing info during refresh. "On-the-fly" syntax checking information may be incorrect. [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/memory.v:]
+WARNING: [filemgmt 56-199] Attempt to get parsing info during refresh. "On-the-fly" syntax checking information may be incorrect. [/home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/stage_unit.v:]
+create_run impl_2 -parent_run synth_1 -flow {Vivado Implementation 2018} -strategy {Vivado Implementation Defaults} -report_strategy {Vivado Implementation Default Reports}
+Run is defaulting to parent run srcset: sources_1
+Run is defaulting to parent run constrset: constrs_1
+Run is defaulting to parent run part: xc7a200tfbg676-2
+current_run [get_runs impl_2]
+set_property strategy Performance_ExtraTimingOpt [get_runs impl_2]
+WARNING: [IP_Flow 19-3899] Cannot get the environment domain name variable for the component vendor name. Setting the vendor name to 'user.org'.
+WARNING: [IP_Flow 19-3899] Cannot get the environment domain name variable for the component vendor name. Setting the vendor name to 'user.org'.
+launch_runs impl_2 -jobs 4
+[Tue Jan 20 04:14:11 2026] Launched impl_2...
+Run output will be captured here: /home/christodoulos-zerdalis/Desktop/FFT/radix_4_SDF_bram/fft_bram/fft_bram.runs/impl_2/runme.log
+exit
+INFO: [Common 17-206] Exiting Vivado at Tue Jan 20 04:37:30 2026...
