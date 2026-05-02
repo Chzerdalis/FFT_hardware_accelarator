@@ -1,0 +1,986 @@
+https://en.wikipedia.org/wiki/Fourier_transform
+https://dibsmethodsmeetings.github.io/fourier-transforms/
+https://www.google.com/search?q=DSP+48e1+manual&oq=DSP+48e1+manual&gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIJCAEQIRgKGKAB0gEINDYxMGowajeoAgCwAgA&sourceid=chrome&ie=UTF-8
+20. C. Chao, Z. Qin, X. Yingke and H. Chengde, “Design of a High performance FFT processor based on FPGA,” IEEE
+Proc. Asia South-Pacific Design Automation Conf., pp. 920-923, Jan, 2005.
+21. Datasheet, “FFT MegaCore function user guide,” Version 7.0, Altera Inc., Dec. 2006.
+22. Datasheet, “Xilinx LogiCore Fast Fourier Transform,” Version 4.1, Xilinx Inc., Feb. 2007.
+23. https://scispace.com/pdf/fpga-realization-of-a-split-radix-fft-processor-1fp4drkb34.pdf
+
+% University of Thessaly
+% Department of Mechanical Engineering
+%------------------------------------------------
+\documentclass[a4paper,oneside,12pt]{book}
+ 
+\usepackage[LGR, T1]{fontenc}
+\usepackage{wrapfig}
+\usepackage{float}
+\usepackage{cite}
+% English is now the last option, making it the main language
+\usepackage[greek,english]{babel}
+\usepackage{amsbsy, amsmath, amsfonts}
+\usepackage{pgfplots}
+\usepackage{subcaption}
+%\usepackage{alphabeta}
+%\usepackage{newtxtext}
+%\usepackage{substitutefont}
+%\substitutefont{LGR}{\rmdefault}{txr}
+
+\usepackage{amsbsy, amsmath, amsfonts}
+\usepackage{siunitx}
+\usepackage{graphicx}
+
+% text sub- and superscripts
+\newcommand{\spr}[1]{\ensuremath{^\textrm{#1}}}
+\newcommand{\sub}[1]{\ensuremath{_\textrm{#1}}}
+
+% better tables
+\usepackage{multirow}
+\usepackage{booktabs}
+
+% links
+%\usepackage{color}
+\usepackage[]{hyperref}
+\usepackage{enumitem} % better lists
+
+% Bibliography
+\usepackage{csquotes}
+\usepackage[backend=biber,style=numeric,sorting=none,natbib=true, autolang=other,bibencoding=auto, language=autobib,giveninits=true]{biblatex}
+\addbibresource{myrefs.bib} %file of biblatex
+
+% Language switching commands
+\newcommand{\sw}{\selectlanguage{english}}
+\newcommand{\sq}{\selectlanguage{greek}}
+\newcommand{\eng}[1]{\latintext#1\greektext}
+\newcommand{\gre}[1]{\greektext#1\latintext}
+
+% figures and tables
+\usepackage{caption}
+\captionsetup[figure]{labelfont=it,textfont=it}
+\captionsetup[table]{labelfont=it,textfont=it}
+\usepackage{subfig}
+
+\usepackage[strict]{changepage}
+
+% Define margins
+\usepackage[left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm,includehead,includefoot,headheight=16pt]{geometry}
+
+% Page headers
+\usepackage{fancyhdr}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt} 
+% \fancyhead[L]{\nouppercase{\leftmark}}
+\cfoot{\thepage}
+\pagestyle{fancy}
+
+
+% Line spacing
+\usepackage{setspace}
+\setstretch{1.5}
+
+% Defines uth-specific title page
+% NOTE: Ensure your mieUTHtitle.sty file is also translated to English
+\usepackage{mieUTHtitle}
+
+
+% Hyphenation (Optional, kept in case you use Greek text)
+\babelhyphenation[greek]{Α-ντι-κεί-με-νο}
+%-------------------------------------------
+\begin{document}
+
+% Fill in your details
+\author{Christodoulos Zerdalis 03531}
+\title{Scalable streaming FFT processor implementation on FPGA}
+
+\maketitle
+
+\frontmatter
+
+\chapter*{Abstract}
+The abstract should be up to 300 words. It should summarize the subject of the work, the methods used, the main points of the study, the findings, and the conclusions.
+
+\tableofcontents
+
+%-------------------------------------------------
+\mainmatter
+
+\chapter{Introduction}
+
+\section{Introduction to Fourier transform}
+In mathematics, the Fourier transform (FT) is an integral transform that acts on a function to reveal its frequency components. It takes an input function and generates a new, complex-valued function that details the intensity of different frequencies present in the original. The term ``Fourier transform'' applies to both the mathematical process itself and the resulting function. To distinguish between the two, the output is often referred to as the ``frequency domain'' representation. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\linewidth]{Images/fourier_transform.png}
+    \caption{We can see how a signal in the Time domain consists of multiple signal of different frequencies}
+    \label{fig:placeholder}
+\end{figure}
+
+ This process is similar to breaking a musical chord down to identify the volume of the individual notes that create it. The Fourier transform, $\hat{f}(\omega)$, of a function $f(t)$ is defined mathematically as:
+\begin{equation}
+    \hat{f}(\omega) = \int_{-\infty}^{\infty} f(t) e^{-i\omega t} \, dt
+\end{equation}
+
+\section{Fast Furrier transform in general}
+The Fast Fourier Transform (FFT) is an efficient algorithm used to compute the Discrete Fourier Transform (DFT) of a sequence, which transforms a signal from the time domain into the frequency domain. This means it breaks down a complex signal into its constituent sinusoidal components-frequencies and their amplitudes-making it easier to analyze patterns such as pitch in audio, frequencies in communications, or periodicities in data. The FFT drastically reduces the computational complexity of DFT from $O(N^2)$ to $O(N\log(N))$ by cleverly reusing calculations through a divide-and-conquer approach. This algorithm is ideal for real-life applications like audio processing, image analysis, wireless communication and other biomedical and industrial applications.
+
+
+The most common FFT algorithm is the \textbf{Cooley-Tukey} algorithm, which is widely used due to its simplicity and efficiency. It works best when the input size $N$ is a power of 2. The most common versions of the algorithm are:
+
+\begin{itemize}
+    \item \textbf{Radix-2}: The most basic and common version. Splits the DFT into two halves (even and odd indices) at each stage. Requires $N$ to be a power of 2.
+    \item \textbf{Radix-4}: More efficient than radix-2 when $N$ is a power of 4. Reduces the number of multiplications compared to radix-2 by grouping four elements at a time.
+    \item \textbf{Split radix}: This combines both radix-2 and radix-4 versions in order to improuve efficiency.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[t]{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{Images/r2.png}
+        \caption{Radix-2 Dataflow}
+        \label{fig:diagram1}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{Images/r4.png}
+        \caption{Radix-4 Dataflow}
+        \label{fig:diagram2}
+    \end{minipage}
+\end{figure}
+
+\section{Radix-2 FFT Decomposition}
+
+For a sequence $x[n]$, the Discrete Fourier Transform (DFT) is defined as:
+\begin{equation}
+    X[k] = \sum_{n=0}^{N-1} x[n] \cdot W_N^{kn}, \quad \text{where } W_N = e^{-j\frac{2\pi}{N}}
+\end{equation}
+The term $W_N$ is referred to as the \textbf{twiddle factor}. The FFT algorithm reorganizes this summation to significantly reduce computational complexity.
+
+By splitting the input $x[n]$ into even-indexed ($e[n] = x[2n]$) and odd-indexed ($o[n] = x[2n+1]$) samples, the DFT can be rewritten as:
+\begin{equation}
+    X[k] = \sum_{n=0}^{N/2 - 1} x[2n] \cdot W_N^{k \cdot 2n} + \sum_{n=0}^{N/2 - 1} x[2n+1] \cdot W_N^{k \cdot (2n+1)}
+\end{equation}
+Utilizing the property $W_N^{2kn} = W_{N/2}^{kn}$, this allows for the decomposition:
+\begin{equation}
+    X[k] = \underbrace{\sum_{n=0}^{N/2 - 1} e[n] \cdot W_{N/2}^{kn}}_{\text{Even terms } (E[k])} + W_N^k \cdot \underbrace{\sum_{n=0}^{N/2 - 1} o[n] \cdot W_{N/2}^{kn}}_{\text{Odd terms } (O[k])}
+\end{equation}
+Let $E[k]$ denote the DFT of the even-indexed inputs and $O[k]$ the DFT of the odd-indexed inputs. The equation simplifies to:
+\begin{equation}
+    X[k] = E[k] + W_N^k \cdot O[k]
+\end{equation}
+Due to the periodicity of the DFT (period $N$), the calculation for the full range $k = 0, 1, \dots, N-1$ can be computed using the \textbf{butterfly operation}:
+\begin{align}
+    X[k] &= E[k] + W_N^k \cdot O[k] \\
+    X\left[k + \frac{N}{2}\right] &= E[k] - W_N^k \cdot O[k]
+\end{align}
+for $k = 0, 1, \dots, N/2 - 1$.
+
+For an input sequence of length $N$, where $N = 2^m$, the FFT requires $m = \log_2(N)$ stages. Each stage performs these butterfly operations to progressively combine and transform the input data.
+
+\begin{figure}[htbp]
+    \centering
+    % Ensure the file path is correct. If you don't have the image yet, use \includegraphics[width=0.5\textwidth, demo]{Images/fft_rec.png}
+    \includegraphics[width=0.6\textwidth]{Images/fft_rec.png} 
+    \caption{Recursive logic of the Radix-2 FFT. It combines results from previous stages which process even and odd sequences.}
+    \label{fig:radix2_rec}
+\end{figure}
+
+\section{Radix-4 FFT Decomposition}
+
+The Radix-4 FFT extends the Radix-2 algorithm by dividing the DFT into \textbf{four smaller DFTs}. This approach requires the input size $N$ to be a power of 4 ($N=4^m$).
+
+We group $x[n]$ into four interleaved subsequences:
+\begin{align}
+    x_0[n] &= x[4n], & x_1[n] &= x[4n+1], \nonumber \\
+    x_2[n] &= x[4n+2], & x_3[n] &= x[4n+3]
+\end{align}
+The DFT expansion then becomes:
+\begin{equation}
+    X[k] = \sum_{n=0}^{N/4-1} \left[ 
+    x[4n] + x[4n+1] W_N^k + x[4n+2] W_N^{2k} + x[4n+3] W_N^{3k}
+    \right] W_{N/4}^{kn}
+\end{equation}
+This can be expressed as a linear combination of four quarter-length DFTs ($X_0, X_1, X_2, X_3$):
+\begin{equation}
+    X[k] = X_0[k] + W_N^k X_1[k] + W_N^{2k} X_2[k] + W_N^{3k} X_3[k]
+\end{equation}
+To simplify the 4-point butterfly operation, we define the intermediate terms:
+\[
+    A = X_0[k], \quad B = W_N^k X_1[k], \quad C = W_N^{2k} X_2[k], \quad D = W_N^{3k} X_3[k]
+\]
+
+The butterfly outputs are then calculated as:
+\begin{align}
+    X[k] &= A + B + C + D \\
+    X\left[k + \frac{N}{4}\right] &= A - jB - C + jD \\
+    X\left[k + \frac{N}{2}\right] &= A - B + C - D \\
+    X\left[k + \frac{3N}{4}\right] &= A + jB - C - jD
+\end{align}
+Radix-4 exploits additional symmetries to reduce the total operation count. It reduces the number of stages to $\log_4 N$ (compared to $\log_2 N$ for Radix-2), providing greater efficiency in hardware implementations when $N$ is a power of 4.
+
+\section{Unrolled vs SDF hardware design}
+The are different approaches in designing the FFT algorythm in hardware, the most intuitive way is the unrolled way, this exploits its inherent parallelism
+by unrolling the entire computation. Each butterfly operation is assigned a dedicated hardware unit, resulting in a fully unrolled design where all butterfly computations are executed concurrently. This method is very demanding in resourches especially for smaller fpgas, also it requires a very high bandwidth of data as it computes, for a 256 point fft, 256 data points at the same clock cycle.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}[t]{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{Images/r2draw.png}
+        \caption{This image shows the structure/dataflow of the radix-2 unrolled algorithm with B2 being it's dedicated batterfly}
+        \label{fig:diagram1}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{Images/r4.drawio_1.png}
+        \caption{This image shows the structure/dataflow of the radix-4 unrolled algorithm with B4 being it's dedicated batterfly.}
+        \label{fig:diagram2}
+    \end{minipage}
+\end{figure}
+
+A different more resource efficient way is using only one butterfly unit per stage and storing the input and output data in memory in order to compute them at the right time. This method is called Single Path Delay Feedback and is the most common achitecture for a modern FFT accelerator. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{Images/SDF_unit.png}
+    \caption{This image shows a simplified version of the SDF units that will be discussed ahead.}
+    \label{fig:placeholder}
+\end{figure}
+
+%--------------------------------------------
+\chapter{Hardware Implementation}
+In this chapter we will see how the original radix-2 SDF version of the FFT unit worked and the steps taken to impouve uppon this design in order to achive more bandwidth, smaller latency and faster frequencies.
+
+\section{Initial version: Radix-2 Single path Delay Feedback}
+In the Microprocessor Design course, we implemented a Single-Path Delay Feedback (SDF) FFT hardware unit based on the Radix-2 algorithm. This design represented a significant improvement over fully unrolled architectures, which introduced high design complexity due to the need for memory controllers to buffer input samples. Furthermore, unrolled designs incurred prohibitive resource utilization for FFTs with window sizes exceeding 256 points.
+
+Although the initial Radix-2 SDF architecture resolved the scalability and resource issues, it introduced specific bottlenecks regarding performance and efficiency. First, the architecture processes one sample per clock cycle, requiring the samples to be stored in a feedback loop until threir pair arrives for computation. Second, while the butterfly unit generates two outputs simultaneously, the single-path nature of the design allows only one to pass to the next stage immediately, forcing the second result to be buffered. Third, the butterfly unit itself was implemented as a purely combinational circuit without internal pipelining, this significantly increased the critical path delay and limited the maximum operating frequency. 
+Fourth, the data size of the samples and the twiddles was 32 and 16 bits and testing with smaller data sizes had not been done. Finally, the radix-2 architecture is not the fastest nor the most resourfull and the use of something better seemed inevitable. 
+
+\begin{table}[htbp]
+    \centering
+    \label{tab:fft_resources}
+    \begin{tabular}{l c c c}
+        \toprule
+        \textbf{Metric} & \textbf{FFT-16} & \textbf{FFT-64} & \textbf{FFT-256} \\
+        \midrule
+        Critical Path (ns) & 12.65 & 13.047 & 13.976 \\
+        LUTs               & 1506  & 2168   & 3161   \\
+        Registers          & 740   & 1154   & 1576   \\
+        DSPs               & 24    & 40     & 56     \\
+        \bottomrule
+    \end{tabular}
+    \caption{Resource utilization and timing analysis for different FFT sizes with data size of 32 bits.}
+\end{table}
+
+\subsection{Twiddle factors}
+Since our hardware implementations are designed for FFTs of fixed sizes, there is
+no need for the algorithm to compute the twiddle factors at runtime. Calculating these
+factors involves complex arithmetic operations, which are computationally expensive and
+consume valuable FPGA resources. To optimize efficiency, all twiddle factors are pre-
+computed during compilation and stored in on-chip memory. Because the FFT algorithm
+operates using multiple computational units in parallel, the choice of memory architecture
+is critical. The memory must provide sufficient bandwidth to avoid becoming a bottleneck
+in the data path. To meet these performance requirements, twiddle factors are stored us-
+ing distributed memory such as LUTRAM or flip-flops, enabling constant-time access and
+ensuring that each computational unit can retrieve the required constants without delay.
+This approach to storing twiddle factors will not change in the next designs.
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[t]{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{Images/cyrcle_2.png}
+        \caption{Twiddle factors for N=8}
+        \label{fig:diagram1}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{Images/tw.png}
+        \caption{Twiddle values for N=8}
+        \label{fig:diagram2}
+    \end{minipage}
+\end{figure}
+
+\subsection{Datatypes}
+In the initial design, the samples are represented using a 32-bit fixed-point format, where the value 1.0
+corresponds to the integer 32767 (i.e., $2^{15} - 1$). Although the data is 32 bits wide, the
+effective scaling is based on the Q1.15 format. This approach combines the benefits of
+wider data paths such as reduced overflow risk and better intermediate precision with
+the simplicity and hardware efficiency of fixed-point arithmetic.
+
+\section{New version: Radix-4 Single path Delay Feedback}
+To improve the latency of the design defined here as the total number of clock cycles required to process an entire fft window i selected the Radix-4 architecture. Theoretically, this architecture is faster because it requires fewer computational stages ($\log_4 N$) compared to Radix-2 ($\log_2 N$).
+
+However, simply substituting the architecture within the old design was insufficient to yield performance gains. Processing one sample per clock with Radix-4 actually increased latency, as each butterfly unit incurred significant idle time waiting to acquire the four necessary data points to begin computation. Figures 1.5 and 1.6 illustrate the specific sample index at which computation begins for the second stage of each unit. In the Radix-2 architecture, computation starts as soon as the second sub-butterfly ,corresponding to the next stage, outputs its values. In contrast, for the Radix-4 architecture, this process is delayed until the fourth sub-butterfly has output its values. This results in a considerably longer wait time (latency) before the subsequent stage can begin processing.
+
+To mitigate this, I increased the throughput to process four samples per clock cycle. This aligns perfectly with the Radix-4 butterfly's requirement for four parallel inputs, allowing computations to commence immediately. Implementing this parallelization required significant restructuring of the memory buffers to coordinate data alignment, as well as a complete redesign of the control logic to synchronize the system.
+
+\begin{table}[H]
+    \centering
+    \label{tab:latency_comparison}
+    \begin{tabular}{l c}
+        \toprule
+        \textbf{Architecture} & \textbf{Latency (Clock Cycles)} \\
+        \midrule
+        Radix-2 SDF & 518 \\
+        Radix-4 SDF & 578 \\
+        \bottomrule
+    \end{tabular}
+    \caption{Latency comparison (First-In to Last-Out) between Radix-2 and Radix-4 SDF (one sample per clock) architectures with 256 FFTs}
+\end{table}
+
+In order to understand how the modules that are going to be discusses ahead are connected a top view of the SDF unit is needed
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{Images/Fast_no_pipeline.png}
+    \caption{This is the top module for the SDF unit for one of the stages.}
+    \label{fig:placeholder}
+\end{figure}
+
+For a complete FFT processor many units connected one after the other are need, the number depends on the size of the FFT.
+
+\subsection{Butterfly unit}
+The Radix-4 butterfly unit is significantly more complex and resource-intensive than the Radix-2 unit, as it processes four samples simultaneously to better exploit the symmetries of the FFT algorithm. However, this increased complexity extends the combinatorial path for each input, leading to a substantially longer critical path. To mitigate this, I pipelined the design, breaking the computation into smaller stages so that only a specific set of parallel operations is performed in each clock cycle, thereby preserving the operating frequency.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{Images/Butterfly_pipeline.png}
+    \caption{Here we can see how the butterfly of the radix-4 algorythm looks}
+    \label{fig:placeholder}
+\end{figure}
+
+The blue vertical lines represent the pipelines that i introduced, we can also see all the computations happening in detail. Input\_memory\_data are the inputs (four at a time) of the butterfly that are going to come from the memory that stores the samples and the twiddle\_weights are the factors needed for the correct computation and are pre-stored in lut-ram.
+
+\subsection{Control Unit}
+The control unit is responsible for coordinating where inputs are stored, when butterfly operations start, and how the delay buffers function. This is achieved using two counters of variable size, which depends on the stage number.
+
+The first is the stride segment counter, which times the writing of new inputs to memory and tracks when the second counter should start. This counter increments every time four new samples arrive (shown as green lines in the graph).
+
+The second is the butterfly operation counter, which starts when the samples required for the butterfly operation arrive. These are the blue samples in the graph they represent the last samples of a butterfly cluster needed to complete the set of four inputs. Since only one physical butterfly unit exists, we cannot process all four operations at once even if we have the data. Therefore, only one operation happens at a time, and the other data must wait.
+
+To make the design simpler and more portable, these counters do not iterate through all operations in a stage. Instead, each counter counts up to the number of butterflies in the respective cluster (in the graph, this number is 4). The length of these counters is calculated dynamically based on parameters from the SDF unit module that indicate the current stage.
+
+Finally, there are other signals, such as the butterfly counter enable, which validates that the inputs and outputs of the butterfly are valid values and not junk. There is also a flush counter that tracks the number of remaining operations when the input enable signal goes low. This is needed because the unit requires extra time to finish processing after the last input is received due to the initial delay while waiting for values to arrive.
+
+\begin{figure}[H]
+    \centering
+    % --- First Row ---
+    \subfloat[Stride counter equals 00]{
+        \includegraphics[width=0.3\linewidth]{Images/1st_tetrada.png}
+        \label{fig:tetrada1}
+    }
+    \hfill % Adds space between the two images
+    \subfloat[Stride counter equals 01]{
+        \includegraphics[width=0.3\linewidth]{Images/2nd_tetrada.png}
+        \label{fig:tetrada2}
+    }
+    \subfloat[Stride counter equals 10 and here the butterfly counter starts]{
+        \includegraphics[width=0.3\linewidth]{Images/3rd_tetrada.png}
+        \label{fig:tetrada3}
+    }
+    
+    \vspace{1em} % Adds vertical space between the rows
+\end{figure}
+
+\begin{figure}[H] 
+    % --- Second Row ---
+    \subfloat[Stride counter equals 11 and butterfly counter 00]{
+        \includegraphics[width=0.3\linewidth]{Images/4th_tetrada.png}
+        \label{fig:tetrada3}
+    }
+    \hfill
+    \subfloat[Stride counter equals 00 and butterfly counter 01]{
+        \includegraphics[width=0.3\linewidth]{Images/5th_tetrada.png}
+        \label{fig:tetrada4}
+    }
+    \subfloat[Stride counter equals 01 and butterfly counter 10]{
+        \includegraphics[width=0.3\linewidth]{Images/6th_tetrada.png}
+        \label{fig:tetrada3}
+    }
+    
+    % --- Main Caption ---
+    \caption{Here we can see the flow of the disign and how the counters operate}
+    \label{fig:all_tetradas}
+\end{figure}
+
+\subsection{Delay buffers/Memory}
+The delay buffers are the most critical component of the design, as they facilitate the storing, rearranging, and timing of the data. They are essentially shift registers that delay the data by the correct number of cycles. Each buffer has four input ports and one output port. The inputs are always written to specific positions in the delay buffer ($0$, $\text{buffer\_size}/4$, $2 \cdot \text{buffer\_size}/4$, and $3 \cdot \text{buffer\_size}/4$); this is necessary to queue the data correctly.
+
+A \texttt{write\_enable} signal is raised based on the \textit{stride segment counter}, instructing the buffer to store the inputs. Similarly, \texttt{read\_enable\_1} and \texttt{read\_enable\_2} signals are raised based on the \textit{butterfly enable counter} to retrieve data. In essence, these signals dictate the operating mode of the shift registers for any given clock cycle.
+
+Distinct modes are required to time the data correctly. Since the patterns of incoming and outgoing data differ, a simple shifting buffer would lead to data overwrites, as the unit sometimes needs to write to locations where valid data has not yet been computed. To solve this, I implemented a \textbf{secondary shift register} in each module. This auxiliary register temporarily stores incoming data that would otherwise overwrite useful entries. When the timing is right, the design rotates or combines the two shift registers according to the \textit{stride segment counter}.
+
+In each stage, four different delay buffers with slightly different timing are used to serve the data exactly as required. These buffers were custom-designed to match the algorithm's timing perfectly, ensuring that not a single extra register was used. While this approach worked well in theory, we will see later that the complexity of these custom shift registers caused issues with the synthesis tool. Given that this module is scheduled for future revision, a detailed operational breakdown is omitted here. The complexity of the data flow is difficult to illustrate sufficiently within a static report. A more comprehensive explanation will be demonstrated during the presentation.
+
+\subsection{Data quantization and results}
+In the original design the 32 data size and 16 bit twiddle factor size yieled perfect accuaracy reasults, this lead be to believe that the size of both could be reduced and still have very good results. The datasizes tested where 32 , 24, 18 and 16 bits whie always the twiddle being half the size.
+
+\begin{figure}[H] % [p] puts this on a dedicated page because it is very tall    
+    % --- Row 1: 32-bit (256) ---
+    \subfloat[Real (32-bit,256-pt)($R^2$=1 ,PSNR=164.12)]{
+        \includegraphics[width=0.5\linewidth]{real_256_32bit.png}
+        \label{fig:real_32}
+    }
+    \hfill
+    \subfloat[Imag (32-bit,256-pt)($R^2$=1 ,PSNR=166.32)]{
+        \includegraphics[width=0.5\linewidth]{imag_256_32bit.png}
+        \label{fig:imag_32}
+    } \\
+    \vspace{0.5em} % Space between rows
+\end{figure}
+
+The results demonstrate that the smallest bit-width tested, 16 bits, is sufficient, yielding a PSNR greater than 60 dB, which is excellent for signal processing applications. However, for FFT sizes larger than 1024, utilizing larger data widths is recommended. This precaution is necessary to mitigate the cumulative quantization error that arises from the increased number of processing stages.
+
+\begin{figure}[p] % [p] puts this on a dedicated page because it is very tall    
+    % --- Row 2: 24-bit (256) ---
+    \subfloat[Real (24-bit,256-pt)($R^2$=1 ,PSNR=116.61)]{
+        \includegraphics[width=0.5\linewidth]{real_256_24bit.png}
+        \label{fig:real_24}
+    }
+    \hfill
+    \subfloat[Imag (24-bit,256-pt)($R^2$=1 ,PSNR=118.22)]{
+        \includegraphics[width=0.5\linewidth]{imag_256_24bit.png}
+        \label{fig:imag_24}
+    } \\
+    \vspace{0.5em}
+
+    % --- Row 3: 18-bit (256) ---
+    \subfloat[Real (18-bit,256-pt)($R^2$=0.99 ,PSNR=80.47)]{
+        \includegraphics[width=0.5\linewidth]{real_256_18bit.png}
+        \label{fig:real_18}
+    }
+    \hfill
+    \subfloat[Imag(18-bit,256-pt)($R^2$=0.99 ,PSNR=82.11)]{
+        \includegraphics[width=0.5\linewidth]{imag_256_18bit.png}
+        \label{fig:imag_18}
+    } \\
+    \vspace{0.5em}
+
+    % --- Row 4: 16-bit (256) ---
+    \subfloat[Real (16-bit,256-pt)($R^2$=0.98 ,PSNR=68.11)]{
+        \includegraphics[width=0.5\linewidth]{real_256_16bit.png}
+        \label{fig:real_16}
+    }
+    \hfill
+    \subfloat[Imag (16-bit,256-pt)($R^2$=0.98 ,PSNR=69.8)]{
+        \includegraphics[width=0.5\linewidth]{imag_256_16bit.png}
+        \label{fig:imag_16}
+    } \\
+    \vspace{0.5em}
+
+    % --- Row 5: 16-bit (1024) ---
+    \subfloat[Real (16-bit,1024pt)($R^2$=0.98 ,PSNR=61.23)]{
+        \includegraphics[width=0.5\linewidth]{real_1024_16bit.png}
+        \label{fig:real_1024}
+    }
+    \hfill
+    \subfloat[Imag (16-bit,1024pt)($R^2$=0.98 ,PSNR=63.4)]{
+        \includegraphics[width=0.5\linewidth]{imag_1024_16bit.png}
+        \label{fig:imag_1024}
+    }
+
+    \label{fig:fft_comparison_grid}
+\end{figure}
+
+\chapter{Fpga synthesis optimizations}
+In chapter we will see optimizations that helped the synthesis tools perform better place and routing. This resulted in bigger frequencies and smaller resurce usage.
+
+\section{DSP utilization}
+The butterfly unit performs intensive multiplication operations that can take advantage of the silicon DSP IP blocks embedded in most modern FPGAs. DSPs (Digital Signal Processing slices) are dedicated hardware modules designed to execute fast multiplication and Multiply-Accumulate (MAC) operations without consuming the general-purpose FPGA fabric. These hardened modules perform significantly faster than typical LUT-based multipliers. Furthermore, using them optimizes the design by reducing power consumption and freeing up programmable logic resources for control and storage tasks. Althought previous designs used DSPs, while pushing the designs to each limits a critical paths violation including the DSPs routing was accuring with cobmination of this error 
+
+\vspace{1em}
+
+\begin{table}[H]
+    \centering
+    \label{tab:dsp_warnings}
+    \begin{tabular}{l l l c}
+        \toprule
+        \textbf{ID} & \textbf{Severity} & \textbf{Description} & \textbf{Occurrences} \\
+        \midrule
+        \texttt{DPIP-1} & Warning & DSP Input Pipelining & 80 \\
+        \texttt{DPOP-2} & Warning & DSP MREG Output Pipelining & 43 \\
+        \bottomrule
+    \end{tabular}
+    \caption{Synthesis warnings indicating missing DSP internal pipelining.}
+\end{table}
+
+\newpage
+
+\begin{figure}[htbp]
+    \centering
+    % --- Left Image (Smaller) ---
+    \begin{minipage}{0.35\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{Images/DSP_reg.png}
+        \caption{Critical path schematic showing a DSP}
+        \label{fig:dsp_reg}
+    \end{minipage}
+    \hfill % This adds space between the two images
+    % --- Right Image (Larger) ---
+    \begin{minipage}{0.60\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{Images/DSP_reg_draw.png}
+        \caption{Schematic of a DSP48E1 and where the registrs are, in blue in the M register and in black the input registers.}
+        \label{fig:registers_dsp}
+    \end{minipage}
+\end{figure}
+
+Although this represents the worst critical path exceeding the 3ns timing constraint, the path report provides limited visual detail, showing only a register driving a DSP input. This indicates that the signal is attempting to propagate through the DSP logic combinatorially within a single cycle. To resolve this, and in accordance with the synthesis tool's recommendations, I converted the reset logic from asynchronous to synchronous. This modification allows the synthesis tool to utilize the DSP's internal pipeline registers, thereby breaking the critical path.
+
+
+\subsection{Further pipelining of the SDF unit}
+Another critical error in the design is that everything in the unit happens in the same cycle limiting the max frequency that the sythesis tools can achive. To combat that i seperated the control unit, delay buffers and butterfly unit int different pipeleines. i also added registers in the input and output of the delay buffers minimizing the delay of reading data from the memory. Also, same passthrough registers where needed for the counters and values that were needed in the subsequent pipelines and to make the pipelines balanced.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{Images/pipelined_unit.png}
+    \caption{Schematic of top module after extra pipelining}
+    \label{fig:placeholder}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{Images/Stage_1_schem.png}
+    \caption{The first stage does not use the delay buffers as it can direclty use the 4 inputs to calculate the results of the butterfly}
+    \label{fig:placeholder}
+\end{figure}
+
+In green and blue we can see all the pipeline registers of the design. In green are the registers for the input path of the data and in blue the registers for the output path of the data.
+
+\section{Multipliers in LUTs}
+After adding extra pipeline stages to the design, an unexpected issue emerged: the DSP routing was unable to meet the required timing constraints. Although the butterfly schematic shows no chained multiplications suggesting that two DSPs should not be connected in series.
+
+Specifically, the synthesis tool utilized 6 of the 12 butterflies strictly as multipliers, while the remaining 6 were configured as Multiply-Accumulate (MAC) units. This configuration forces the latter units to wait for the results of the former before performing the accumulate operation, creating a serial dependency that violates the intended parallel design and causes the timing failure.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{Images/BUtterfly_critical_path.png}
+    \caption{Chained DSPs used for multiply and multiply accumulate}    
+    \label{fig:placeholder}
+\end{figure}
+
+\newpage{}
+
+To solve this i implimented  a Carry-Save Adder (CSA) architecture to perform signed multiplication without using dedicated DSP slices. It breaks the multiplication into a series of pipeline stages, where each stage corresponds to a bit of the multiplier b. Instead of performing a slow, full addition at every step, each stage calculates a Sum and a Carry vector simultaneously using bitwise XOR and majority logic. These vectors are passed through a pipeline (sum\_pipe and carry\_pipe) along with the original inputs to reduce the combinational path delay. In the final stage, the module accounts for signed arithmetic by subtracting the last partial product if the multiplier's sign bit is set, before performing a final addition to merge the sum and carry vectors into the completed product.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{Images/Carry-Save-Multiplier.png}
+    \caption{CSA multiplier}
+    \label{fig:placeholder}
+\end{figure}
+
+\section{New memory structure}
+Finally, the initial design of the memory and delay buffers was inefficient, as it shifted all data from register to register on every clock cycle. Although shift registers are typically simple and fast, the complexity of these specific buffers likely hindered the synthesis tool's optimization. To resolve this, I implemented a more traditional memory architecture where the data remains stationary, and read/write pointers manage the data organization. These pointers are controlled by the two counters discussed previously.
+
+Since this simpler memory design was more robust, I aimed to make it compatible with Block RAM (BRAM) modules. To achieve BRAM inference, I had to ensure that each memory block utilized no more than one write port and one read port (Simple Dual-Port) per physical BRAM resource. Given that the design requires four reads and four writes per cycle, I had to carefully structure the memory banks to ensure that no combination of simultaneous accesses exceeded the BRAM hardware capabilities. Consequently, instead of storing incoming samples in a linear sequence (e.g., $[0 \to 3]$, $[4 \to 7]$), I implemented a custom addressing scheme:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{Images/memory_assecess.png}
+    \caption{Memory module organization}
+    \label{fig:placeholder}
+\end{figure}
+
+The following describes the memory architecture and its operation. The numbers represent the arrival order of the samples, which are fed into the unit in batches of four (e.g., $[1 \to 4], [5 \to 8]$, etc.). The memory is partitioned into four banks to enable simultaneous parallel reads and writes.
+
+The green lines illustrate the write patterns; writing begins at the green pointer's head and concludes at the pointer's tail. The remaining lines represent the read patterns, which are designed to span across all four banks. By rotating or shifting the starting point of the write operation for every other line, I avoided a vertical alignment of the read patterns. Without this rotation, the system would attempt to read four values from a single bank simultaneously, which is impossible with standard dual-port BRAM. While increasing the number of banks could solve this, I chose this shifting approach to keep resource and register utilization as low as possible.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{Images/memory_oraganization.png}
+    \caption{Memory module. The green and blue collumns are the registers needed for a fast synthesis result.}
+    \label{fig:placeholder}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{Images/unit_eith_new _mem.png}
+    \caption{New unit schematic}
+    \label{fig:placeholder}
+\end{figure}
+
+\chapter{Testing}
+\section{Verification Methodology}
+
+To verify the functional correctness of the FFT processor, the hardware outputs were compared against a golden model generated using the \texttt{numpy.fft} library. The verification environment was implemented as follows:
+
+\begin{itemize}
+    \item \textbf{Stimulus Generation:} Random and synthetic test signals were generated in Python to ensure comprehensive coverage of the design space.
+    \item \textbf{Data Quantization:} These signals were preprocessed and quantized to match the specific fixed-point datatypes and word lengths utilized in the hardware implementation.
+    \item \textbf{Testbench Automation:} A HDL testbench was developed to read the input vectors, drive the simulation, and log the resulting hardware outputs into a \texttt{.txt} file for post-processing.
+\end{itemize}
+
+\section{Results}
+\subsection*{Inputs}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{Images/20_256_16_0_inputs.png}
+    \caption{Synthetic signal with an FFT size of 256}
+    \label{fig:placeholder}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{Images/20_256_16_1_input.png}
+    \caption{Random signal with an FFT size of 256}
+    \label{fig:placeholder}
+\end{figure}
+
+\subsection*{Outputs}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\linewidth]{Images/20_256_16_0_outreal.png}
+    \caption{Output of real values from the synthetic test}
+    \label{fig:placeholder}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{Images/20_256_16_0_outimag.png}
+    \caption{Output of imaginary values from the synthetic test}
+    \label{fig:placeholder}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\linewidth]{Images/20_256_16_outreal.png}
+    \caption{Output of real values from the random test}
+    \label{fig:placeholder}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{Images/20_256_16_outimag.png}
+    \caption{Output of imaginary values from the random test}
+    \label{fig:placeholder}
+\end{figure}
+
+\chapter{Results}
+\section{Resource utilization}
+\begin{figure}[H]
+    \centering
+    % --- Plot 1: Resource Utilization (LUT, FF, BRAM) ---
+    \begin{subfigure}{\textwidth}
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            ybar,
+            width=0.9\textwidth,
+            height=6cm,
+            ylabel={Count / Units},
+            % Updated symbolic coordinates to match all plot entries
+            symbolic x coords={Pipelined, New\_Mem\_Bram, New\_Mem, LUT\_multi},
+            xtick=data,
+            nodes near coords,
+            every node near coord/.append style={font=\tiny, rotate=90, anchor=west},
+            legend style={at={(0.5,-0.25)}, anchor=north, legend columns=-1},
+            title={FPGA Resource Utilization (Size: 256)},
+            ymin=0,
+            enlarge x limits=0.2,
+            bar width=7pt, % Slightly narrower to fit 4 bars
+        ]
+            % LUT Data
+            \addplot coordinates {(Pipelined, 5519) (New\_Mem\_Bram, 2341) (New\_Mem, 3026) (LUT\_multi, 9854)};
+            
+            % FF Data - Fixed name from "Multi" to "LUT\_multi"
+            \addplot coordinates {(Pipelined, 9441) (New\_Mem\_Bram, 3236) (New\_Mem, 3412) (LUT\_multi, 19754)};
+            
+            % BRAM Data
+            \addplot coordinates {(Pipelined, 0) (New\_Mem\_Bram, 6) (New\_Mem, 0) (LUT\_multi, 0)};
+            
+            % DSPs Data
+            \addplot coordinates {(Pipelined, 48) (New\_Mem\_Bram, 48) (New\_Mem, 48) (LUT\_multi, 0)};
+            
+            \legend{LUT, FF, BRAM, DSPs}
+        \end{axis}
+    \end{tikzpicture}
+    \end{subfigure}
+
+    \vspace{1cm}
+
+    % --- Plot 2: Timing and Power ---
+    \begin{subfigure}{\textwidth}
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            ybar,
+            width=0.9\textwidth,
+            height=6cm,
+            ylabel={Value},
+            % Ensured labels here match the resource plot for consistency
+            symbolic x coords={Pipelined, New\_Mem\_Bram, New\_Mem, LUT\_multi},
+            xtick=data,
+            nodes near coords,
+            every node near coord/.append style={font=\footnotesize},
+            legend style={at={(0.5,-0.25)}, anchor=north, legend columns=-1},
+            title={Timing and Power Comparison (Size: 256)},
+            ymin=0,
+            ymax=5,
+            enlarge x limits=0.2,
+            bar width=12pt,
+        ]
+            % Clock Cycle (ns) - Names updated to match symbolic x coords
+            \addplot coordinates {
+                (Pipelined, 3.334) 
+                (New\_Mem\_Bram, 3.971) 
+                (New\_Mem, 3.271) 
+                (LUT\_multi, 2.896)
+            };
+
+            % Power (W/mW) - Names updated to match symbolic x coords
+            \addplot coordinates {
+                (Pipelined, 1.111) 
+                (New\_Mem\_Bram, 1.196) 
+                (New\_Mem, 1.106) 
+                (LUT\_multi, 1.851)
+            };
+            
+            \legend{Clock Cycle (ns), Power}
+        \end{axis}
+    \end{tikzpicture}
+    \end{subfigure}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    % --- Plot 1: Resource Utilization (LUT, FF, BRAM, DSP) ---
+    \begin{subfigure}{\textwidth}
+        \centering
+        \begin{tikzpicture}
+            \begin{axis}[
+                ybar,
+                width=0.9\textwidth,
+                height=6cm,
+                ylabel={Count / Units},
+                symbolic x coords={Pipelined, New\_Mem\_Bram, New\_Mem, LUT\_multi},
+                xtick=data,
+                nodes near coords,
+                every node near coord/.append style={font=\tiny, rotate=90, anchor=west},
+                legend style={at={(0.5,-0.25)}, anchor=north, legend columns=-1},
+                title={FPGA Resource Utilization (Size: 1024)},
+                ymin=0,
+                enlarge x limits=0.2,
+                bar width=7pt,
+            ]
+                % LUT Data
+                \addplot coordinates {(Pipelined, 13716) (New\_Mem\_Bram, 3306) (New\_Mem, 5669) (LUT\_multi, 14412)};
+                
+                % FF Data
+                \addplot coordinates {(Pipelined, 23786) (New\_Mem\_Bram, 4240) (New\_Mem, 4898) (LUT\_multi, 25512)};
+                
+                % BRAM Data
+                \addplot coordinates {(Pipelined, 0) (New\_Mem\_Bram, 8) (New\_Mem, 0) (LUT\_multi, 0)};
+                
+                % DSP Data
+                \addplot coordinates {(Pipelined, 60) (New\_Mem\_Bram, 60) (New\_Mem, 60) (LUT\_multi, 0)};
+                
+                \legend{LUT, FF, BRAM, DSPs}
+            \end{axis}
+        \end{tikzpicture}
+    \end{subfigure}
+
+    \vspace{1cm}
+
+    % --- Plot 2: Timing and Power ---
+    \begin{subfigure}{\textwidth}
+        \centering
+        \begin{tikzpicture}
+            \begin{axis}[
+                ybar,
+                width=0.9\textwidth,
+                height=6cm,
+                ylabel={Value},
+                symbolic x coords={Pipelined, New\_Mem\_Bram, New\_Mem, LUT\_multi},
+                xtick=data,
+                nodes near coords,
+                every node near coord/.append style={font=\footnotesize},
+                legend style={at={(0.5,-0.25)}, anchor=north, legend columns=-1},
+                title={Timing and Power Comparison (Size: 1024)},
+                ymin=0,
+                ymax=5,
+                enlarge x limits=0.2,
+                bar width=15pt,
+            ]
+                % Clock Cycle (ns)
+                \addplot coordinates {
+                    (Pipelined, 3.868) 
+                    (New\_Mem\_Bram, 3.868) 
+                    (New\_Mem, 3.426) 
+                    (LUT\_multi, 3.051)
+                };
+
+                % Power (W/mW)
+                \addplot coordinates {
+                    (Pipelined, 1.501) 
+                    (New\_Mem\_Bram, 1.399) 
+                    (New\_Mem, 1.403) 
+                    (LUT\_multi, 2.336)
+                };
+                
+                \legend{Clock Cycle (ns), Power}
+            \end{axis}
+        \end{tikzpicture}
+    \end{subfigure}
+\end{figure}
+
+We can observe that, aside from the initial pipelined design, the other three architectures each offer unique advantages. Allowing the synthesis tools to utilize BRAMs results in a lower maximum clock frequency; however, this approach is the most resource-efficient and scalable. Conversely, implementing custom multipliers enables the design to achieve significantly higher frequencies—approaching 330 MHz. This facilitates the detection of higher-frequency signals in real-time systems (per the Nyquist theorem), though at the cost of high resource consumption. The design that utilizes neither custom multipliers nor BRAMs offers a balanced trade-off, reaching nearly 300 MHz while maintaining moderate scalability.
+
+All designs were synthesized on the Artix-7 AC701 Evaluation Platform (xc7a200tfbg676-2), which features the resources detailed below:
+
+\begin{table}[H]
+    \centering
+    \caption{FPGA Platform Available Resources}
+    \label{tab:fpga_resources}
+    \begin{tabular}{lccccc}
+        \toprule
+        \textbf{Parameter} & \textbf{I/O Pins} & \textbf{LUTs} & \textbf{Flip-Flops} & \textbf{Block RAMs} & \textbf{DSPs} \\
+        \midrule
+        Total Available & 676 & 134,600 & 269,200 & 365 & 740 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+From the data presented in the table, we can infer that the resource utilization for both the New\_mem and New\_mem\_Bram designs remains well within single-digit percentages. In contrast, the design utilizing custom multipliers (LUT\_multi) consumes slightly over 10% of the available LUTs and approximately 10% of the available Flip-Flops.
+
+\begin{figure}[H]
+    \centering
+    % --- Plot 1: Resource Utilization (LUT, FF, BRAM, DSP) ---
+    \begin{subfigure}{\textwidth}
+        \centering
+        \begin{tikzpicture}
+            \begin{axis}[
+                ybar,
+                width=0.9\textwidth,
+                height=6cm,
+                ylabel={Count / Units},
+                xlabel={Architecture Size}, % Added label to clarify numbers
+                symbolic x coords={256, 1024, 4096, 16384},
+                xtick=data,
+                nodes near coords,
+                every node near coord/.append style={font=\tiny, rotate=90, anchor=west},
+                legend style={at={(0.5,-0.35)}, anchor=north, legend columns=-1}, % Lowered legend to make room for xlabel
+                title={Resource Utilization Scaling with Brams},
+                ymin=0,
+                enlarge x limits=0.2,
+                bar width=10pt,
+            ]
+                % LUT Data (256 -> 4096)
+                \addplot coordinates {(256, 2341) (1024, 3306) (4096, 3457) (16384, 4171)};
+                
+                % FF Data
+                \addplot coordinates {(256, 3236) (1024, 4240) (4096, 4907) (16384, 5974)};
+                
+                % BRAM Data
+                \addplot coordinates {(256, 6) (1024, 8) (4096, 16), (16384, 48)};
+                
+                % DSP Data
+                \addplot coordinates {(256, 48) (1024, 60) (4096, 72) (16384, 84)};
+                
+                \legend{LUT, FF, BRAM, DSPs}
+            \end{axis}
+        \end{tikzpicture}
+    \end{subfigure}
+
+    \vspace{1cm}
+
+    % --- Plot 2: Timing and Power ---
+    \begin{subfigure}{\textwidth}
+        \centering
+        \begin{tikzpicture}
+            \begin{axis}[
+                ybar,
+                width=0.9\textwidth,
+                height=6cm,
+                ylabel={Value},
+                xlabel={Architecture Size},
+                symbolic x coords={256, 1024, 4096, 16384},
+                xtick=data,
+                nodes near coords,
+                every node near coord/.append style={font=\footnotesize},
+                legend style={at={(0.5,-0.35)}, anchor=north, legend columns=-1},
+                title={Timing and Power Scaling with Brams},
+                ymin=0,
+                ymax=5,
+                enlarge x limits=0.2,
+                bar width=15pt,
+            ]
+                % Clock Cycle (ns)
+                \addplot coordinates {
+                    (256, 3.971) 
+                    (1024, 3.868) 
+                    (4096, 3.807)
+                    (16384, 4.236)
+                };
+
+                % Power (W/mW)
+                \addplot coordinates {
+                    (256, 1.196) 
+                    (1024, 1.399) 
+                    (4096, 1.505)
+                    (16384, 2.134)
+                };
+                
+                \legend{Clock Cycle (ns), Power}
+            \end{axis}
+        \end{tikzpicture}
+    \end{subfigure}
+\end{figure}
+
+\section{Compasison}
+I am comparing the disign with other implementation for pepers and threir sources. The pepers implement a split radix architecture while this report is about a radix-4 architecture.
+
+\begin{table}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|l|c|c|c|c|c|c|c|}
+\hline
+\textbf{Processor} & \textbf{[4]} & \textbf{Altera [5]} & \textbf{Xilinx [6]} & \textbf{[7]} & \textbf{New mem} & \textbf{Bram} & \textbf{LUT mult} \\ \hline
+\textbf{FFT size} & 1024 & 256 & 256 & 256 & 256 & 256 & 256\\ \hline
+\textbf{Data width (bit)} & 16 & 16 & 16 & 16 & 16 & 16 & 16\\ \hline
+\textbf{LUTs} & ------ & 2144 & 2027 & 6702 & 3026 & 2341 & 9854\\ \hline
+\textbf{Registers} & ------ & 3758 & ------ & 6498 & 3412 & 3236 & 19754\\ \hline
+\textbf{DSPs} & ------ & 12 & 30 & 48 & 48 & 48 & 0\\ \hline
+\textbf{Memory} & ------ & 19 (9 K) & 3 (36 K) & 5 (4 K) & 0 & 6 (36 K) & 0\\ \hline
+\textbf{Latency($\mu$s)} & 10.1 & 0.69 & 0.59 & 0.123 & 0.117 & 0.142 & 0.208 \\ \hline
+\textbf{Frequency (MHz)} & 127 & 370 & 432 & 350 & 305 & 251 & 345\\ \hline
+\textbf{FPGA family} & VirtexII Pro30 & Stratix III & Virtex 5 & Stratix II & Artix-7 & -||- & -||- \\ \hline
+\end{tabular}%
+}
+\end{table}
+
+Here we can see that the New mem design has the smaller latency, the Bram is the most scalable and the LUT mult has the fastest frequency beetween my designs. It is important to note that the latency is measuresd from when the last input arrives to when the first output is produced.
+%----------------------------------------------
+% Inserts references/bibliography
+\selectlanguage{english}
+\begin{thebibliography}{99}
+
+\bibitem{wiki_fourier}
+Wikipedia contributors, ``Fourier transform,'' \emph{Wikipedia, The Free Encyclopedia}. [Online]. Available: \url{https://en.wikipedia.org/wiki/Fourier_transform}.
+
+\bibitem{dibs_fourier}
+Duke Institute for Brain Sciences, ``Decomposing Fourier transforms — an introduction to time-frequency decomposition,'' \emph{DIBS Methods Meetings}. [Online]. Available: \url{https://dibsmethodsmeetings.github.io/fourier-transforms/}.
+
+\bibitem{xilinx_dsp48e1}
+Xilinx Inc., ``7 Series DSP48E1 Slice User Guide (UG479),'' v1.10, Mar. 2018. [Online]. Available: \url{https://docs.xilinx.com/v/u/en-US/ug479_7Series_DSP48E1}.
+
+\bibitem{chao2005design}
+C. Chao, Z. Qin, X. Yingke, and H. Chengde, ``Design of a High performance FFT processor based on FPGA,'' in \emph{IEEE Proc. Asia South-Pacific Design Automation Conf.}, Jan. 2005, pp. 920--923.
+
+\bibitem{altera_fft}
+Altera Inc., ``FFT MegaCore function user guide,'' Datasheet Version 7.0, Dec. 2006.
+
+\bibitem{xilinx_fft}
+Xilinx Inc., ``Xilinx LogiCore Fast Fourier Transform,'' Datasheet Version 4.1, Feb. 2007.
+
+\bibitem{garcia2007fpga}
+J. Garc\'ia, J. A. Michell, G. Ruiz, and A. M. Bur\'on, ``FPGA realization of a split radix FFT processor,'' in \emph{Proc. SPIE 6590, VLSI Circuits and Systems III}, vol. 6590, May 2007, Art. no. 65900P.
+
+\end{thebibliography}
+% \printbibliography[title={Bibliography}]
+\end{document}
+

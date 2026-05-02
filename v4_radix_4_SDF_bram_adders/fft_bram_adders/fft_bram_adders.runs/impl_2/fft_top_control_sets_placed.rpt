@@ -1,0 +1,140 @@
+Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.
+--------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2018.3 (lin64) Build 2405991 Thu Dec  6 23:36:41 MST 2018
+| Date         : Wed Jan 28 02:18:30 2026
+| Host         : christodoulos-zerdalis-IdeaPad-3-15IIL05 running 64-bit Ubuntu 24.04.3 LTS
+| Command      : report_control_sets -verbose -file fft_top_control_sets_placed.rpt
+| Design       : fft_top
+| Device       : xc7a200t
+--------------------------------------------------------------------------------------------
+
+Control Set Information
+
+Table of Contents
+-----------------
+1. Summary
+2. Histogram
+3. Flip-Flop Distribution
+4. Detailed Control Set Information
+
+1. Summary
+----------
+
++----------------------------------------------------------+-------+
+|                          Status                          | Count |
++----------------------------------------------------------+-------+
+| Number of unique control sets                            |    72 |
+| Unused register locations in slices containing registers |    72 |
++----------------------------------------------------------+-------+
+
+
+2. Histogram
+------------
+
++--------+--------------+
+| Fanout | Control Sets |
++--------+--------------+
+|      5 |            2 |
+|      8 |            4 |
+|      9 |            2 |
+|     13 |            2 |
+|    16+ |           62 |
++--------+--------------+
+
+
+3. Flip-Flop Distribution
+-------------------------
+
++--------------+-----------------------+------------------------+-----------------+--------------+
+| Clock Enable | Synchronous Set/Reset | Asynchronous Set/Reset | Total Registers | Total Slices |
++--------------+-----------------------+------------------------+-----------------+--------------+
+| No           | No                    | No                     |             525 |          152 |
+| No           | No                    | Yes                    |               0 |            0 |
+| No           | Yes                   | No                     |           23696 |         4991 |
+| Yes          | No                    | No                     |               0 |            0 |
+| Yes          | No                    | Yes                    |               0 |            0 |
+| Yes          | Yes                   | No                     |            1291 |          388 |
++--------------+-----------------------+------------------------+-----------------+--------------+
+
+
+4. Detailed Control Set Information
+-----------------------------------
+
++------------------+-------------------------------------------------------------------------+-----------------------------------------+------------------+----------------+
+|   Clock Signal   |                              Enable Signal                              |             Set/Reset Signal            | Slice Load Count | Bel Load Count |
++------------------+-------------------------------------------------------------------------+-----------------------------------------+------------------+----------------+
+|  clock_IBUF_BUFG | gen_stages[1].stage_inst/mem_counter_read                               | gen_stages[1].stage_inst/mem_counter    |                3 |              5 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[1].stage_inst/mem_counter    |                2 |              5 |
+|  clock_IBUF_BUFG | gen_stages[4].stage_inst/gen_input_logic.flush_count[7]_i_1__2_n_0      | reset_IBUF                              |                4 |              8 |
+|  clock_IBUF_BUFG | gen_stages[3].stage_inst/gen_input_logic.flush_count[7]_i_1__1_n_0      | reset_IBUF                              |                3 |              8 |
+|  clock_IBUF_BUFG | gen_stages[2].stage_inst/gen_input_logic.flush_count[7]_i_1__0_n_0      | reset_IBUF                              |                3 |              8 |
+|  clock_IBUF_BUFG | gen_stages[1].stage_inst/gen_input_logic.flush_count[7]_i_1_n_0         | reset_IBUF                              |                3 |              8 |
+|  clock_IBUF_BUFG | gen_stages[2].stage_inst/mem_counter_read                               | gen_stages[2].stage_inst/mem_counter    |                2 |              9 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[2].stage_inst/mem_counter    |                2 |              9 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[3].stage_inst/mem_counter    |                4 |             13 |
+|  clock_IBUF_BUFG | gen_stages[3].stage_inst/mem_counter_read                               | gen_stages[3].stage_inst/mem_counter    |                3 |             13 |
+|  clock_IBUF_BUFG | gen_stages[4].stage_inst/mem_counter_read                               | gen_stages[4].stage_inst/mem_counter    |                5 |             17 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[4].stage_inst/mem_counter    |                6 |             17 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[4].stage_inst/b4/i___81_n_0  |               17 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[3].stage_inst/b4/i___92_n_0  |                7 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[3].stage_inst/b4/i___95_n_0  |               16 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[3].stage_inst/b4/i___96_n_0  |                9 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[3].stage_inst/b4/i___99_n_0  |               16 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[3].stage_inst/b4/i___91_n_0  |               16 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[4].stage_inst/b4/i___100_n_0 |                7 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[4].stage_inst/b4/i___83_n_0  |               17 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[4].stage_inst/b4/i___84_n_0  |                6 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[4].stage_inst/b4/i___87_n_0  |               10 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[4].stage_inst/b4/i___88_n_0  |                8 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[4].stage_inst/b4/i___91_n_0  |               15 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[4].stage_inst/b4/i___92_n_0  |                7 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[4].stage_inst/b4/i___95_n_0  |               23 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[4].stage_inst/b4/i___96_n_0  |                6 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[4].stage_inst/b4/i___99_n_0  |               19 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[3].stage_inst/b4/i___87_n_0  |               17 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[1].stage_inst/b4/i___82_n_0  |                7 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[1].stage_inst/b4/i___86_n_0  |                8 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[1].stage_inst/b4/i___88_n_0  |                6 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[1].stage_inst/b4/i___91_n_0  |                9 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[1].stage_inst/b4/i___92_n_0  |                9 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[1].stage_inst/b4/i___95_n_0  |               13 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[1].stage_inst/b4/i___96_n_0  |                8 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[2].stage_inst/b4/i___100_n_0 |                7 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[2].stage_inst/b4/i___81_n_0  |               10 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[2].stage_inst/b4/i___83_n_0  |               17 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[2].stage_inst/b4/i___84_n_0  |               12 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[2].stage_inst/b4/i___87_n_0  |               12 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[2].stage_inst/b4/i___91_n_0  |               13 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[2].stage_inst/b4/i___92_n_0  |               11 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[2].stage_inst/b4/i___95_n_0  |               13 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[2].stage_inst/b4/i___88_n_0  |               10 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[2].stage_inst/b4/i___96_n_0  |                7 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[3].stage_inst/b4/i___88_n_0  |                6 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[3].stage_inst/b4/i___84_n_0  |                8 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[2].stage_inst/b4/i___99_n_0  |               13 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[3].stage_inst/b4/i___100_n_0 |                9 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[3].stage_inst/b4/i___83_n_0  |               12 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[3].stage_inst/b4/i___81_n_0  |               16 |             32 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[1].stage_inst/b4/i___85_n_0  |               25 |             62 |
+|  clock_IBUF_BUFG |                                                                         | gen_stages[0].stage_inst/b4/i___90_n_0  |               63 |             93 |
+|  clock_IBUF_BUFG | gen_stages[0].stage_inst/b4/pm0r/E[0]                                   | reset_IBUF                              |               37 |            117 |
+|  clock_IBUF_BUFG | gen_stages[4].stage_inst/gen_memory.mem/mem_D_reg_64_127_0_2_i_1__0_n_0 |                                         |               44 |            176 |
+|  clock_IBUF_BUFG | gen_stages[4].stage_inst/gen_memory.mem/mem_D_reg_448_511_0_2_i_1_n_0   |                                         |               44 |            176 |
+|  clock_IBUF_BUFG | gen_stages[3].stage_inst/gen_memory.mem/mem_D_reg_0_63_0_2_i_4_n_0      |                                         |               44 |            176 |
+|  clock_IBUF_BUFG | gen_stages[3].stage_inst/gen_memory.mem/mem_D_reg_64_127_0_2_i_1_n_0    |                                         |               44 |            176 |
+|  clock_IBUF_BUFG | gen_stages[4].stage_inst/gen_memory.mem/mem_D_reg_384_447_0_2_i_1_n_0   |                                         |               44 |            176 |
+|  clock_IBUF_BUFG | gen_stages[4].stage_inst/gen_memory.mem/mem_D_reg_0_63_0_2_i_4__0_n_0   |                                         |               44 |            176 |
+|  clock_IBUF_BUFG | gen_stages[4].stage_inst/gen_memory.mem/mem_D_reg_128_191_0_2_i_1_n_0   |                                         |               44 |            176 |
+|  clock_IBUF_BUFG | gen_stages[4].stage_inst/gen_memory.mem/mem_D_reg_192_255_0_2_i_1_n_0   |                                         |               44 |            176 |
+|  clock_IBUF_BUFG | gen_stages[4].stage_inst/gen_memory.mem/mem_D_reg_256_319_0_2_i_1_n_0   |                                         |               44 |            176 |
+|  clock_IBUF_BUFG | gen_stages[4].stage_inst/gen_memory.mem/mem_D_reg_320_383_0_2_i_1_n_0   |                                         |               44 |            176 |
+|  clock_IBUF_BUFG | gen_stages[1].stage_inst/b4/pm0r/E[0]                                   | reset_IBUF                              |               79 |            270 |
+|  clock_IBUF_BUFG | gen_stages[2].stage_inst/b4/pm0r/E[0]                                   | reset_IBUF                              |               82 |            276 |
+|  clock_IBUF_BUFG | gen_stages[4].stage_inst/b4/pm0r/E[0]                                   | reset_IBUF                              |               84 |            276 |
+|  clock_IBUF_BUFG | gen_stages[3].stage_inst/b4/pm0r/E[0]                                   | reset_IBUF                              |               80 |            276 |
+|  clock_IBUF_BUFG | gen_stages[2].stage_inst/gen_memory.mem/reset                           |                                         |               48 |            384 |
+|  clock_IBUF_BUFG |                                                                         |                                         |              152 |           1050 |
+|  clock_IBUF_BUFG |                                                                         | reset_IBUF                              |             4437 |          22217 |
++------------------+-------------------------------------------------------------------------+-----------------------------------------+------------------+----------------+
+
+
