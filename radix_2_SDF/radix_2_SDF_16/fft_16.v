@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+
 module fft_16_top #(
     parameter WIDTH = 32,
     parameter N = 16

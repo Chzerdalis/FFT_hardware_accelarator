@@ -55,6 +55,11 @@ module test_fft_16_top;
     initial begin
         `include "f_correct_16.vh"
     end
+
+    initial begin
+        $dumpfile("tb_top_fft_og.vcd");
+        $dumpvars(0, test_fft_16_top);
+    end
     
     // Test stimulus
     initial begin

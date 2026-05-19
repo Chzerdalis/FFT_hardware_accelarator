@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+
 module SdfUnit2 #(
     parameter   WIDTH = 32, //  Data Bit Length
     parameter   STAGE_NUM = 1,   //  Butterfly Stage Number
@@ -60,7 +62,14 @@ always @(posedge clock or posedge reset) begin
     end
 end
 
-assign twiddle_index = (STAGE_NUM == 1) ? 3'b0 : (butterfly_en[STAGE_NUM-2:0] * (N/(2 * M)));
+generate
+    if (STAGE_NUM == 1) begin
+        assign twiddle_index = 3'b0; // No twiddle factors for stage 1
+    end else begin
+        assign twiddle_index = (butterfly_en[STAGE_NUM-2:0]) * (N/(2 * M));
+    end
+endgenerate
+// assign twiddle_index = (STAGE_NUM == 1) ? 3'b0 : (butterfly_en[STAGE_NUM-2:0] * (N/(2 * M)));
 
 assign x0_re = (butterfly_en[STAGE_NUM-1] == 1'b1) ? delay_out_real : {WIDTH{1'bx}};
 assign x0_im = (butterfly_en[STAGE_NUM-1] == 1'b1) ? delay_out_imag : {WIDTH{1'bx}};

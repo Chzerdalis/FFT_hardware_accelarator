@@ -1,0 +1,16 @@
+w_real[0] = 9'h0FF; w_imag[0] = 9'h000;
+w_real[1] = 9'h0EC; w_imag[1] = 9'h19F;
+w_real[2] = 9'h0B5; w_imag[2] = 9'h14B;
+w_real[3] = 9'h061; w_imag[3] = 9'h114;
+w_real[4] = 9'h000; w_imag[4] = 9'h100;
+w_real[5] = 9'h19F; w_imag[5] = 9'h114;
+w_real[6] = 9'h14B; w_imag[6] = 9'h14B;
+w_real[7] = 9'h114; w_imag[7] = 9'h19F;
+w_real[8] = 9'h100; w_imag[8] = 9'h000;
+w_real[9] = 9'h114; w_imag[9] = 9'h061;
+w_real[10] = 9'h14B; w_imag[10] = 9'h0B5;
+w_real[11] = 9'h19F; w_imag[11] = 9'h0EC;
+w_real[12] = 9'h000; w_imag[12] = 9'h0FF;
+w_real[13] = 9'h061; w_imag[13] = 9'h0EC;
+w_real[14] = 9'h0B5; w_imag[14] = 9'h0B5;
+w_real[15] = 9'h0EC; w_imag[15] = 9'h061;
