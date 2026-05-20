@@ -55,49 +55,100 @@ module Split_radix_FirstStage #(
     wire [WIDTH-1:0] x3_re, x3_im, y3_re, y3_im;
 
     //Manage counters, Control logic for memory and butterfly operation enable signals
-    always @(posedge clock) begin
-        if (reset) begin
-            stride_segment_counter <= {(sn-2){1'b0}};
-            butterfly_op_counter <= {(sn-2){1'b0}};
-            mem_counter_read <= {(sn-1){1'b0}};
-            mem_counter <= {(sn-1){1'b0}};
-            butterfly_op_counter_en <= 1'b0;
-            flush_count <= 0;
-        end else begin
-            if(input_en) begin
-                if(stride_segment_counter == {2'b10, {(sn-4){1'b1}}} && butterfly_op_counter_en == 0) begin
-                    butterfly_op_counter_en <= 1'b1;
-                    butterfly_op_counter <= butterfly_op_counter;
-                    mem_counter_read <= mem_counter_read;
-                    flush_count <= Num_of_samples/4 - 1;
-                end else if (butterfly_op_counter_en) begin
-                    butterfly_op_counter <= butterfly_op_counter + 1'b1;
-                    mem_counter_read <= mem_counter_read + 1'b1;
-                    butterfly_op_counter_en <= 1'b1;
-                    flush_count <= flush_count - 1'b1;
-                end else begin
-                    butterfly_op_counter <= butterfly_op_counter;
-                    mem_counter_read <= mem_counter_read;
-                    butterfly_op_counter_en <= 1'b0;
-                    flush_count <= flush_count;
-                end
-
-                stride_segment_counter <= stride_segment_counter + 1'b1;
-                mem_counter <= mem_counter + 1'b1;
+    if(Num_of_samples > 8) begin : gen_input_logic 
+        always @(posedge clock) begin
+            if (reset) begin
+                stride_segment_counter <= {(sn-2){1'b0}};
+                butterfly_op_counter <= {(sn-2){1'b0}};
+                mem_counter_read <= {(sn-1){1'b0}};
+                mem_counter <= {(sn-1){1'b0}};
+                butterfly_op_counter_en <= 1'b0;
+                flush_count <= 0;
             end else begin
-                if (flush_count == 0) begin
-                    butterfly_op_counter <= {(sn-2){1'b0}};
-                    mem_counter_read <= {(sn-1){1'b0}};
-                    stride_segment_counter <= {(sn-2){1'b0}};
-                    mem_counter <= {(sn-1){1'b0}};
-                    butterfly_op_counter_en <= 1'b0;
-                end else begin
-                    butterfly_op_counter <= butterfly_op_counter + 1'b1;
-                    mem_counter_read <= mem_counter_read + 1'b1;
+                if(input_en) begin
+                    if(stride_segment_counter == {2'b10, {(sn-4){1'b1}}} && butterfly_op_counter_en == 0) begin
+                        butterfly_op_counter_en <= 1'b1;
+                        butterfly_op_counter <= butterfly_op_counter;
+                        mem_counter_read <= mem_counter_read;
+                        flush_count <= Num_of_samples/4 - 1;
+                    end else if (butterfly_op_counter_en) begin
+                        butterfly_op_counter <= butterfly_op_counter + 1'b1;
+                        mem_counter_read <= mem_counter_read + 1'b1;
+                        butterfly_op_counter_en <= 1'b1;
+                        flush_count <= flush_count - 1'b1;
+                    end else begin
+                        butterfly_op_counter <= butterfly_op_counter;
+                        mem_counter_read <= mem_counter_read;
+                        butterfly_op_counter_en <= 1'b0;
+                        flush_count <= flush_count;
+                    end
+
                     stride_segment_counter <= stride_segment_counter + 1'b1;
                     mem_counter <= mem_counter + 1'b1;
-                    butterfly_op_counter_en <= butterfly_op_counter_en;
-                    flush_count <= flush_count - 1'b1;
+                end else begin
+                    if (flush_count == 0) begin
+                        butterfly_op_counter <= {(sn-2){1'b0}};
+                        mem_counter_read <= {(sn-1){1'b0}};
+                        stride_segment_counter <= {(sn-2){1'b0}};
+                        mem_counter <= {(sn-1){1'b0}};
+                        butterfly_op_counter_en <= 1'b0;
+                    end else begin
+                        butterfly_op_counter <= butterfly_op_counter + 1'b1;
+                        mem_counter_read <= mem_counter_read + 1'b1;
+                        stride_segment_counter <= stride_segment_counter + 1'b1;
+                        mem_counter <= mem_counter + 1'b1;
+                        butterfly_op_counter_en <= butterfly_op_counter_en;
+                        flush_count <= flush_count - 1'b1;
+                    end
+                end
+            end
+        end
+    end else begin
+        //This logic is for a 8 point first stage, the memory is also custom for this
+        always @(posedge clock) begin
+            if (reset) begin
+                stride_segment_counter <= {(sn-2){1'b0}};
+                butterfly_op_counter <= {(sn-2){1'b0}};
+                mem_counter_read <= {(sn-1){1'b0}};
+                mem_counter <= {(sn-1){1'b0}};
+                butterfly_op_counter_en <= 1'b0;
+                flush_count <= 0;
+            end else begin
+                if(input_en) begin
+                    if(stride_segment_counter == 1'b0 && butterfly_op_counter_en == 0) begin
+                        butterfly_op_counter_en <= 1'b1;
+                        butterfly_op_counter <= butterfly_op_counter;
+                        mem_counter_read <= mem_counter_read;
+                        flush_count <= Num_of_samples/4 - 1;
+                    end else if (butterfly_op_counter_en) begin
+                        butterfly_op_counter <= butterfly_op_counter + 1'b1;
+                        mem_counter_read <= mem_counter_read + 1'b1;
+                        butterfly_op_counter_en <= 1'b1;
+                        flush_count <= flush_count - 1'b1;
+                    end else begin
+                        butterfly_op_counter <= butterfly_op_counter;
+                        mem_counter_read <= mem_counter_read;
+                        butterfly_op_counter_en <= 1'b0;
+                        flush_count <= flush_count;
+                    end
+
+                    stride_segment_counter <= stride_segment_counter + 1'b1;
+                    mem_counter <= mem_counter + 1'b1;
+                end else begin
+                    if (flush_count == 0) begin
+                        butterfly_op_counter <= {(sn-2){1'b0}};
+                        mem_counter_read <= {(sn-1){1'b0}};
+                        stride_segment_counter <= {(sn-2){1'b0}};
+                        mem_counter <= {(sn-1){1'b0}};
+                        butterfly_op_counter_en <= 1'b0;
+                    end else begin
+                        butterfly_op_counter <= butterfly_op_counter + 1'b1;
+                        mem_counter_read <= mem_counter_read + 1'b1;
+                        stride_segment_counter <= stride_segment_counter + 1'b1;
+                        mem_counter <= mem_counter + 1'b1;
+                        butterfly_op_counter_en <= butterfly_op_counter_en;
+                        flush_count <= flush_count - 1'b1;
+                    end
                 end
             end
         end

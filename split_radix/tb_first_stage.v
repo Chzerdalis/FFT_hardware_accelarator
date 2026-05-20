@@ -3,7 +3,7 @@
 module tb_first_stage();
 
     parameter WIDTH = 32;
-    parameter Num_of_samples = 32;
+    parameter Num_of_samples = 8;
 
     reg clock;
     reg reset;

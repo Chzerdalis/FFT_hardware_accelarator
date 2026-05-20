@@ -4,8 +4,8 @@ module tb_memory;
 
     // --- Parameter Overrides ---
     parameter WIDTH = 16;             // Reduced width for clean hex data tracing
-    parameter DEPTH = 8;             // Set to 4 to match stage_num_bits = 1 sizing
-    parameter stage_num_bits = 2;
+    parameter DEPTH = 2;             // Set to 4 to match stage_num_bits = 1 sizing
+    parameter stage_num_bits = 0;
 
     // --- Testbench Signals ---
     reg clock;
