@@ -4,8 +4,8 @@ module tb_memory;
 
     // --- Parameter Overrides ---
     parameter WIDTH = 16;             // Reduced width for clean hex data tracing
-    parameter DEPTH = 4;             // Set to 4 to match stage_num_bits = 1 sizing
-    parameter stage_num_bits = 2;
+    parameter DEPTH = 8;             // Set to 4 to match stage_num_bits = 1 sizing
+    parameter stage_num_bits = 3;
 
     // --- Testbench Signals ---
     reg clock;
@@ -22,7 +22,7 @@ module tb_memory;
     wire [WIDTH-1:0] output_imag_0, output_imag_1, output_imag_2, output_imag_3;
 
     // --- Unit Under Test (UUT) Instantiation ---
-    memory_first_stage #(
+    memory_second_stage #(
         .WIDTH(WIDTH),
         .DEPTH(DEPTH),
         .stage_num_bits(stage_num_bits)
@@ -43,7 +43,7 @@ module tb_memory;
     always #5 clock = ~clock;
 
     // --- Loop Variable ---
-    integer i;
+    integer i, x = 0;
 
     // --- Stimulus Setup ---
     initial begin
@@ -68,7 +68,7 @@ module tb_memory;
         $display("[TB INFO] Starting Memory Write Phase...");
         stride_segment_counter <= 2'b00; 
         
-        for (i = 0; i < 2*DEPTH; i = i + 1) begin
+        for (i = 0; i < 4*DEPTH; i = i + 1) begin
             // Generate easily trackable data: Real=0x1X, 0x2X... Imag=0xAX, 0xBX...
             input_real_0 <= i*4+0;  input_imag_0 <= i*4+0;
             input_real_1 <= i*4+1;  input_imag_1 <= i*4+1;
@@ -76,6 +76,11 @@ module tb_memory;
             input_real_3 <= i*4+3;  input_imag_3 <= i*4+3;
             #10;
             stride_segment_counter <= stride_segment_counter + 1; // Increment to test different segment patterns
+            if(stride_segment_counter >= 3'b111 || x == 1) begin
+                butterfly_op_counter <= butterfly_op_counter + 1; // Reset memory counter at the end of each segment
+                mem_counter_read <= mem_counter_read + 1; // Increment read counter to test different read patterns
+                x = 1;
+            end
             mem_counter <= mem_counter + 1; // Increment memory counter for next write
         end
 
@@ -90,9 +95,8 @@ module tb_memory;
         // PHASE 2: Read Pipelined Routine
         // =================================================================
         $display("[TB INFO] Starting Memory Read Phase...");
-        mem_counter_read = 3'b000; // Keep offset = 0 to read the first buffer half
 
-        for (i = 0; i < 2*DEPTH; i = i + 1) begin
+        for (i = 0; i < 4*DEPTH; i = i + 1) begin
             #10;
             butterfly_op_counter <= butterfly_op_counter + 1; // Increment to test different read patterns
             mem_counter_read <= mem_counter_read + 1; // Increment to read next address
