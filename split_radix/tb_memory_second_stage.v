@@ -4,8 +4,8 @@ module tb_memory;
 
     // --- Parameter Overrides ---
     parameter WIDTH = 16;             // Reduced width for clean hex data tracing
-    parameter DEPTH = 8;             // Set to 4 to match stage_num_bits = 1 sizing
-    parameter stage_num_bits = 3;
+    parameter DEPTH = 2;             // Set to 4 to match stage_num_bits = 1 sizing
+    parameter stage_num_bits = 1;      //Determined by the num of samples
 
     // --- Testbench Signals ---
     reg clock;
@@ -69,14 +69,14 @@ module tb_memory;
         stride_segment_counter <= 2'b00; 
         
         for (i = 0; i < 4*DEPTH; i = i + 1) begin
-            // Generate easily trackable data: Real=0x1X, 0x2X... Imag=0xAX, 0xBX...
+            // Generate easily trackable data: Real=0x1X, 0x2X... Imag=butterfly_op_counter0xAX, 0xBX...
             input_real_0 <= i*4+0;  input_imag_0 <= i*4+0;
             input_real_1 <= i*4+1;  input_imag_1 <= i*4+1;
             input_real_2 <= i*4+2;  input_imag_2 <= i*4+2;
             input_real_3 <= i*4+3;  input_imag_3 <= i*4+3;
             #10;
             stride_segment_counter <= stride_segment_counter + 1; // Increment to test different segment patterns
-            if(stride_segment_counter >= 3'b111 || x == 1) begin
+            if(stride_segment_counter >= 1'b1 || x == 1) begin
                 butterfly_op_counter <= butterfly_op_counter + 1; // Reset memory counter at the end of each segment
                 mem_counter_read <= mem_counter_read + 1; // Increment read counter to test different read patterns
                 x = 1;
