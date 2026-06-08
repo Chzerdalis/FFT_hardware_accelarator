@@ -1,9 +1,9 @@
 `timescale 1ns / 1ps
 
 module SdfUnit4_fast #(
-    parameter WIDTH = 32, // Data Bit Lenght
-    parameter STAGE_NUM = 1, //Butterfly Stage
-    parameter Num_of_samples = 16 //How many inputs
+    parameter WIDTH = 16, // Data Bit Lenght
+    parameter STAGE_NUM = 4, //Butterfly Stage
+    parameter Num_of_samples = 1024 //How many inputs
 )(
     input                   clock,       //  System Clock
     input                   reset,        //  Active High Asynchronous Reset

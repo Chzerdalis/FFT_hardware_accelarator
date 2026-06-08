@@ -1,9 +1,9 @@
 `timescale 1ns / 1ps
 
 module memory #(
-    parameter WIDTH = 32,
-    parameter DEPTH = 16, 
-    parameter stage_num_bits = 1
+    parameter WIDTH = 16,
+    parameter DEPTH = 1024, 
+    parameter stage_num_bits = 9
 )(
     input clock,
     input reset,
@@ -31,10 +31,10 @@ module memory #(
 
     //Split memory into 4 different banks in order for each one to have 2 ports 
     //1 read and one write this help the tools use brams when the arrays are large enough
-//    reg [2*WIDTH-1:0] mem_A [0:2*DEPTH-1];
-//    reg [2*WIDTH-1:0] mem_B [0:2*DEPTH-1];
-//    reg [2*WIDTH-1:0] mem_C [0:2*DEPTH-1];
-//    reg [2*WIDTH-1:0] mem_D [0:2*DEPTH-1];
+//    (* ram_style = "distributed" *) reg [2*WIDTH-1:0] mem_A [0:2*DEPTH-1];
+//    (* ram_style = "distributed" *) reg [2*WIDTH-1:0] mem_B [0:2*DEPTH-1];
+//    (* ram_style = "distributed" *) reg [2*WIDTH-1:0] mem_C [0:2*DEPTH-1];
+//    (* ram_style = "distributed" *) reg [2*WIDTH-1:0] mem_D [0:2*DEPTH-1];
 
     wire [inter_offset_size:0] offset;
     

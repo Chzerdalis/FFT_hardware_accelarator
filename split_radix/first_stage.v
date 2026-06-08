@@ -1,8 +1,8 @@
 `timescale 1ns / 1ps
 
 module Split_radix_FirstStage #(
-    parameter WIDTH = 32, // Data Bit Lenght
-    parameter Num_of_samples = 16 //How many inputs
+    parameter WIDTH = 16, // Data Bit Lenght
+    parameter Num_of_samples = 1024 //How many inputs
 )(
     input                   clock,       //  System Clock
     input                   reset,        //  Active High Asynchronous Reset

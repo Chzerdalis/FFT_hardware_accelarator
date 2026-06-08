@@ -21,6 +21,9 @@ module tb_memory;
     wire [WIDTH-1:0] output_real_0, output_real_1, output_real_2, output_real_3;
     wire [WIDTH-1:0] output_imag_0, output_imag_1, output_imag_2, output_imag_3;
 
+    wire [WIDTH-1:0] output_real_0_f, output_real_1_f, output_real_2_f, output_real_3_f;
+    wire [WIDTH-1:0] output_imag_0_f, output_imag_1_f, output_imag_2_f, output_imag_3_f;
+
     // --- Unit Under Test (UUT) Instantiation ---
     memory_second_stage #(
         .WIDTH(WIDTH),
@@ -37,6 +40,23 @@ module tb_memory;
         .input_imag_0(input_imag_0), .input_imag_1(input_imag_1), .input_imag_2(input_imag_2), .input_imag_3(input_imag_3),
         .output_real_0(output_real_0), .output_real_1(output_real_1), .output_real_2(output_real_2), .output_real_3(output_real_3),
         .output_imag_0(output_imag_0), .output_imag_1(output_imag_1), .output_imag_2(output_imag_2), .output_imag_3(output_imag_3)
+    );
+
+    memory_second_stage_1 #(
+        .WIDTH(WIDTH),
+        .DEPTH(DEPTH),
+        .stage_num_bits(stage_num_bits)
+    ) uut_2 (
+        .clock(clock),
+        .reset(reset),
+        .stride_segment_counter(stride_segment_counter),
+        .butterfly_op_counter(butterfly_op_counter),
+        .mem_counter(mem_counter),
+        .mem_counter_read(mem_counter_read),
+        .input_real_0(input_real_0), .input_real_1(input_real_1), .input_real_2(input_real_2), .input_real_3(input_real_3),
+        .input_imag_0(input_imag_0), .input_imag_1(input_imag_1), .input_imag_2(input_imag_2), .input_imag_3(input_imag_3),
+        .output_real_0(output_real_0_f), .output_real_1(output_real_1_f), .output_real_2(output_real_2_f), .output_real_3(output_real_3_f),
+        .output_imag_0(output_imag_0_f), .output_imag_1(output_imag_1_f), .output_imag_2(output_imag_2_f), .output_imag_3(output_imag_3_f)
     );
 
     // --- Clock Generator (100MHz / 10ns period) ---
@@ -119,9 +139,55 @@ module tb_memory;
                  output_real_2, output_imag_2, 
                  output_real_3, output_imag_3);
 
-        // $monitor("Input Real: %d, %d, %d, %d | Input Imag: %d, %d, %d, %d",
-        //          input_real_0, input_real_1, input_real_2, input_real_3,
-        //          input_imag_0, input_imag_1, input_imag_2, input_imag_3);
+        $monitor("Reset=%b | Buf_Op=%b | Out0_f=(R:%d,I:%d) | Out1_f=(R:%d,I:%d) | Out2_f=(R:%d,I:%d) | Out3_f=(R:%d,I:%d)",
+                 reset, butterfly_op_counter, 
+                 output_real_0_f, output_imag_0_f, 
+                 output_real_1_f, output_imag_1_f, 
+                 output_real_2_f, output_imag_2_f, 
+                 output_real_3_f, output_imag_3_f);
+    end
+
+    always @(posedge clock) begin
+        if(output_real_0 == output_real_0_f) begin
+            $display("Success");
+        end else begin
+            $display("FAIL: Time=%0t | 0");
+        end
+        if(output_real_1 == output_real_1_f) begin
+            $display("Success");
+        end else begin
+            $display("FAIL: Time=%0t | 1");
+        end
+        if(output_real_2 == output_real_2_f) begin
+            $display("Success");
+        end else begin
+            $display("FAIL: Time=%0t | 2");
+        end
+        if(output_real_3 == output_real_3_f) begin
+            $display("Success");
+        end else begin
+            $display("FAIL: Time=%0t | 3");
+        end
+        if(output_imag_0 == output_imag_0_f) begin
+            $display("Success");
+        end else begin
+            $display("FAIL: Time=%0t | 4");
+        end
+        if(output_imag_1 == output_imag_1_f) begin
+            $display("Success");
+        end else begin
+            $display("FAIL: Time=%0t | 5");
+        end
+        if(output_imag_2 == output_imag_2_f) begin
+            $display("Success");
+        end else begin
+            $display("FAIL: Time=%0t | 6");
+        end
+        if(output_imag_3 == output_imag_3_f) begin
+            $display("Success");
+        end else begin
+            $display("FAIL: Time=%0t | 7");
+        end
     end
 
     // --- Waveform Generation and Memory Dumping ---

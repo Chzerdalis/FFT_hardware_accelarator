@@ -20,6 +20,10 @@ memory_second_stage:
 	$(CC) $(FLAGS) -o $(EXE) $(test_memory_second_stage)
 	vvp $(EXE)
 	surfer memory_simulation.vcd
+tb_second_stage:
+	$(CC) $(FLAGS) -o $(EXE) tb_second_stage.v second_stage.v memory_second_stage.v butterfly.v
+	vvp $(EXE)
+	surfer tb_second_stage.vcd
 clean:
 	rm -rf $(EXE)
 	rm -rf *.vcd
