@@ -2,7 +2,7 @@
 
 module fft_top #(
     parameter WIDTH = 16,
-    parameter Num_of_samples = 1024 
+    parameter Num_of_samples = 32 
 )(
     input                   clock,
     input                   reset,
@@ -82,3 +82,5 @@ module fft_top #(
     endgenerate
     
 endmodule
+
+

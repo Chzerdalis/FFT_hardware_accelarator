@@ -1,7 +1,7 @@
 Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.
 -------------------------------------------------------------------------------------------------------------------------------------------
 | Tool Version     : Vivado v.2018.3 (lin64) Build 2405991 Thu Dec  6 23:36:41 MST 2018
-| Date             : Wed Jan 28 02:21:52 2026
+| Date             : Sun Jun 21 21:10:29 2026
 | Host             : christodoulos-zerdalis-IdeaPad-3-15IIL05 running 64-bit Ubuntu 24.04.3 LTS
 | Command          : report_power -file fft_top_power_routed.rpt -pb fft_top_power_summary_routed.pb -rpx fft_top_power_routed.rpx
 | Design           : fft_top
@@ -30,14 +30,14 @@ Table of Contents
 ----------
 
 +--------------------------+--------------+
-| Total On-Chip Power (W)  | 2.336        |
+| Total On-Chip Power (W)  | 3.044        |
 | Design Power Budget (W)  | Unspecified* |
 | Power Budget Margin (W)  | NA           |
-| Dynamic (W)              | 2.199        |
-| Device Static (W)        | 0.137        |
+| Dynamic (W)              | 2.904        |
+| Device Static (W)        | 0.140        |
 | Effective TJA (C/W)      | 1.9          |
-| Max Ambient (C)          | 80.6         |
-| Junction Temperature (C) | 29.4         |
+| Max Ambient (C)          | 79.3         |
+| Junction Temperature (C) | 30.7         |
 | Confidence Level         | Low          |
 | Setting File             | ---          |
 | Simulation Activity File | ---          |
@@ -52,19 +52,19 @@ Table of Contents
 +--------------------------+-----------+----------+-----------+-----------------+
 | On-Chip                  | Power (W) | Used     | Available | Utilization (%) |
 +--------------------------+-----------+----------+-----------+-----------------+
-| Clocks                   |     0.336 |        3 |       --- |             --- |
-| Slice Logic              |     0.696 |    46471 |       --- |             --- |
-|   LUT as Logic           |     0.542 |    11935 |    133800 |            8.92 |
-|   Register               |     0.074 |    25512 |    267600 |            9.53 |
-|   LUT as Distributed RAM |     0.050 |     1952 |     46200 |            4.23 |
-|   CARRY4                 |     0.018 |      783 |     33450 |            2.34 |
-|   LUT as Shift Register  |     0.011 |      525 |     46200 |            1.14 |
-|   F7/F8 Muxes            |     0.002 |      319 |    133800 |            0.24 |
-|   Others                 |     0.000 |      134 |       --- |             --- |
-| Signals                  |     0.759 |    29267 |       --- |             --- |
-| I/O                      |     0.407 |      260 |       400 |           65.00 |
-| Static Power             |     0.137 |          |           |                 |
-| Total                    |     2.336 |          |           |                 |
+| Clocks                   |     0.481 |        3 |       --- |             --- |
+| Slice Logic              |     0.841 |    40778 |       --- |             --- |
+|   LUT as Logic           |     0.642 |    10412 |    133800 |            7.78 |
+|   Register               |     0.108 |    23702 |    267600 |            8.86 |
+|   LUT as Shift Register  |     0.037 |      981 |     46200 |            2.12 |
+|   LUT as Distributed RAM |     0.030 |      544 |     46200 |            1.18 |
+|   CARRY4                 |     0.023 |      680 |     33450 |            2.03 |
+|   F7/F8 Muxes            |    <0.001 |       66 |    133800 |            0.05 |
+|   Others                 |     0.000 |      104 |       --- |             --- |
+| Signals                  |     0.971 |    26310 |       --- |             --- |
+| I/O                      |     0.611 |      260 |       400 |           65.00 |
+| Static Power             |     0.140 |          |           |                 |
+| Total                    |     3.044 |          |           |                 |
 +--------------------------+-----------+----------+-----------+-----------------+
 
 
@@ -74,11 +74,11 @@ Table of Contents
 +-----------+-------------+-----------+-------------+------------+
 | Source    | Voltage (V) | Total (A) | Dynamic (A) | Static (A) |
 +-----------+-------------+-----------+-------------+------------+
-| Vccint    |       1.000 |     1.829 |       1.794 |      0.036 |
-| Vccaux    |       1.800 |     0.064 |       0.033 |      0.031 |
+| Vccint    |       1.000 |     2.334 |       2.296 |      0.037 |
+| Vccaux    |       1.800 |     0.081 |       0.050 |      0.031 |
 | Vcco33    |       3.300 |     0.000 |       0.000 |      0.000 |
 | Vcco25    |       2.500 |     0.000 |       0.000 |      0.000 |
-| Vcco18    |       1.800 |     0.197 |       0.192 |      0.005 |
+| Vcco18    |       1.800 |     0.293 |       0.288 |      0.005 |
 | Vcco15    |       1.500 |     0.000 |       0.000 |      0.000 |
 | Vcco135   |       1.350 |     0.000 |       0.000 |      0.000 |
 | Vcco12    |       1.200 |     0.000 |       0.000 |      0.000 |
@@ -130,7 +130,7 @@ Table of Contents
 +---------+--------+-----------------+
 | Clock   | Domain | Constraint (ns) |
 +---------+--------+-----------------+
-| sys_clk | clock  |             3.0 |
+| sys_clk | clock  |             2.0 |
 +---------+--------+-----------------+
 
 
@@ -143,75 +143,60 @@ Table of Contents
 +----------------------------+-----------+
 | Name                       | Power (W) |
 +----------------------------+-----------+
-| fft_top                    |     2.199 |
-|   gen_stages[0].stage_inst |     0.120 |
-|     b4                     |     0.113 |
-|       pm0i_2               |     0.013 |
-|       pm0r                 |     0.014 |
-|       pm1i_2               |     0.012 |
-|       pm1r                 |     0.014 |
-|       pm2i_2               |     0.013 |
-|       pm2r                 |     0.014 |
-|   gen_stages[1].stage_inst |     0.367 |
-|     b4                     |     0.300 |
-|       pm0i                 |     0.022 |
-|       pm0i_2               |     0.016 |
-|       pm0r                 |     0.021 |
-|       pm0r_2               |     0.021 |
-|       pm1i                 |     0.017 |
-|       pm1i_2               |     0.018 |
-|       pm1r                 |     0.024 |
-|       pm1r_2               |     0.020 |
-|       pm2i                 |     0.019 |
-|       pm2i_2               |     0.017 |
-|       pm2r                 |     0.026 |
-|       pm2r_2               |     0.023 |
-|     gen_memory.mem         |     0.044 |
-|   gen_stages[2].stage_inst |     0.366 |
-|     b4                     |     0.308 |
-|       pm0i                 |     0.025 |
-|       pm0i_2               |     0.016 |
-|       pm0r                 |     0.018 |
-|       pm0r_2               |     0.022 |
-|       pm1i                 |     0.019 |
-|       pm1i_2               |     0.016 |
-|       pm1r                 |     0.025 |
-|       pm1r_2               |     0.022 |
-|       pm2i                 |     0.020 |
-|       pm2i_2               |     0.017 |
-|       pm2r                 |     0.026 |
-|       pm2r_2               |     0.023 |
-|     gen_memory.mem         |     0.036 |
-|   gen_stages[3].stage_inst |     0.398 |
-|     b4                     |     0.316 |
-|       pm0i                 |     0.024 |
-|       pm0i_2               |     0.016 |
-|       pm0r                 |     0.018 |
-|       pm0r_2               |     0.022 |
-|       pm1i                 |     0.020 |
-|       pm1i_2               |     0.017 |
-|       pm1r                 |     0.026 |
-|       pm1r_2               |     0.024 |
-|       pm2i                 |     0.022 |
-|       pm2i_2               |     0.017 |
+| fft_top                    |     2.904 |
+|   gen_stages[0].stage_inst |     0.226 |
+|     b4                     |     0.214 |
+|       pm0i_2               |     0.025 |
+|       pm0r                 |     0.027 |
+|       pm1i_2               |     0.025 |
+|       pm1r                 |     0.028 |
+|       pm2i_2               |     0.025 |
 |       pm2r                 |     0.028 |
-|       pm2r_2               |     0.024 |
-|     gen_memory.mem         |     0.053 |
-|   gen_stages[4].stage_inst |     0.533 |
-|     b4                     |     0.317 |
-|       pm0i                 |     0.023 |
-|       pm0i_2               |     0.015 |
-|       pm0r                 |     0.018 |
-|       pm0r_2               |     0.022 |
-|       pm1i                 |     0.018 |
-|       pm1i_2               |     0.016 |
-|       pm1r                 |     0.024 |
-|       pm1r_2               |     0.023 |
-|       pm2i                 |     0.024 |
-|       pm2i_2               |     0.017 |
-|       pm2r                 |     0.030 |
-|       pm2r_2               |     0.024 |
-|     gen_memory.mem         |     0.144 |
+|   gen_stages[1].stage_inst |     0.660 |
+|     b4                     |     0.551 |
+|       pm0i                 |     0.041 |
+|       pm0i_2               |     0.031 |
+|       pm0r                 |     0.039 |
+|       pm0r_2               |     0.040 |
+|       pm1i                 |     0.033 |
+|       pm1i_2               |     0.035 |
+|       pm1r                 |     0.046 |
+|       pm1r_2               |     0.039 |
+|       pm2i                 |     0.038 |
+|       pm2i_2               |     0.034 |
+|       pm2r                 |     0.049 |
+|       pm2r_2               |     0.042 |
+|     gen_memory.mem         |     0.072 |
+|   gen_stages[2].stage_inst |     0.661 |
+|     b4                     |     0.564 |
+|       pm0i                 |     0.045 |
+|       pm0i_2               |     0.030 |
+|       pm0r                 |     0.034 |
+|       pm0r_2               |     0.042 |
+|       pm1i                 |     0.037 |
+|       pm1i_2               |     0.033 |
+|       pm1r                 |     0.048 |
+|       pm1r_2               |     0.043 |
+|       pm2i                 |     0.039 |
+|       pm2i_2               |     0.033 |
+|       pm2r                 |     0.049 |
+|       pm2r_2               |     0.044 |
+|     gen_memory.mem         |     0.056 |
+|   gen_stages[3].stage_inst |     0.735 |
+|     b4                     |     0.568 |
+|       pm0i                 |     0.045 |
+|       pm0i_2               |     0.030 |
+|       pm0r                 |     0.034 |
+|       pm0r_2               |     0.043 |
+|       pm1i                 |     0.037 |
+|       pm1i_2               |     0.032 |
+|       pm1r                 |     0.046 |
+|       pm1r_2               |     0.043 |
+|       pm2i                 |     0.042 |
+|       pm2i_2               |     0.034 |
+|       pm2r                 |     0.051 |
+|       pm2r_2               |     0.044 |
+|     gen_memory.mem         |     0.085 |
 +----------------------------+-----------+
 
 

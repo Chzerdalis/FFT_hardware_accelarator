@@ -3,7 +3,7 @@
 module SdfUnit4_fast #(
     parameter WIDTH = 16, // Data Bit Lenght
     parameter STAGE_NUM = 4, //Butterfly Stage
-    parameter Num_of_samples = 1024 //How many inputs
+    parameter Num_of_samples = 256 //How many inputs
 )(
     input                   clock,       //  System Clock
     input                   reset,        //  Active High Asynchronous Reset
@@ -264,7 +264,7 @@ module SdfUnit4_fast #(
 
     assign start_butterfly = (STAGE_NUM == 1) ? input_en : butterfly_op_counter_en_rrr;
 
-    butterfly_radix4_pipeline #(
+    butterfly_radix4_pipeline_2dsp_fast #(
         .WIDTH(WIDTH)
     ) b4 (
         .clock(clock), .reset(reset),
@@ -284,7 +284,7 @@ module SdfUnit4_fast #(
     );
 
     if(STAGE_NUM > 1) begin : gen_memory
-        memory #(
+        memory_2 #(
             .WIDTH(WIDTH),
             .DEPTH(Depth),
             .stage_num_bits(stage_num_bits)

@@ -443,6 +443,11 @@ module memory_second_stage #(
 //    (* ram_style = "distributed" *) reg [2*WIDTH-1:0] mem_C [0:2*DEPTH-1];
 //    (* ram_style = "distributed" *) reg [2*WIDTH-1:0] mem_D [0:2*DEPTH-1];
 
+//    reg [2*WIDTH-1:0] mem_A [0:2*DEPTH-1];
+//    reg [2*WIDTH-1:0] mem_B [0:2*DEPTH-1];
+//    reg [2*WIDTH-1:0] mem_C [0:2*DEPTH-1];
+//    reg [2*WIDTH-1:0] mem_D [0:2*DEPTH-1];
+
     wire [inter_offset_size:0] offset;
     
     // Final Output Registers

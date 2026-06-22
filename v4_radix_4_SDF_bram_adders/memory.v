@@ -245,6 +245,7 @@ module memory #(
 
     // --- Pipeline Stage 2 Signals: Read Data ---
     reg [2*WIDTH-1:0] pipe_rdata_A, pipe_rdata_B, pipe_rdata_C, pipe_rdata_D;
+    reg [2*WIDTH-1:0] pipe_rdata_A_r, pipe_rdata_B_r, pipe_rdata_C_r, pipe_rdata_D_r;
 
     // --- Pipeline Control: Delay the Op Counter to match Data Latency ---
     reg [stage_num_bits:0] pipe1_op, pipe2_op; 
@@ -356,6 +357,11 @@ module memory #(
                 output_3 <= pipe_rdata_C;
             end
         end 
+        
+//        pipe_rdata_A_r <= pipe_rdata_A;
+//        pipe_rdata_B_r <= pipe_rdata_B;
+//        pipe_rdata_C_r <= pipe_rdata_C;
+//        pipe_rdata_D_r <= pipe_rdata_D;
     end
 
     assign output_real_0 = output_0[2*WIDTH-1:WIDTH];

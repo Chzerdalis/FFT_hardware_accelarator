@@ -1,0 +1,15 @@
+foreach dsp [get_cells -hierarchical -filter {REF_NAME == DSP48E1}] {
+    puts "DSP: $dsp"
+    puts "  AREG = [get_property AREG $dsp]"
+    puts "  BREG = [get_property BREG $dsp]"
+    puts "  CREG = [get_property CREG $dsp]"
+    puts "  MREG = [get_property MREG $dsp]"
+    puts "  PREG = [get_property PREG $dsp]"
+}
+
+foreach bram [get_cells -hierarchical -filter {REF_NAME =~ RAMB*}] {
+    puts "BRAM: $bram"
+    puts "  REF_NAME = [get_property REF_NAME $bram]"
+    puts "  DOA_REG  = [get_property DOA_REG $bram]"
+    puts "  DOB_REG  = [get_property DOB_REG $bram]"
+}

@@ -2,7 +2,7 @@
 
 module Split_radix_SecondStage #(
     parameter WIDTH = 16, // Data Bit Lenght
-    parameter Num_of_samples = 1024 //How many inputs
+    parameter Num_of_samples = 256 //How many inputs
 )(
     input                   clock,       //  System Clock
     input                   reset,        //  Active High Asynchronous Reset
@@ -94,7 +94,10 @@ module Split_radix_SecondStage #(
 
     (* ram_style = "distributed" *) reg [WIDTH/2 - 1:0] w_real [0:Num_of_samples-1];
     (* ram_style = "distributed" *) reg [WIDTH/2 - 1:0] w_imag [0:Num_of_samples-1];
-
+    
+//    (* rom_style = "block" *) reg [WIDTH/2 - 1:0] w_real [0:Num_of_samples/2-1];
+//    (* rom_style = "block" *) reg [WIDTH/2 - 1:0] w_imag [0:Num_of_samples/2-1];
+    
     wire [$clog2(Num_of_samples)-1:0] twiddle_index_0, twiddle_index_1 ;
     reg [$clog2(Num_of_samples)-1:0] twiddle_index_0_r, twiddle_index_1_r;
 

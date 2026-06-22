@@ -1,7 +1,7 @@
 Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.
 ---------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2018.3 (lin64) Build 2405991 Thu Dec  6 23:36:41 MST 2018
-| Date         : Wed Jan 28 02:21:44 2026
+| Date         : Sun Jun 21 21:10:20 2026
 | Host         : christodoulos-zerdalis-IdeaPad-3-15IIL05 running 64-bit Ubuntu 24.04.3 LTS
 | Command      : report_drc -file fft_top_drc_routed.rpt -pb fft_top_drc_routed.pb -rpx fft_top_drc_routed.rpx
 | Design       : fft_top

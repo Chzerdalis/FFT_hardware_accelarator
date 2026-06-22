@@ -22,7 +22,7 @@ top_fft:
 	$(CC) $(FLAGS) -o $(EXE) $(SRCS_top_fft)
 	vvp $(EXE)
 # 	surfer -s waveforms/fft_top tb_top_fft.vcd The waveform stopped working for some reason
-#	surfer tb_top_fft.vcd
+	surfer tb_top_fft.vcd
 clean:
 	rm -rf $(EXE)
 	rm -rf *.vcd
