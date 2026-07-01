@@ -3,7 +3,7 @@
 module tb_second_stage();
 
     parameter WIDTH = 16;
-    parameter Num_of_samples = 64;
+    parameter Num_of_samples = 16;
 
     reg clock;
     reg reset;
@@ -76,7 +76,7 @@ module tb_second_stage();
 
         // Enable input
         input_en <= 1;
-        for (i = 0; i < 64; i = i + 4) begin
+        for (i = 0; i < Num_of_samples; i = i + 4) begin
             input_real_0 <= 4*i+0;
             input_imag_0 <= 4*i+0;
             input_real_1 <= 4*i+1;
@@ -101,18 +101,18 @@ module tb_second_stage();
         // Wait for output
         #200;
 
-        for(i = 0; i < Num_of_samples; i = i + 1) begin
-            if(output_real_fast[i] == output_real[i]) begin
-                $display("%d Okey real\n", i);
-            end else begin
-               $display("%d NOkey real\n", i);
-            end
-            if(output_imag_fast[i] == output_imag[i]) begin
-                $display("%d Okey imag\n", i);
-            end else begin
-               $display("%d NOkey imag\n", i);
-            end
-        end
+        // for(i = 0; i < Num_of_samples; i = i + 1) begin
+        //     if(output_real_fast[i] == output_real[i]) begin
+        //         $display("%d Okey real\n", i);
+        //     end else begin
+        //        $display("%d NOkey real\n", i);
+        //     end
+        //     if(output_imag_fast[i] == output_imag[i]) begin
+        //         $display("%d Okey imag\n", i);
+        //     end else begin
+        //        $display("%d NOkey imag\n", i);
+        //     end
+        // end
 
         // Disable input
         $finish;
@@ -124,16 +124,20 @@ module tb_second_stage();
     
     always @(posedge clock) begin
         if (output_en) begin
-            output_real_fast[output_count] = output_real_0;
-            output_real_fast[output_count + Num_of_samples/4] = output_real_1;
-            output_real_fast[output_count + Num_of_samples/2] = output_real_2;
-            output_real_fast[output_count + 3*Num_of_samples/4] = output_real_3;
+            // output_real_fast[output_count] = output_real_0;
+            // output_real_fast[output_count + Num_of_samples/4] = output_real_1;
+            // output_real_fast[output_count + Num_of_samples/2] = output_real_2;
+            // output_real_fast[output_count + 3*Num_of_samples/4] = output_real_3;
 
-            output_imag_fast[output_count] = output_imag_0;
-            output_imag_fast[output_count + Num_of_samples/4] = output_imag_1;
-            output_imag_fast[output_count + Num_of_samples/2] = output_imag_2;
-            output_imag_fast[output_count + 3*Num_of_samples/4] = output_imag_3;
-            output_count = output_count + 1;
+            // output_imag_fast[output_count] = output_imag_0;
+            // output_imag_fast[output_count + Num_of_samples/4] = output_imag_1;
+            // output_imag_fast[output_count + Num_of_samples/2] = output_imag_2;
+            // output_imag_fast[output_count + 3*Num_of_samples/4] = output_imag_3;
+            // output_count = output_count + 1;
+            $display("Output: %d + %di\n", output_real_0, output_imag_0);
+            $display("Output: %d + %di\n", output_real_1, output_imag_1);
+            $display("Output: %d + %di\n", output_real_2, output_imag_2);
+            $display("Output: %d + %di\n", output_real_3, output_imag_3);
         end
     end
 endmodule

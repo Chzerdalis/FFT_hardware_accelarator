@@ -227,7 +227,7 @@ module Split_radix_SecondStage #(
             end
         end
     end else begin
-        //This logic is for a 8 point first stage, the memory is also custom for this
+        //This logic is for a 16 point second stage, the memory is also custom for this
         always @(posedge clock) begin
             if (reset) begin
                 stride_segment_counter <= {(sn-2){1'b0}};
@@ -238,7 +238,9 @@ module Split_radix_SecondStage #(
                 flush_count <= 0;
             end else begin
                 if(input_en) begin
-                    if(stride_segment_counter == 1'b0 && butterfly_op_counter_en == 0) begin
+                    //Butterfly enable starts one cycle earlier than usual
+                    //To avoid corraption of data in memory duo to overwrite
+                    if(stride_segment_counter == 2'b00 && butterfly_op_counter_en == 0) begin
                         butterfly_op_counter_en <= 1'b1;
                         butterfly_op_counter <= butterfly_op_counter;
                         mem_counter_read <= mem_counter_read;
