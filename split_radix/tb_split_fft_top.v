@@ -1,4 +1,4 @@
-module tb_third_stage();
+module tb_split_fft_top();
 
     parameter WIDTH = 16;
     parameter Num_of_samples = 64;
@@ -20,10 +20,9 @@ module tb_third_stage();
 
     integer output_count = 0;
 
-    Split_radix_ThirdStage #(
+    split_fft_top #(
         .WIDTH(WIDTH),
-        .Num_of_samples(Num_of_samples),
-        .STAGE_NUM(3)
+        .N(Num_of_samples)
     ) dut (
         .clock(clock),
         .reset(reset),
@@ -69,18 +68,7 @@ module tb_third_stage();
         #100
         // Enable input
         input_en <= 1;
-        for (i = 0; i < 64; i = i + 4) begin
-            input_real_0 <= 4*i+0;
-            input_imag_0 <= 4*i+0;
-            input_real_1 <= 4*i+1;
-            input_imag_1 <= 4*i+1;
-            input_real_2 <= 4*i+2;
-            input_imag_2 <= 4*i+2;
-            input_real_3 <= 4*i+3;
-            input_imag_3 <= 4*i+3;
-            #10;
-        end
-        for (i = 0; i < 64; i = i + 4) begin
+        for (i = 0; i < Num_of_samples; i = i + 4) begin
             input_real_0 <= 4*i+0;
             input_imag_0 <= 4*i+0;
             input_real_1 <= 4*i+1;
@@ -99,15 +87,15 @@ module tb_third_stage();
     integer idx; 
 
     initial begin
-        $dumpfile("tb_third_stage.vcd");
-        $dumpvars(0, tb_third_stage);
+        $dumpfile("tb_split_fft_top.vcd");
+        $dumpvars(0, tb_split_fft_top);
 
 
-        for (idx = 0; idx < (2 * 4); idx = idx + 1) begin
-            $dumpvars(0, dut.memory_inst.mem_A[idx]);
-            $dumpvars(0, dut.memory_inst.mem_B[idx]);
-            $dumpvars(0, dut.memory_inst.mem_C[idx]);
-            $dumpvars(0, dut.memory_inst.mem_D[idx]);
-        end
+        // for (idx = 0; idx < (2 * 4); idx = idx + 1) begin
+        //     $dumpvars(0, dut.memory_inst.mem_A[idx]);
+        //     $dumpvars(0, dut.memory_inst.mem_B[idx]);
+        //     $dumpvars(0, dut.memory_inst.mem_C[idx]);
+        //     $dumpvars(0, dut.memory_inst.mem_D[idx]);
+        // end
     end
 endmodule

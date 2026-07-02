@@ -1,4 +1,4 @@
-module tb_third_stage();
+module tb_sec_to_last_stage();
 
     parameter WIDTH = 16;
     parameter Num_of_samples = 64;
@@ -20,10 +20,11 @@ module tb_third_stage();
 
     integer output_count = 0;
 
-    Split_radix_ThirdStage #(
+    Split_radix_secToLast_stage #(
         .WIDTH(WIDTH),
         .Num_of_samples(Num_of_samples),
-        .STAGE_NUM(3)
+        .STAGE_NUM(4),
+        .SIMPLE_MULT(1)
     ) dut (
         .clock(clock),
         .reset(reset),
@@ -99,15 +100,7 @@ module tb_third_stage();
     integer idx; 
 
     initial begin
-        $dumpfile("tb_third_stage.vcd");
-        $dumpvars(0, tb_third_stage);
-
-
-        for (idx = 0; idx < (2 * 4); idx = idx + 1) begin
-            $dumpvars(0, dut.memory_inst.mem_A[idx]);
-            $dumpvars(0, dut.memory_inst.mem_B[idx]);
-            $dumpvars(0, dut.memory_inst.mem_C[idx]);
-            $dumpvars(0, dut.memory_inst.mem_D[idx]);
-        end
+        $dumpfile("tb_sec_to_last_stage.vcd");
+        $dumpvars(0, tb_sec_to_last_stage);
     end
 endmodule

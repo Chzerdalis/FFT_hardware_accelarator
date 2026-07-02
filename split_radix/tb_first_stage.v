@@ -2,8 +2,8 @@
 
 module tb_first_stage();
 
-    parameter WIDTH = 32;
-    parameter Num_of_samples = 8;
+    parameter WIDTH = 16;
+    parameter Num_of_samples = 64;
 
     reg clock;
     reg reset;
@@ -76,6 +76,17 @@ module tb_first_stage();
 
         // Enable input
         input_en <= 1;
+        for (i = 0; i < 64; i = i + 4) begin
+            input_real_0 <= 4*i+0;
+            input_imag_0 <= 4*i+0;
+            input_real_1 <= 4*i+1;
+            input_imag_1 <= 4*i+1;
+            input_real_2 <= 4*i+2;
+            input_imag_2 <= 4*i+2;
+            input_real_3 <= 4*i+3;
+            input_imag_3 <= 4*i+3;
+            #10;
+        end
         for (i = 0; i < 64; i = i + 4) begin
             input_real_0 <= 4*i+0;
             input_imag_0 <= 4*i+0;

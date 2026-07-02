@@ -29,11 +29,9 @@ module Split_radix_FirstStage #(
     reg [stage_num_bits:0] butterfly_op_counter_reg, butterfly_op_counter_reg_reg, butterfly_op_counter_reg_reg_reg, butterfly_op_counter_reg_reg_reg_reg;
     reg [stage_num_bits:0] stride_segment_counter_reg;
     reg butterfly_op_counter_en;
-    reg stride_segment_counter_en;
 
     //Counter to flush the pipeline at the end of the data
     reg [Num_of_samples_bits-1:0] flush_count;
-    reg start_out;
 
     //Memoryoutput wires
     wire [WIDTH-1:0] delay_out_real_0, delay_out_imag_0;

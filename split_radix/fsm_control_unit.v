@@ -1,3 +1,5 @@
+`timescale 1ps/1ps
+
 module control_unit_fsm_3rd_stage #(
     parameter stage_num_bits = 2,
     parameter Num_of_samples = 256,
@@ -56,6 +58,13 @@ module control_unit_fsm_3rd_stage #(
                         state <= FILL;
                         stride_segment_counter  <= stride_segment_counter + 1'b1;
                         input_count <= input_count + 1'b1;
+                         
+                        if (stage_num_bits == 1) begin
+                            state <= PROCESSING;
+                            butterfly_op_counter_en <= 1'b1;
+                            flush_count <= flush_count - 1'b1;
+                        end
+                        
                     end else begin
                         state <= state;
                     end
@@ -81,6 +90,12 @@ module control_unit_fsm_3rd_stage #(
                 end
                 PROCESSING: begin
                     if(!input_en) begin
+                        if(flush_count == 0) begin
+                            state <= IDLE;
+                            butterfly_op_counter_en <= 1'b0;
+                        end else begin
+                            state <= FLUSH;
+                        end
                         state <= FLUSH;
                         stride_segment_counter  <= stride_segment_counter;
                         input_count <= input_count;
@@ -158,7 +173,14 @@ module control_unit_fsm_3rd_stage #(
                     step_count_out <= step_count_out;
 
                     if(!input_en) begin
-                        state <= FLUSH;
+                        if(flush_count == 0) begin
+                            state <= IDLE;
+                            butterfly_op_counter_en <= 1'b0;
+                        end else begin
+                            state <= FLUSH;
+                        end
+                    end else if (flush_count == 1) begin
+                        state <= RESTART_OUT_COUNT;
                     end else begin
                         state <= PROCESSING;
                     end
@@ -180,14 +202,22 @@ module control_unit_fsm_3rd_stage #(
                     step_count_in <= step_count_in;
                     step_count_out <= 1'b1;
                     
-                    state <= PROCESSING;
+                    if(!input_en) begin
+                        if(flush_count == 0) begin
+                            state <= IDLE;
+                            butterfly_op_counter_en <= 1'b0;
+                        end else begin
+                            state <= FLUSH;
+                        end
+                    end else begin
+                        state <= PROCESSING;
+                    end
                     
                 end
                 FLUSH: begin
                     stride_segment_counter  <= stride_segment_counter;
                     input_count <= input_count;
                     butterfly_op_counter <= butterfly_op_counter + 1'b1;
-                    butterfly_op_counter_en <= 1'b1;
                     flush_count <= flush_count - 1'b1;
                     step_mode_out <= step_mode_out;
                     step_mode_in <= step_mode_in;
@@ -199,8 +229,10 @@ module control_unit_fsm_3rd_stage #(
 
                     if(flush_count == 0) begin
                         state <= IDLE;
+                        butterfly_op_counter_en <= 1'b0;
                     end else begin
                         state <= state;
+                        butterfly_op_counter_en <= 1'b1;
                     end
                 end
             endcase

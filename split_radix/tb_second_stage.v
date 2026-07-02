@@ -3,7 +3,7 @@
 module tb_second_stage();
 
     parameter WIDTH = 16;
-    parameter Num_of_samples = 16;
+    parameter Num_of_samples = 64;
 
     reg clock;
     reg reset;
@@ -28,7 +28,8 @@ module tb_second_stage();
 
     Split_radix_SecondStage #(
         .WIDTH(WIDTH),
-        .Num_of_samples(Num_of_samples)
+        .Num_of_samples(Num_of_samples),
+        .SIMPLE_MULT(1)
     ) uut (
         .clock(clock),
         .reset(reset),

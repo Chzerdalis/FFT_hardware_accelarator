@@ -2,7 +2,8 @@
 
 module Split_radix_SecondStage #(
     parameter WIDTH = 16, // Data Bit Lenght
-    parameter Num_of_samples = 256 //How many inputs
+    parameter Num_of_samples = 256, //How many inputs
+    parameter SIMPLE_MULT = 1
 )(
     input                   clock,       //  System Clock
     input                   reset,        //  Active High Asynchronous Reset
@@ -15,53 +16,44 @@ module Split_radix_SecondStage #(
 );
 
     localparam Depth = Num_of_samples/8;
-    //localparam Stride = 1 << (2*STAGE_NUM); 
     localparam stage_num_bits = $clog2(Num_of_samples/4) - 1;
     localparam sn = stage_num_bits + 3;
     localparam Num_of_samples_bits = $clog2(Num_of_samples/4);
     localparam TW = WIDTH/2;
     localparam PROD = WIDTH + TW;
+    localparam Delay_mult = (SIMPLE_MULT == 1) ? 2 : 3;
 
     //Wires needed for stages > 1
     //Counters to calculate the twiddle factors and manage the delay buffers
-    reg [stage_num_bits:0] butterfly_op_counter;
-    reg [stage_num_bits:0] stride_segment_counter;
-    reg [stage_num_bits+1:0] mem_counter;
-    reg [stage_num_bits+1:0] mem_counter_read;
+    reg [stage_num_bits+1:0] butterfly_op_counter;
+    reg [stage_num_bits+1:0] stride_segment_counter;
+    reg butterfly_op_counter_en;
 
-    //registers for counters
-    reg [stage_num_bits:0] butterfly_op_counter_reg, butterfly_op_counter_reg_reg, butterfly_op_counter_reg_reg_reg;
-    reg outmode, outmode_reg, outmode_reg_reg, outmode_reg_reg_reg, outmode_reg_reg_reg_reg, outmode_reg_reg_reg_reg_reg;
-    reg [stage_num_bits:0] stride_segment_counter_reg, stride_segment_counter_reg_reg, stride_segment_counter_reg_reg_reg;
-    reg [stage_num_bits+1:0] mem_counter_reg, mem_counter_reg_reg, mem_counter_reg_reg_reg;
-    reg [stage_num_bits+1:0] mem_counter_read_reg, mem_counter_read_reg_reg, mem_counter_read_reg_reg_reg;
-    reg butterfly_op_counter_en, butterfly_op_counter_en_r, butterfly_op_counter_en_rr, butterfly_op_counter_en_rrr,
-    butterfly_op_counter_en_rrrr, butterfly_op_counter_en_rrrrr, butterfly_op_counter_en_rrrrrr;
+    wire [stage_num_bits+1:0] stride_segment_counter_mem, butterfly_op_counter_mem;
+    wire butterfly_op_counter_output;
+
+
+    wire signed [PROD:0] mulr_0, muli_0, mulr_3, muli_3; 
+    wire signed [WIDTH-1:0] input_real_1_nomul, input_imag_1_nomul, input_real_2_nomul, input_imag_2_nomul;
+    wire signed [WIDTH-1:0] input_real_1_butt, input_imag_1_butt, input_real_2_butt, input_imag_2_butt;
+    reg [WIDTH-1:0] input_real_0_mem, input_real_3_mem;
+    reg [WIDTH-1:0] input_imag_0_mem, input_imag_3_mem;
 
     //Counter to flush the pipeline at the end of the data
     reg [Num_of_samples_bits-1:0] flush_count;
     reg start_out;
 
     //Memoryoutput wires
-    wire [WIDTH-1:0] delay_out_real_0, delay_out_imag_0;
-    wire [WIDTH-1:0] delay_out_real_1, delay_out_imag_1;
-    wire [WIDTH-1:0] delay_out_real_2, delay_out_imag_2;
-    wire [WIDTH-1:0] delay_out_real_3, delay_out_imag_3;
+    wire [WIDTH-1:0] mem_out_real_0, mem_out_imag_0;
+    wire [WIDTH-1:0] mem_out_real_1, mem_out_imag_1;
+    wire [WIDTH-1:0] mem_out_real_2, mem_out_imag_2;
+    wire [WIDTH-1:0] mem_out_real_3, mem_out_imag_3;
 
-    reg [WIDTH-1:0] delay_out_real_0_r, delay_out_imag_0_r;
-    reg [WIDTH-1:0] delay_out_real_1_r, delay_out_imag_1_r;
-    reg [WIDTH-1:0] delay_out_real_2_r, delay_out_imag_2_r;
-    reg [WIDTH-1:0] delay_out_real_3_r, delay_out_imag_3_r;
+    wire [WIDTH-1:0] mem_out_real_0_output, mem_out_imag_0_output;
+    wire [WIDTH-1:0] mem_out_real_1_output, mem_out_imag_1_output;
+    wire [WIDTH-1:0] mem_out_real_2_output, mem_out_imag_2_output;
+    wire [WIDTH-1:0] mem_out_real_3_output, mem_out_imag_3_output;
 
-    reg [WIDTH-1:0] delay_out_real_0_rr, delay_out_imag_0_rr;
-    reg [WIDTH-1:0] delay_out_real_1_rr, delay_out_imag_1_rr;
-    reg [WIDTH-1:0] delay_out_real_2_rr, delay_out_imag_2_rr;
-    reg [WIDTH-1:0] delay_out_real_3_rr, delay_out_imag_3_rr;
-
-    reg [WIDTH-1:0] delay_out_real_0_rrr, delay_out_imag_0_rrr;
-    reg [WIDTH-1:0] delay_out_real_1_rrr, delay_out_imag_1_rrr;
-    reg [WIDTH-1:0] delay_out_real_2_rrr, delay_out_imag_2_rrr;
-    reg [WIDTH-1:0] delay_out_real_3_rrr, delay_out_imag_3_rrr;
     //end wires for stages > 1
 
     //Registers for multiplication and stalling before memory
@@ -69,14 +61,6 @@ module Split_radix_SecondStage #(
     reg [WIDTH-1:0] input_imag_0_r, input_imag_1_r, input_imag_2_r, input_imag_3_r;
     reg signed [WIDTH-1:0] input_real_0_rr, input_real_1_rr, input_real_2_rr, input_real_3_rr;
     reg signed [WIDTH-1:0] input_imag_0_rr, input_imag_1_rr, input_imag_2_rr, input_imag_3_rr;
-    reg [WIDTH-1:0] input_real_0_rrr_mult, input_real_1_rrr_mult, input_real_2_rrr_mult, input_real_3_rrr_mult;
-    reg [WIDTH-1:0] input_imag_0_rrr_mult, input_imag_1_rrr_mult, input_imag_2_rrr_mult, input_imag_3_rrr_mult;
-    reg [WIDTH-1:0] input_real_1_rrr_mult_r, input_real_2_rrr_mult_r;
-    reg [WIDTH-1:0] input_imag_1_rrr_mult_r, input_imag_2_rrr_mult_r;
-    reg [WIDTH-1:0] input_real_1_rrr_mult_rr, input_real_2_rrr_mult_rr;
-    reg [WIDTH-1:0] input_imag_1_rrr_mult_rr, input_imag_2_rrr_mult_rr;
-    reg [WIDTH-1:0] input_real_1_rrr_mult_rrr, input_real_2_rrr_mult_rrr;
-    reg [WIDTH-1:0] input_imag_1_rrr_mult_rrr, input_imag_2_rrr_mult_rrr;
 
     reg  start_butterfly_r;
 
@@ -181,45 +165,35 @@ module Split_radix_SecondStage #(
     if(Num_of_samples > 16) begin : gen_input_logic 
         always @(posedge clock) begin
             if (reset) begin
-                stride_segment_counter <= {(sn-2){1'b0}};
-                butterfly_op_counter <= {(sn-2){1'b0}};
-                mem_counter_read <= {(sn-1){1'b0}};
-                mem_counter <= {(sn-1){1'b0}};
+                stride_segment_counter <= {(sn-1){1'b0}};
+                butterfly_op_counter <= {(sn-1){1'b0}};
                 butterfly_op_counter_en <= 1'b0;
                 flush_count <= 0;
             end else begin
                 if(input_en) begin
-                    if(stride_segment_counter == {1'b0, {(sn-4){1'b1}}, 1'b0} && butterfly_op_counter_en == 0) begin
+                    if(stride_segment_counter[stage_num_bits:0] == {1'b0, {(sn-4){1'b1}}, 1'b0} && butterfly_op_counter_en == 0) begin
                         butterfly_op_counter_en <= 1'b1;
                         butterfly_op_counter <= butterfly_op_counter;
-                        mem_counter_read <= mem_counter_read;
                         flush_count <= Num_of_samples/4 - 1;
                     end else if (butterfly_op_counter_en) begin
                         butterfly_op_counter <= butterfly_op_counter + 1'b1;
-                        mem_counter_read <= mem_counter_read + 1'b1;
                         butterfly_op_counter_en <= 1'b1;
                         flush_count <= flush_count - 1'b1;
                     end else begin
                         butterfly_op_counter <= butterfly_op_counter;
-                        mem_counter_read <= mem_counter_read;
                         butterfly_op_counter_en <= 1'b0;
                         flush_count <= flush_count;
                     end
 
                     stride_segment_counter <= stride_segment_counter + 1'b1;
-                    mem_counter <= mem_counter + 1'b1;
                 end else begin
                     if (flush_count == 0) begin
-                        butterfly_op_counter <= {(sn-2){1'b0}};
-                        mem_counter_read <= {(sn-1){1'b0}};
-                        stride_segment_counter <= {(sn-2){1'b0}};
-                        mem_counter <= {(sn-1){1'b0}};
+                        butterfly_op_counter <= {(sn-1){1'b0}};
+                        stride_segment_counter <= {(sn-1){1'b0}};
                         butterfly_op_counter_en <= 1'b0;
                     end else begin
                         butterfly_op_counter <= butterfly_op_counter + 1'b1;
-                        mem_counter_read <= mem_counter_read + 1'b1;
                         stride_segment_counter <= stride_segment_counter + 1'b1;
-                        mem_counter <= mem_counter + 1'b1;
                         butterfly_op_counter_en <= butterfly_op_counter_en;
                         flush_count <= flush_count - 1'b1;
                     end
@@ -230,47 +204,37 @@ module Split_radix_SecondStage #(
         //This logic is for a 16 point second stage, the memory is also custom for this
         always @(posedge clock) begin
             if (reset) begin
-                stride_segment_counter <= {(sn-2){1'b0}};
-                butterfly_op_counter <= {(sn-2){1'b0}};
-                mem_counter_read <= {(sn-1){1'b0}};
-                mem_counter <= {(sn-1){1'b0}};
+                stride_segment_counter <= {(sn-1){1'b0}};
+                butterfly_op_counter <= {(sn-1){1'b0}};
                 butterfly_op_counter_en <= 1'b0;
                 flush_count <= 0;
             end else begin
                 if(input_en) begin
                     //Butterfly enable starts one cycle earlier than usual
                     //To avoid corraption of data in memory duo to overwrite
-                    if(stride_segment_counter == 2'b00 && butterfly_op_counter_en == 0) begin
+                    if(stride_segment_counter[stage_num_bits:0] == 2'b00 && butterfly_op_counter_en == 0) begin
                         butterfly_op_counter_en <= 1'b1;
                         butterfly_op_counter <= butterfly_op_counter;
-                        mem_counter_read <= mem_counter_read;
                         flush_count <= Num_of_samples/4 - 1;
                     end else if (butterfly_op_counter_en) begin
                         butterfly_op_counter <= butterfly_op_counter + 1'b1;
-                        mem_counter_read <= mem_counter_read + 1'b1;
                         butterfly_op_counter_en <= 1'b1;
                         flush_count <= flush_count - 1'b1;
                     end else begin
                         butterfly_op_counter <= butterfly_op_counter;
-                        mem_counter_read <= mem_counter_read;
                         butterfly_op_counter_en <= 1'b0;
                         flush_count <= flush_count;
                     end
 
                     stride_segment_counter <= stride_segment_counter + 1'b1;
-                    mem_counter <= mem_counter + 1'b1;
                 end else begin
                     if (flush_count == 0) begin
-                        butterfly_op_counter <= {(sn-2){1'b0}};
-                        mem_counter_read <= {(sn-1){1'b0}};
-                        stride_segment_counter <= {(sn-2){1'b0}};
-                        mem_counter <= {(sn-1){1'b0}};
+                        butterfly_op_counter <= {(sn-1){1'b0}};
+                        stride_segment_counter <= {(sn-1){1'b0}};
                         butterfly_op_counter_en <= 1'b0;
                     end else begin
                         butterfly_op_counter <= butterfly_op_counter + 1'b1;
-                        mem_counter_read <= mem_counter_read + 1'b1;
                         stride_segment_counter <= stride_segment_counter + 1'b1;
-                        mem_counter <= mem_counter + 1'b1;
                         butterfly_op_counter_en <= butterfly_op_counter_en;
                         flush_count <= flush_count - 1'b1;
                     end
@@ -280,8 +244,8 @@ module Split_radix_SecondStage #(
     end
 
     //Calculating twiddle index
-    assign twiddle_index_0 = (stride_segment_counter);
-    assign twiddle_index_1 = ((stride_segment_counter<<1) + stride_segment_counter);
+    assign twiddle_index_0 = (stride_segment_counter[stage_num_bits:0]);
+    assign twiddle_index_1 = ((stride_segment_counter[stage_num_bits:0]<<1) + stride_segment_counter[stage_num_bits:0]);
 
     //Next pipeline feching the twiddle factors from ROM
     assign w0re = w_real[twiddle_index_0_r];
@@ -289,75 +253,118 @@ module Split_radix_SecondStage #(
     assign w1re = w_real[twiddle_index_1_r];
     assign w1i = w_imag[twiddle_index_1_r];
 
-    //
-    //Clasical way to do the complex multiplication would require 4 multipliers and 2 adders per butterfly input
-    //
+    ComplexMultiplier #(
+        .WIDTH(WIDTH),
+        .PROD(PROD),
+        .SIMPLE_MULT(SIMPLE_MULT)
+    ) complex_multiplier (
+        .clock(clock),
+        .a_re(input_real_0_rr), .a_im(input_imag_0_rr),
+        .b_re(input_real_3_rr), .b_im(input_imag_3_rr),
+        .w0re(w0re_reg), .w0im(w0i_reg),
+        .w1re(w1re_reg), .w1im(w1i_reg),
+        .out_a_re(mulr_0), .out_a_im(muli_0),
+        .out_b_re(mulr_3), .out_b_im(muli_3)
+    );
 
-    //Next pipeline stage for multiplication
-    // --- 4 Multiplications for Input 0 ---
-    wire signed [PROD-1:0] rr_0 = input_real_0_rr * w0re_reg; // Real * Real
-    wire signed [PROD-1:0] ii_0 = input_imag_0_rr * w0i_reg;  // Imag * Imag
-    wire signed [PROD-1:0] ri_0 = input_real_0_rr * w0i_reg;  // Real * Imag
-    wire signed [PROD-1:0] ir_0 = input_imag_0_rr * w0re_reg; // Imag * Real
+    delay_reg #(
+        .WIDTH(WIDTH), .DELAY(Delay_mult + 1)
+    ) delay_nomul_r_1 (
+        .clock(clock), .data_in(input_real_1_rr), .data_out(input_real_1_nomul)
+    );
 
-    wire signed [PROD-1:0] rr_3 = input_real_3_rr * w1re_reg; // Real * Real
-    wire signed [PROD-1:0] ii_3 = input_imag_3_rr * w1i_reg;  // Imag * Imag
-    wire signed [PROD-1:0] ri_3 = input_real_3_rr * w1i_reg;  // Real * Imag
-    wire signed [PROD-1:0] ir_3 = input_imag_3_rr * w1re_reg; // Imag * Real
+    delay_reg #(
+        .WIDTH(WIDTH), .DELAY(Delay_mult + 1)
+    ) delay_nomul_i_1 (
+        .clock(clock), .data_in(input_imag_1_rr), .data_out(input_imag_1_nomul)
+    );
 
-    // --- Final Addition/Subtraction ---
-    // Note: You need 1 extra bit (PROD) to prevent overflow during addition!
-    wire signed [PROD:0] mulr_0 = rr_0 - ii_0; 
-    wire signed [PROD:0] muli_0 = ri_0 + ir_0;
+    delay_reg #(
+        .WIDTH(WIDTH), .DELAY(Delay_mult + 1)
+    ) delay_nomul_r_2 (
+        .clock(clock), .data_in(input_real_2_rr), .data_out(input_real_2_nomul)
+    );
 
-    wire signed [PROD:0] mulr_3 = rr_3 - ii_3;
-    wire signed [PROD:0] muli_3 = ri_3 + ir_3;
+    delay_reg #(
+        .WIDTH(WIDTH), .DELAY(Delay_mult + 1)
+    ) delay_nomul_i_2 (
+        .clock(clock), .data_in(input_imag_2_rr), .data_out(input_imag_2_nomul)
+    );
 
-    //
-    //This way to do the complex multiplication would require 3 multipliers and 5 adders per butterfly input and one more pipeline
-    //
+    delay_reg_reset #(
+        .WIDTH(stage_num_bits+2), .DELAY(Delay_mult+3)
+    ) delay_stride_seg (
+        .clock(clock), .reset(reset), .data_in(stride_segment_counter), .data_out(stride_segment_counter_mem)
+    );
 
-    // //Trick to use less DSPs but more additions:
-    // // Pre-calculate sums/differences of the inputs (cheap in logic)
-    // wire signed [WIDTH:0] sum_twiddle_0 = w0re_reg + w0i_reg;
-    // wire signed [WIDTH:0] sum_input_0   = input_real_0_rr + input_imag_0_rr;
-    // wire signed [WIDTH:0] diff_input_0  = input_real_0_rr - input_imag_0_rr;
-
-    // // Use only 3 Multipliers (DSP slices)
-    // wire signed [PROD:0] k1_0 = w0re_reg * sum_input_0;
-    // wire signed [PROD:0] k2_0 = input_real_0_rr * (w0i_reg - w0re_reg); // Twiddle diff can be pre-calculated!
-    // wire signed [PROD:0] k3_0 = input_imag_0_rr * sum_twiddle_0;
-
-    // // Final Outputs
-    // wire signed [PROD+1:0] mulr_0 = k1_0 - k3_0;
-    // wire signed [PROD+1:0] muli_0 = k1_0 + k2_0;
-
-    // wire signed [WIDTH:0] sum_twiddle_1 = w1re_reg + w1i_reg;
-    // wire signed [WIDTH:0] sum_input_1   = input_real_3_rr + input_imag_3_rr;
-    // wire signed [WIDTH:0] diff_input_1  = input_real_3_rr - input_imag_3_rr;
-
-    // // Use only 3 Multipliers (DSP slices)
-    // wire signed [PROD:0] k1_1 = w1re_reg * sum_input_1;
-    // wire signed [PROD:0] k2_1 = input_real_3_rr * (w1i_reg - w1re_reg); // Twiddle diff can be pre-calculated!
-    // wire signed [PROD:0] k3_1 = input_imag_3_rr * sum_twiddle_1;
-
-    // // Final Outputs
-    // wire signed [PROD+1:0] mulr_3 = k1_1 - k3_1;
-    // wire signed [PROD+1:0] muli_3 = k1_1 + k2_1;
+    delay_reg_reset #(
+        .WIDTH(stage_num_bits+2), .DELAY(Delay_mult+3)
+    ) delay_butterfly_op (
+        .clock(clock), .reset(reset), .data_in(butterfly_op_counter), .data_out(butterfly_op_counter_mem)
+    );
 
 
+    //Na afaireseis ta mem
+    memory_second_stage #(
+        .WIDTH(WIDTH),
+        .DEPTH(Depth),
+        .stage_num_bits(stage_num_bits)
+    ) mem (
+        .clock(clock),
+        .reset(reset),
+        .stride_segment_counter(stride_segment_counter_mem[stage_num_bits:0]),
+        .butterfly_op_counter(butterfly_op_counter_mem[stage_num_bits:0]),
+        .mem_counter(stride_segment_counter_mem),
+        .mem_counter_read(butterfly_op_counter_mem),
+        .input_real_0(input_real_0_mem), .input_imag_0(input_imag_0_mem),
+        .input_real_1(input_real_1_nomul), .input_imag_1(input_imag_1_nomul),
+        .input_real_2(input_real_2_nomul), .input_imag_2(input_imag_2_nomul),
+        .input_real_3(input_real_3_mem), .input_imag_3(input_imag_3_mem),
+        .output_real_0(mem_out_real_0), .output_imag_0(mem_out_imag_0),
+        .output_real_1(mem_out_real_1), .output_imag_1(mem_out_imag_1),
+        .output_real_2(mem_out_real_2), .output_imag_2(mem_out_imag_2),
+        .output_real_3(mem_out_real_3), .output_imag_3(mem_out_imag_3)
+    );
+
+    delay_reg #(
+        .WIDTH(WIDTH), .DELAY(2)
+    ) delay_pass_thought_r_1 (
+        .clock(clock), .data_in(input_real_1_nomul), .data_out(input_real_1_butt)
+    );
+
+    delay_reg #(
+        .WIDTH(WIDTH), .DELAY(2)
+    ) delay_pass_thought_i_1 (
+        .clock(clock), .data_in(input_imag_1_nomul), .data_out(input_imag_1_butt)
+    );
+
+    delay_reg #(
+        .WIDTH(WIDTH), .DELAY(2)
+    ) delay_pass_thought_r_2 (
+        .clock(clock), .data_in(input_real_2_nomul), .data_out(input_real_2_butt)
+    );
+
+    delay_reg #(
+        .WIDTH(WIDTH), .DELAY(2)
+    ) delay_pass_thought_i_2 (
+        .clock(clock), .data_in(input_imag_2_nomul), .data_out(input_imag_2_butt)
+    );
 
     //Manage butterfly inputs based on stage number
-    assign x0_re =  delay_out_real_1;
-    assign x0_im =  delay_out_imag_1;
-    assign x1_re =  input_real_1_rrr_mult_rr;
-    assign x1_im =  input_imag_1_rrr_mult_rr;
-    assign x2_re =  delay_out_real_3;
-    assign x2_im =  delay_out_imag_3;
-    assign x3_re =  input_real_2_rrr_mult_rr;
-    assign x3_im =  input_imag_2_rrr_mult_rr;
+    assign x0_re =  mem_out_real_1;
+    assign x0_im =  mem_out_imag_1;
+    assign x1_re =  input_real_1_butt;
+    assign x1_im =  input_imag_1_butt;
+    assign x2_re =  mem_out_real_3;
+    assign x2_im =  mem_out_imag_3;
+    assign x3_re =  input_real_2_butt;
+    assign x3_im =  input_imag_2_butt;
 
-    assign start_butterfly = butterfly_op_counter_en_rrrrrr;
+     delay_reg_reset #(
+        .WIDTH(1), .DELAY(Delay_mult+3+3)
+    ) delay_butt_en (
+        .clock(clock), .reset(reset), .data_in(butterfly_op_counter_en), .data_out(start_butterfly)
+    );
 
     butterfly_complex_core #(
         .WIDTH(WIDTH)
@@ -375,266 +382,109 @@ module Split_radix_SecondStage #(
         .done(butterfly_out_ready)
     );
 
-    memory_second_stage #(
-        .WIDTH(WIDTH),
-        .DEPTH(Depth),
-        .stage_num_bits(stage_num_bits)
-    ) mem (
-        .clock(clock),
-        .reset(reset),
-        .stride_segment_counter(stride_segment_counter_reg_reg_reg),
-        .butterfly_op_counter(butterfly_op_counter_reg_reg_reg),
-        .mem_counter(mem_counter_reg_reg_reg),
-        .mem_counter_read(mem_counter_read_reg_reg_reg),
-        .input_real_0(input_real_0_rrr_mult), .input_imag_0(input_imag_0_rrr_mult),
-        .input_real_1(input_real_1_rrr_mult), .input_imag_1(input_imag_1_rrr_mult),
-        .input_real_2(input_real_2_rrr_mult), .input_imag_2(input_imag_2_rrr_mult),
-        .input_real_3(input_real_3_rrr_mult), .input_imag_3(input_imag_3_rrr_mult),
-        .output_real_0(delay_out_real_0), .output_imag_0(delay_out_imag_0),
-        .output_real_1(delay_out_real_1), .output_imag_1(delay_out_imag_1),
-        .output_real_2(delay_out_real_2), .output_imag_2(delay_out_imag_2),
-        .output_real_3(delay_out_real_3), .output_imag_3(delay_out_imag_3)
+    delay_reg #(
+        .WIDTH(WIDTH), .DELAY(3)
+    ) delay_pass_thought_mem_out_r_0 (
+        .clock(clock), .data_in(mem_out_real_0), .data_out(mem_out_real_0_output)
     );
 
-    always @(posedge clock) begin
-        if (reset) begin
-            output_en <= 1'b0;
-            output_real_0 <= {WIDTH{1'b0}};
-            output_imag_0 <= {WIDTH{1'b0}};
-            output_real_1 <= {WIDTH{1'b0}};
-            output_imag_1 <= {WIDTH{1'b0}};
-            output_real_2 <= {WIDTH{1'b0}};
-            output_imag_2 <= {WIDTH{1'b0}};
-            output_real_3 <= {WIDTH{1'b0}};
-            output_imag_3 <= {WIDTH{1'b0}};
-        end else begin
-            if(butterfly_out_ready) begin
-                output_en <= 1'b1;
-            end else begin
-                output_en <= 1'b0;
-            end
-            if(outmode_reg_reg_reg_reg_reg) begin
-                output_real_0 <= delay_out_real_0_rrr;
-                output_imag_0 <= delay_out_imag_0_rrr;
-                output_real_1 <= delay_out_real_1_rrr;
-                output_imag_1 <= delay_out_imag_1_rrr;
-                output_real_2 <= delay_out_real_2_rrr;
-                output_imag_2 <= delay_out_imag_2_rrr;
-                output_real_3 <= delay_out_real_3_rrr;
-                output_imag_3 <= delay_out_imag_3_rrr;
-            end else begin
-                output_real_0 <= y0_re;
-                output_imag_0 <= y0_im;
-                output_real_1 <= y1_re;
-                output_imag_1 <= y1_im;
-                output_real_2 <= y2_re;
-                output_imag_2 <= y2_im;
-                output_real_3 <= y3_re;
-                output_imag_3 <= y3_im;
-            end
-        end
-    end
-    
-    always @(posedge clock) begin
-        if (reset) begin
-            butterfly_op_counter_reg <= {(stage_num_bits+1){1'b0}};
-            butterfly_op_counter_reg_reg <= {(stage_num_bits+1){1'b0}};
-            butterfly_op_counter_reg_reg_reg <= {(stage_num_bits+1){1'b0}};
-            stride_segment_counter_reg <= {(stage_num_bits+1){1'b0}};
-            stride_segment_counter_reg_reg <= {(stage_num_bits+1){1'b0}};
-            stride_segment_counter_reg_reg_reg <= {(stage_num_bits+1){1'b0}};
-            mem_counter_reg <= {(stage_num_bits+2){1'b0}};
-            mem_counter_reg_reg <= {(stage_num_bits+2){1'b0}};
-            mem_counter_reg_reg_reg <= {(stage_num_bits+2){1'b0}};
-            mem_counter_read_reg <= {(stage_num_bits+2){1'b0}};
-            mem_counter_read_reg_reg <= {(stage_num_bits+2){1'b0}};
-            mem_counter_read_reg_reg_reg <= {(stage_num_bits+2){1'b0}};
-        end else begin
-            butterfly_op_counter_reg <= butterfly_op_counter;
-            butterfly_op_counter_reg_reg <= butterfly_op_counter_reg;
-            butterfly_op_counter_reg_reg_reg <= butterfly_op_counter_reg_reg;
-            stride_segment_counter_reg <= stride_segment_counter;
-            stride_segment_counter_reg_reg <= stride_segment_counter_reg;
-            stride_segment_counter_reg_reg_reg <= stride_segment_counter_reg_reg;
-            mem_counter_reg <= mem_counter;
-            mem_counter_reg_reg <= mem_counter_reg;
-            mem_counter_reg_reg_reg <= mem_counter_reg_reg;
-            mem_counter_read_reg <= mem_counter_read;
-            mem_counter_read_reg_reg <= mem_counter_read_reg;
-            mem_counter_read_reg_reg_reg <= mem_counter_read_reg_reg;
-        end
-    end
+    delay_reg #(
+        .WIDTH(WIDTH), .DELAY(3)
+    ) delay_pass_thought_mem_out_i_0 (
+        .clock(clock), .data_in(mem_out_imag_0), .data_out(mem_out_imag_0_output)
+    );
+
+    delay_reg #(
+        .WIDTH(WIDTH), .DELAY(3)
+    ) delay_pass_thought_mem_out_r_1 (
+        .clock(clock), .data_in(mem_out_real_1), .data_out(mem_out_real_1_output)
+    );
+
+    delay_reg #(
+        .WIDTH(WIDTH), .DELAY(3)
+    ) delay_pass_thought_mem_out_i_1 (
+        .clock(clock), .data_in(mem_out_imag_1), .data_out(mem_out_imag_1_output)
+    );
+
+    delay_reg #(
+        .WIDTH(WIDTH), .DELAY(3)
+    ) delay_pass_thought_mem_out_r_2 (
+        .clock(clock), .data_in(mem_out_real_2), .data_out(mem_out_real_2_output)
+    );
+
+    delay_reg #(
+        .WIDTH(WIDTH), .DELAY(3)
+    ) delay_pass_thought_mem_out_i_2 (
+        .clock(clock), .data_in(mem_out_imag_2), .data_out(mem_out_imag_2_output)
+    );
+
+    delay_reg #(
+        .WIDTH(WIDTH), .DELAY(3)
+    ) delay_pass_thought_mem_out_r_3 (
+        .clock(clock), .data_in(mem_out_real_3), .data_out(mem_out_real_3_output)
+    );
+
+    delay_reg #(
+        .WIDTH(WIDTH), .DELAY(3)
+    ) delay_pass_thought_mem_out_i_3 (
+        .clock(clock), .data_in(mem_out_imag_3), .data_out(mem_out_imag_3_output)
+    );
+
+    delay_reg_reset #(
+        .WIDTH(1), .DELAY(3+3)
+    ) delay_butt_op_count_output(
+        .clock(clock), .reset(reset), .data_in(butterfly_op_counter_mem[stage_num_bits]), .data_out(butterfly_op_counter_output)
+    );
+
 
     always @(posedge clock) begin
-        if (reset) begin
-            input_real_0_r <= {WIDTH{1'b0}};
-            input_real_1_r <= {WIDTH{1'b0}};
-            input_real_2_r <= {WIDTH{1'b0}};
-            input_real_3_r <= {WIDTH{1'b0}};
-            input_imag_0_r <= {WIDTH{1'b0}};
-            input_imag_1_r <= {WIDTH{1'b0}};
-            input_imag_2_r <= {WIDTH{1'b0}};
-            input_imag_3_r <= {WIDTH{1'b0}};
-            input_real_0_rr <= {WIDTH{1'b0}};
-            input_imag_0_rr <= {WIDTH{1'b0}};
-            input_real_1_rr <= {WIDTH{1'b0}};
-            input_imag_1_rr <= {WIDTH{1'b0}};
-            input_real_2_rr <= {WIDTH{1'b0}};
-            input_imag_2_rr <= {WIDTH{1'b0}};
-            input_real_3_rr <= {WIDTH{1'b0}};
-            input_imag_3_rr <= {WIDTH{1'b0}};
-            input_real_0_rrr_mult <= {WIDTH{1'b0}};
-            input_imag_0_rrr_mult <= {WIDTH{1'b0}};
-            input_real_1_rrr_mult <= {WIDTH{1'b0}};
-            input_imag_1_rrr_mult <= {WIDTH{1'b0}};
-            input_real_2_rrr_mult <= {WIDTH{1'b0}};
-            input_imag_2_rrr_mult <= {WIDTH{1'b0}};
-            input_real_3_rrr_mult <= {WIDTH{1'b0}};
-            input_imag_3_rrr_mult <= {WIDTH{1'b0}};
-            input_imag_1_rrr_mult_r <= {WIDTH{1'b0}};
-            input_real_1_rrr_mult_r <= {WIDTH{1'b0}};
-            input_imag_2_rrr_mult_r <= {WIDTH{1'b0}};
-            input_real_2_rrr_mult_r <= {WIDTH{1'b0}};
-            input_imag_1_rrr_mult_rr <= {WIDTH{1'b0}};
-            input_real_1_rrr_mult_rr <= {WIDTH{1'b0}};
-            input_imag_2_rrr_mult_rr <= {WIDTH{1'b0}};
-            input_real_2_rrr_mult_rr <= {WIDTH{1'b0}};
-            input_imag_1_rrr_mult_rrr <= {WIDTH{1'b0}};
-            input_real_1_rrr_mult_rrr <= {WIDTH{1'b0}};
-            input_imag_2_rrr_mult_rrr <= {WIDTH{1'b0}};
-            input_real_2_rrr_mult_rrr <= {WIDTH{1'b0}};
+        twiddle_index_0_r <= twiddle_index_0;
+        twiddle_index_1_r <= twiddle_index_1;
+        w0re_reg <= w0re;
+        w0i_reg <= w0i;
+        w1re_reg <= w1re;
+        w1i_reg <= w1i;
+        input_real_0_r <= input_real_0;
+        input_real_1_r <= input_real_1;
+        input_real_2_r <= input_real_2;
+        input_real_3_r <= input_real_3;
+        input_imag_0_r <= input_imag_0;
+        input_imag_1_r <= input_imag_1;
+        input_imag_2_r <= input_imag_2;
+        input_imag_3_r <= input_imag_3;
+        input_real_0_rr <= input_real_0_r;
+        input_imag_0_rr <= input_imag_0_r;
+        input_real_1_rr <= input_real_1_r;
+        input_imag_1_rr <= input_imag_1_r;
+        input_real_2_rr <= input_real_2_r;
+        input_imag_2_rr <= input_imag_2_r;
+        input_real_3_rr <= input_real_3_r;
+        input_imag_3_rr <= input_imag_3_r;
+        input_real_0_mem <= mulr_0[PROD-2:PROD-WIDTH-1];
+        input_imag_0_mem <= muli_0[PROD-2:PROD-WIDTH-1];
+        input_real_3_mem <= mulr_3[PROD-2:PROD-WIDTH-1];
+        input_imag_3_mem <= muli_3[PROD-2:PROD-WIDTH-1];
 
-            twiddle_index_0_r <= {($clog2(Num_of_samples)){1'b0}};
-            twiddle_index_1_r <= {($clog2(Num_of_samples)){1'b0}};
-
-            w0re_reg <= {WIDTH/2{1'b0}};
-            w0i_reg <= {WIDTH/2{1'b0}};
-            w1re_reg <= {WIDTH/2{1'b0}};
-            w1i_reg <= {WIDTH/2{1'b0}};
-
-            outmode <= 1'b0;
-            outmode_reg <= 1'b0;
-            outmode_reg_reg <= 1'b0;
-            outmode_reg_reg_reg <= 1'b0;
-            outmode_reg_reg_reg_reg <= 1'b0;
-            outmode_reg_reg_reg_reg_reg <= 1'b0;
-
-            butterfly_op_counter_en_r <= 1'b0;
-            butterfly_op_counter_en_rr <= 1'b0;
-            butterfly_op_counter_en_rrr <= 1'b0;
-            butterfly_op_counter_en_rrrr <= 1'b0;
-            butterfly_op_counter_en_rrrrr <= 1'b0;
-            butterfly_op_counter_en_rrrrrr <= 1'b0;
-
-            delay_out_real_0_r <= {WIDTH{1'b0}};
-            delay_out_imag_0_r <= {WIDTH{1'b0}};
-            delay_out_real_1_r <= {WIDTH{1'b0}};
-            delay_out_imag_1_r <= {WIDTH{1'b0}};
-            delay_out_real_2_r <= {WIDTH{1'b0}};
-            delay_out_imag_2_r <= {WIDTH{1'b0}};    
-            delay_out_real_3_r <= {WIDTH{1'b0}};
-            delay_out_imag_3_r <= {WIDTH{1'b0}};
-            delay_out_real_0_rr <= {WIDTH{1'b0}};
-            delay_out_imag_0_rr <= {WIDTH{1'b0}};
-            delay_out_real_1_rr <= {WIDTH{1'b0}};
-            delay_out_imag_1_rr <= {WIDTH{1'b0}};
-            delay_out_real_2_rr <= {WIDTH{1'b0}};
-            delay_out_imag_2_rr <= {WIDTH{1'b0}};
-            delay_out_real_3_rr <= {WIDTH{1'b0}};
-            delay_out_imag_3_rr <= {WIDTH{1'b0}};
-            delay_out_real_0_rrr <= {WIDTH{1'b0}};
-            delay_out_imag_0_rrr <= {WIDTH{1'b0}};
-            delay_out_real_1_rrr <= {WIDTH{1'b0}};
-            delay_out_imag_1_rrr <= {WIDTH{1'b0}};
-            delay_out_real_2_rrr <= {WIDTH{1'b0}};
-            delay_out_imag_2_rrr <= {WIDTH{1'b0}};
-            delay_out_real_3_rrr <= {WIDTH{1'b0}};
-            delay_out_imag_3_rrr <= {WIDTH{1'b0}};
+        if(butterfly_op_counter_output) begin
+            output_real_0 <= mem_out_real_0_output;
+            output_imag_0 <= mem_out_imag_0_output;
+            output_real_1 <= mem_out_real_1_output;
+            output_imag_1 <= mem_out_imag_1_output;
+            output_real_2 <= mem_out_real_2_output;
+            output_imag_2 <= mem_out_imag_2_output;
+            output_real_3 <= mem_out_real_3_output;
+            output_imag_3 <= mem_out_imag_3_output;
         end else begin
-            input_real_0_r <= input_real_0;
-            input_real_1_r <= input_real_1;
-            input_real_2_r <= input_real_2;
-            input_real_3_r <= input_real_3;
-            input_imag_0_r <= input_imag_0;
-            input_imag_1_r <= input_imag_1;
-            input_imag_2_r <= input_imag_2;
-            input_imag_3_r <= input_imag_3;
-            input_real_0_rr <= input_real_0_r;
-            input_imag_0_rr <= input_imag_0_r;
-            input_real_1_rr <= input_real_1_r;
-            input_imag_1_rr <= input_imag_1_r;
-            input_real_2_rr <= input_real_2_r;
-            input_imag_2_rr <= input_imag_2_r;
-            input_real_3_rr <= input_real_3_r;
-            input_imag_3_rr <= input_imag_3_r;
-            input_real_0_rrr_mult <= mulr_0[PROD-2:PROD-WIDTH-1];
-            input_imag_0_rrr_mult <= muli_0[PROD-2:PROD-WIDTH-1];
-            input_real_1_rrr_mult <= input_real_1_rr;
-            input_imag_1_rrr_mult <= input_imag_1_rr;
-            input_real_2_rrr_mult <= input_real_2_rr;
-            input_imag_2_rrr_mult <= input_imag_2_rr;
-            input_real_3_rrr_mult <= mulr_3[PROD-2:PROD-WIDTH-1];
-            input_imag_3_rrr_mult <= muli_3[PROD-2:PROD-WIDTH-1];
-            input_real_1_rrr_mult_r <= input_real_1_rrr_mult;
-            input_imag_1_rrr_mult_r <= input_imag_1_rrr_mult;
-            input_real_2_rrr_mult_r <= input_real_2_rrr_mult;
-            input_imag_2_rrr_mult_r <= input_imag_2_rrr_mult;
-            input_real_1_rrr_mult_rr <= input_real_1_rrr_mult_r;
-            input_imag_1_rrr_mult_rr <= input_imag_1_rrr_mult_r;
-            input_real_2_rrr_mult_rr <= input_real_2_rrr_mult_r;
-            input_imag_2_rrr_mult_rr <= input_imag_2_rrr_mult_r;
-            input_real_1_rrr_mult_rrr <= input_real_1_rrr_mult_rr;
-            input_imag_1_rrr_mult_rrr <= input_imag_1_rrr_mult_rr;
-            input_real_2_rrr_mult_rrr <= input_real_2_rrr_mult_rr;
-            input_imag_2_rrr_mult_rrr <= input_imag_2_rrr_mult_rr;
-
-            twiddle_index_0_r <= twiddle_index_0;
-            twiddle_index_1_r <= twiddle_index_1;
-
-            w0re_reg <= w0re;
-            w0i_reg <= w0i;
-            w1re_reg <= w1re;
-            w1i_reg <= w1i;
-
-            outmode <= butterfly_op_counter_reg_reg_reg[stage_num_bits];
-            outmode_reg <= outmode;
-            outmode_reg_reg <= outmode_reg;
-            outmode_reg_reg_reg <= outmode_reg_reg;
-            outmode_reg_reg_reg_reg <= outmode_reg_reg_reg;
-            outmode_reg_reg_reg_reg_reg <= outmode_reg_reg_reg_reg;
-
-            butterfly_op_counter_en_r <= butterfly_op_counter_en;
-            butterfly_op_counter_en_rr <= butterfly_op_counter_en_r;
-            butterfly_op_counter_en_rrr <= butterfly_op_counter_en_rr;
-            butterfly_op_counter_en_rrrr <= butterfly_op_counter_en_rrr;
-            butterfly_op_counter_en_rrrrr <= butterfly_op_counter_en_rrrr;
-            butterfly_op_counter_en_rrrrrr <= butterfly_op_counter_en_rrrrr;
-
-            delay_out_real_0_r <= delay_out_real_0;
-            delay_out_imag_0_r <= delay_out_imag_0;
-            delay_out_real_1_r <= delay_out_real_1;
-            delay_out_imag_1_r <= delay_out_imag_1;
-            delay_out_real_2_r <= delay_out_real_2;
-            delay_out_imag_2_r <= delay_out_imag_2;    
-            delay_out_real_3_r <= delay_out_real_3;
-            delay_out_imag_3_r <= delay_out_imag_3;
-            delay_out_real_0_rr <= delay_out_real_0_r;
-            delay_out_imag_0_rr <= delay_out_imag_0_r;
-            delay_out_real_1_rr <= delay_out_real_1_r;
-            delay_out_imag_1_rr <= delay_out_imag_1_r;
-            delay_out_real_2_rr <= delay_out_real_2_r;
-            delay_out_imag_2_rr <= delay_out_imag_2_r;
-            delay_out_real_3_rr <= delay_out_real_3_r;
-            delay_out_imag_3_rr <= delay_out_imag_3_r;
-            delay_out_real_0_rrr <= delay_out_real_0_rr;
-            delay_out_imag_0_rrr <= delay_out_imag_0_rr;
-            delay_out_real_1_rrr <= delay_out_real_1_rr;
-            delay_out_imag_1_rrr <= delay_out_imag_1_rr;
-            delay_out_real_2_rrr <= delay_out_real_2_rr;
-            delay_out_imag_2_rrr <= delay_out_imag_2_rr;    
-            delay_out_real_3_rrr <= delay_out_real_3_rr;
-            delay_out_imag_3_rrr <= delay_out_imag_3_rr;
+            output_real_0 <= y0_re;
+            output_imag_0 <= y0_im;
+            output_real_1 <= y1_re;
+            output_imag_1 <= y1_im;
+            output_real_2 <= y2_re;
+            output_imag_2 <= y2_im;
+            output_real_3 <= y3_re;
+            output_imag_3 <= y3_im;
         end
-    end
 
+        output_en <= butterfly_out_ready;
+    end
 endmodule
