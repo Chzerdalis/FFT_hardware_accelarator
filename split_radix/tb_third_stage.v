@@ -8,9 +8,12 @@ module tb_third_stage();
     reg input_en;
     reg [WIDTH-1:0] input_real_0, input_real_1, input_real_2, input_real_3;
     reg [WIDTH-1:0] input_imag_0, input_imag_1, input_imag_2, input_imag_3;
-    wire output_en;
+    wire output_en, output_en_1;
+    wire step_mode_output, step_mode_output_1;
     wire [WIDTH-1:0] output_real_0, output_real_1, output_real_2, output_real_3;
     wire [WIDTH-1:0] output_imag_0, output_imag_1, output_imag_2, output_imag_3;
+    wire [WIDTH-1:0] output_real_0_2, output_real_1_2, output_real_2_2, output_real_3_2;
+    wire [WIDTH-1:0] output_imag_0_2, output_imag_1_2, output_imag_2_2, output_imag_3_2;
 
     reg [WIDTH-1:0] inputs_real [0:Num_of_samples - 1];
     reg [WIDTH-1:0] inputs_imag [0:Num_of_samples - 1];
@@ -23,11 +26,13 @@ module tb_third_stage();
     Split_radix_ThirdStage #(
         .WIDTH(WIDTH),
         .Num_of_samples(Num_of_samples),
-        .STAGE_NUM(3)
+        .STAGE_NUM(3),
+        .SIMPLE_MULT(1)
     ) dut (
         .clock(clock),
         .reset(reset),
         .input_en(input_en),
+        .step_mode(1'b0),
         .input_real_0(input_real_0),
         .input_real_1(input_real_1),
         .input_real_2(input_real_2),
@@ -37,6 +42,7 @@ module tb_third_stage();
         .input_imag_2(input_imag_2),
         .input_imag_3(input_imag_3),
         .output_en(output_en),
+        .step_mode_output(step_mode_output),
         .output_real_0(output_real_0),
         .output_real_1(output_real_1),
         .output_real_2(output_real_2),
@@ -45,6 +51,36 @@ module tb_third_stage();
         .output_imag_1(output_imag_1),
         .output_imag_2(output_imag_2),
         .output_imag_3(output_imag_3)
+    );
+
+    Split_radix_ThirdStage #(
+        .WIDTH(WIDTH),
+        .Num_of_samples(Num_of_samples),
+        .STAGE_NUM(3),
+        .SIMPLE_MULT(0)
+    ) dut2 (
+        .clock(clock),
+        .reset(reset),
+        .input_en(input_en),
+        .step_mode(1'b0),
+        .input_real_0(input_real_0),
+        .input_real_1(input_real_1),
+        .input_real_2(input_real_2),
+        .input_real_3(input_real_3),
+        .input_imag_0(input_imag_0),
+        .input_imag_1(input_imag_1),
+        .input_imag_2(input_imag_2),
+        .input_imag_3(input_imag_3),
+        .output_en(output_en_1),
+        .step_mode_output(step_mode_output_1),
+        .output_real_0(output_real_0_2),
+        .output_real_1(output_real_1_2),
+        .output_real_2(output_real_2_2),
+        .output_real_3(output_real_3_2),
+        .output_imag_0(output_imag_0_2),
+        .output_imag_1(output_imag_1_2),
+        .output_imag_2(output_imag_2_2),
+        .output_imag_3(output_imag_3_2)
     );
 
     integer output_count_b = 0;

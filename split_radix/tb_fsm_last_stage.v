@@ -1,13 +1,13 @@
 `timescale 1ns / 1ps
 
-module tb_control_unit_fsm_3rd_stage();
+module tb_control_unit_last_stage();
 
     // ----------------------------------------------------
     // 1. Parameters
     // ----------------------------------------------------
     // Kept identical to the module's default parameters
     parameter Num_of_samples = 256;
-    parameter STAGE_NUM = 6;
+    parameter STAGE_NUM = 5;
 
     localparam stage_num_bits = $clog2(Num_of_samples/(4 * 2**(STAGE_NUM-2))) - 1;
     localparam step_size = Num_of_samples/(2**(STAGE_NUM-2));
@@ -23,17 +23,15 @@ module tb_control_unit_fsm_3rd_stage();
     // Outputs (declared as wire to connect to module)
     wire step_mode_in;
     wire step_mode_out;
-    wire [stage_num_bits+1:0] stride_segment_counter;
-    wire [stage_num_bits+1:0] butterfly_op_counter;
+    wire  stride_segment_counter;
+    wire  butterfly_op_counter;
     wire butterfly_op_counter_en;
 
     // ----------------------------------------------------
     // 3. Module Instantiation (UUT - Unit Under Test)
     // ----------------------------------------------------
-    control_unit_fsm_3rd_stage #(
-        .stage_num_bits(stage_num_bits),
+    control_unit_fsm_last_stage #(
         .Num_of_samples(Num_of_samples),
-        .step_size(step_size),
         .Num_of_samples_bits(Num_of_samples_bits)
     ) uut (
         .clock(clock),
@@ -56,8 +54,8 @@ module tb_control_unit_fsm_3rd_stage();
     // 5. Stimulus Generation
     // ----------------------------------------------------
     initial begin
-        $dumpfile("tb_fsm_control_unit.vcd");
-        $dumpvars(0, tb_control_unit_fsm_3rd_stage);
+        $dumpfile("tb_fsm_last_stage.vcd");
+        $dumpvars(0, tb_control_unit_last_stage);
 
         // Initialize all inputs to known states
         clock = 0;

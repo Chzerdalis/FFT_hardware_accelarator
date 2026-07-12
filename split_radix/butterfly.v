@@ -1,3 +1,5 @@
+`timescale 1ns / 1ps
+
 module butterfly_complex_core #(
     parameter WIDTH = 16
 )(

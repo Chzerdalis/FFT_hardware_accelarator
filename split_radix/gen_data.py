@@ -7,8 +7,8 @@ def sign(n):
 def bitrev(num, n):
     res = 0
     for i in range(n):
-        bit = (num >> i) & 0x1
-        res |= bit << (n - 1 - i)
+        bit = (num >> i*2) & 0x3
+        res |= bit << 2*(n - 1 - i)
         #print(f'i={i}, bit={bit:04X}, res={res:04X}', num) 
     return res
 
@@ -78,50 +78,17 @@ for x in x_quantized:
 
 x_fft_all = np.array(x_fft_all)
 
-
-with open(f'large_dataset_{Num_of_windows}x{Size_of_windows}_{Data_width}bit_Random{Random}.vh', 'w') as f:
+with open(f'input_data.txt', 'w') as f:
     for j, window in enumerate(x_quantized):
-        for i, value in enumerate(window):
-            xir = int(value.real)
-            xii = int(value.imag)
-            f.write(f'gen_input_real[{bitrev(i, int(np.log2(N))) + j*window.size}] = {sign(xir):}{Data_width}\'sd{abs(xir)}; \t\t')
-            f.write(f'gen_input_imag[{bitrev(i, int(np.log2(N))) + j*window.size}] = {sign(xii):}{Data_width}\'sd{abs(xii)};\n')
-
-
-with open(f'large_dataset_fft_{Num_of_windows}x{Size_of_windows}_{Data_width}bit_Random{Random}.vh', 'w') as f:
-    for window in x_fft_all:
         for i, value in enumerate(window):
             xir = int(value.real)
             xii = int(value.imag)
             f.write(f'{sign(xir)}{abs(xir)} {sign(xii)}{abs(xii)}\n')
 
-plot_windows = min(Num_of_windows, x_quantized.shape[0])
 
-# Create a figure and a set of subplots (2 rows, 1 column)
-fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10))
-
-# --- Plot 1: All input real parts overlaid on the first axes (ax1) ---
-for w in range(plot_windows):
-    ax1.plot(x_quantized[w].real, label=f"W{w+1}" if plot_windows <= 10 else None, alpha=0.7)
-ax1.set_title("All Windows - Input Real Part")
-ax1.set_xlabel("Sample Index")
-ax1.set_ylabel("Amplitude")
-ax1.grid(True)
-if plot_windows <= 10:
-    ax1.legend(ncol=2, fontsize='small')
-
-# --- Plot 2: All input imag parts overlaid on the second axes (ax2) ---
-for w in range(plot_windows):
-    ax2.plot(x_quantized[w].imag, label=f"W{w+1}" if plot_windows <= 10 else None, alpha=0.7)
-ax2.set_title("All Windows - Input Imag Part")
-ax2.set_xlabel("Sample Index")
-ax2.set_ylabel("Amplitude")
-ax2.grid(True)
-if plot_windows <= 10:
-    ax2.legend(ncol=2, fontsize='small')
-
-# Adjust layout to prevent titles/labels from overlapping
-plt.tight_layout()
-
-# Show the single figure that contains both plots
-plt.show()
+with open(f'correct_output.txt', 'w') as f:
+    for window in x_fft_all:
+        for i, value in enumerate(window):
+            xir = int(value.real)
+            xii = int(value.imag)
+            f.write(f'{sign(xir)}{abs(xir)} {sign(xii)}{abs(xii)}\n')

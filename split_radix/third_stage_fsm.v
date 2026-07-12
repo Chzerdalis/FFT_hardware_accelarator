@@ -9,8 +9,10 @@ module Split_radix_ThirdStage #(
     input                   clock,       //  System Clock
     input                   reset,        //  Active High Asynchronous Reset
     input                   input_en,    //  Input Data Enable
+    input                   step_mode, //  Step Mode Input
     input       [WIDTH-1:0] input_real_0, input_real_1, input_real_2, input_real_3,  //  Input Data (Real)
     input       [WIDTH-1:0] input_imag_0, input_imag_1, input_imag_2, input_imag_3,  //  Input Data (Imag)
+    output reg              step_mode_output,
     output reg              output_en,  //  Output Data Enable
     output reg  [WIDTH-1:0] output_real_0, output_real_1, output_real_2, output_real_3,  //  Output Data (Real)
     output reg  [WIDTH-1:0] output_imag_0, output_imag_1, output_imag_2, output_imag_3   //  Output Data (Imag)
@@ -158,6 +160,7 @@ module Split_radix_ThirdStage #(
         .clock(clock),
         .reset(reset),
         .input_en(input_en),
+        .step_mode_input(step_mode),
         .step_mode_in(step_mode_in),
         .step_mode_out(step_mode_out),
         .stride_segment_counter(stride_segment_counter),
@@ -451,6 +454,7 @@ module Split_radix_ThirdStage #(
             output_imag_3 <= y3_im;
         end
 
+        step_mode_output <= step_mode_out_output;
         output_en <= butterfly_out_ready;
     end
 endmodule

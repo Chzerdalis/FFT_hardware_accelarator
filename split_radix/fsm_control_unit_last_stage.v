@@ -1,9 +1,7 @@
 `timescale 1ps/1ps
 
-module control_unit_fsm_3rd_stage #(
-    parameter stage_num_bits = 2,
+module control_unit_fsm_last_stage #(
     parameter Num_of_samples = 256,
-    parameter step_size = 4,
     parameter Num_of_samples_bits = 8
 )(
     input clock,
@@ -12,8 +10,8 @@ module control_unit_fsm_3rd_stage #(
     input step_mode_input,
     output reg step_mode_in,
     output reg step_mode_out,
-    output reg [stage_num_bits+1:0] stride_segment_counter,
-    output reg [stage_num_bits+1:0] butterfly_op_counter,
+    output reg stride_segment_counter,
+    output reg butterfly_op_counter,
     output reg butterfly_op_counter_en
 );
 
@@ -50,41 +48,19 @@ module control_unit_fsm_3rd_stage #(
                     butterfly_op_counter_en <= 1'b0;
                     step_mode_in            <= 1'b0;
                     step_mode_out           <= 1'b0;
-                    step_count_in           <= 1'b1;
+                    step_count_in           <= 1'b0;
                     step_count_out          <= 1'b1;
                     flush_count             <= 0;
                     input_count             <= 0;
 
                     if (input_en) begin
                         state <= FILL;
-                        stride_segment_counter  <= stride_segment_counter + 1'b1;
-                        input_count <= input_count + 1'b1;
-                         
-                        if (stage_num_bits == 1) begin
-                            state <= PROCESSING;
-                            butterfly_op_counter_en <= 1'b1;
-                            flush_count <= flush_count - 1'b1;
-                        end
-                        
-                    end else begin
-                        state <= state;
-                    end
-                end
-                FILL: begin
-                    stride_segment_counter  <= stride_segment_counter + 1'b1;
-                    input_count <= input_count + 1'b1;
-                    butterfly_op_counter    <= 0;
-                    butterfly_op_counter_en <= 1'b0;
-                    step_mode_in            <= 1'b0;
-                    step_mode_out           <= 1'b0;
-                    step_count_in           <= 1'b1;
-                    step_count_out          <= 1'b1;
-                    flush_count             <= 0;
-
-                    if(stride_segment_counter[stage_num_bits:0] == {1'b0, {(stage_num_bits+1-2){1'b1}}, 1'b0}) begin
+                        stride_segment_counter <= stride_segment_counter + 1'b1;
+                        input_count <= input_count + 1'b1; 
                         state <= PROCESSING;
                         butterfly_op_counter_en <= 1'b1;
                         flush_count <= flush_count - 1'b1;
+                       
                     end else begin
                         state <= state;
                     end
@@ -115,63 +91,54 @@ module control_unit_fsm_3rd_stage #(
                         step_count_in <= step_count_in;
                         step_count_out <= step_count_out;
 
-                        //**********************
                         if(step_mode_input == 1'b0) begin
-                            if(stride_segment_counter[stage_num_bits:0] == {(stage_num_bits+1){1'b1}} && step_mode_in == 1'b0) begin
+                            if(stride_segment_counter && step_mode_in == 1'b0) begin
                                 step_mode_in <= 1'b1;
-                            end else if(stride_segment_counter[stage_num_bits:0] == {(stage_num_bits+1){1'b1}} && step_mode_in == 1'b1) begin
+                            end else if(stride_segment_counter && step_mode_in == 1'b1) begin
                                 step_mode_in <= 1'b0;
-                            end 
+                            end
 
-                            if(butterfly_op_counter[stage_num_bits:0] == {(stage_num_bits+1){1'b1}} && step_mode_out == 1'b0) begin
+                            if(butterfly_op_counter && step_mode_out == 1'b0) begin
                                 step_count_out <= 1'b1;
                                 if(step_count_out == 1'b1) begin
                                     step_mode_out <= 1'b1;
-                                    step_count_out <= 1'b1; //*********
+                                    step_count_out <= 1'b1;
                                 end
-                            end else if(butterfly_op_counter[stage_num_bits:0] == {(stage_num_bits+1){1'b1}} && step_mode_out == 1'b1) begin
+                            end else if(butterfly_op_counter && step_mode_out == 1'b1) begin
                                 step_mode_out <= 1'b0;
                             end 
                         end else begin
                             step_mode_in <= step_mode_in; 
-                            if(butterfly_op_counter[stage_num_bits:0] == {(stage_num_bits+1){1'b1}} && step_mode_out == 1'b1) begin
+                            if(butterfly_op_counter && step_mode_out == 1'b1) begin
                                 step_mode_out <= 1'b0;
                             end 
                             step_count_out <= 0;
                         end
-                        //***********************
-
-                        // if(stride_segment_counter[stage_num_bits:0] == {(stage_num_bits+1){1'b1}} && step_mode_in == 1'b0) begin
+                        // if(stride_segment_counter && step_mode_in == 1'b0) begin
                         //     step_count_in <= 1'b1;
                         //     if(step_count_in == 1'b1) begin
                         //         step_mode_in <= 1'b1;
                         //         step_count_in <= 1'b0;
                         //     end
-                        // end else if(stride_segment_counter[stage_num_bits:0] == {(stage_num_bits+1){1'b1}} && step_mode_in == 1'b1) begin
+                        // end else if(stride_segment_counter && step_mode_in == 1'b1) begin
                         //     step_mode_in <= 1'b0;
                         // end 
 
-                        // if(butterfly_op_counter[stage_num_bits:0] == {(stage_num_bits+1){1'b1}} && step_mode_out == 1'b0) begin
+                        // if(butterfly_op_counter && step_mode_out == 1'b0) begin
                         //     step_count_out <= 1'b1;
                         //     if(step_count_out == 1'b1) begin
                         //         step_mode_out <= 1'b1;
                         //         step_count_out <= 1'b0;
                         //     end
-                        // end else if(butterfly_op_counter[stage_num_bits:0] == {(stage_num_bits+1){1'b1}} && step_mode_out == 1'b1) begin
+                        // end else if(butterfly_op_counter && step_mode_out == 1'b1) begin
                         //     step_mode_out <= 1'b0;
                         // end 
 
-                        if(stride_segment_counter[stage_num_bits:0] == {{(stage_num_bits+1){1'b1}}} && step_mode_in == 1'b1) begin
-                            stride_segment_counter <= stride_segment_counter ^ {1'b0, {(stage_num_bits+1){1'b1}}};
-                        end else begin
-                            stride_segment_counter  <= stride_segment_counter + 1'b1;
-                        end
-
-                        if(butterfly_op_counter[stage_num_bits:0] == {{(stage_num_bits+1){1'b1}}} && step_mode_out == 1'b1) begin
-                            butterfly_op_counter <= butterfly_op_counter ^ {1'b0, {(stage_num_bits+1){1'b1}}};
-                        end else begin
-                            butterfly_op_counter <= butterfly_op_counter + 1'b1;
-                        end
+                        //Always increament there is no memory 
+                        //we dont need the correction of the addresses
+                        stride_segment_counter  <= stride_segment_counter + 1'b1;
+                        
+                        butterfly_op_counter <= butterfly_op_counter + 1'b1;
 
                         // if(input_count == { {(Num_of_samples_bits-1){1'b1}}, 1'b0 }) begin
                         //     state <= RESTART_IN_COUNT;
@@ -181,13 +148,7 @@ module control_unit_fsm_3rd_stage #(
                     end
                 end
                 RESTART_IN_COUNT: begin
-                    //stride_segment_counter  <= stride_segment_counter ^ {1'b0, {(stage_num_bits+1){1'b1}}};
-                    if(stride_segment_counter[stage_num_bits:0] == {{(stage_num_bits+1){1'b1}}} && step_mode_in == 1'b1) begin
-                        stride_segment_counter <= stride_segment_counter ^ {1'b0, {(stage_num_bits+1){1'b1}}};
-                    end else begin
-                        stride_segment_counter  <= stride_segment_counter + 1'b1;
-                    end
-
+                    stride_segment_counter  <= stride_segment_counter + 1'b1;
                     input_count <= input_count + 1'b1;
                     butterfly_op_counter <= butterfly_op_counter + 1'b1;
                     butterfly_op_counter_en <= 1'b1;
@@ -213,12 +174,8 @@ module control_unit_fsm_3rd_stage #(
                 RESTART_OUT_COUNT: begin
                     stride_segment_counter <= stride_segment_counter + 1'b1;
                     input_count <= input_count + 1'b1;
-                    //butterfly_op_counter <= butterfly_op_counter ^ {1'b0, {(stage_num_bits+1){1'b1}}};
-                    if(butterfly_op_counter[stage_num_bits:0] == {{(stage_num_bits+1){1'b1}}} && step_mode_out == 1'b1) begin
-                        butterfly_op_counter <= butterfly_op_counter ^ {1'b0, {(stage_num_bits+1){1'b1}}};
-                    end else begin
-                        butterfly_op_counter <= butterfly_op_counter + 1'b1;
-                    end
+                    
+                    butterfly_op_counter <= butterfly_op_counter + 1'b1;
 
                     butterfly_op_counter_en <= 1'b1;
                     flush_count <= flush_count - 1'b1;

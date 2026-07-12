@@ -110,6 +110,11 @@ module CheapMult #(
     reg signed [WIDTH/2:0] sum_w1_in;
     reg signed [WIDTH/2:0] diff_w1_in;
 
+    reg signed [WIDTH-1:0]   a_re_d, a_im_d;
+    reg signed [WIDTH-1:0]   b_re_d, b_im_d;
+    reg signed [WIDTH/2-1:0] w0re_d;
+    reg signed [WIDTH/2-1:0] w1re_d;
+
     reg signed [PROD:0] k1_a, k2_a, k3_a;
     reg signed [PROD:0] k1_b, k2_b, k3_b;
 
@@ -120,14 +125,20 @@ module CheapMult #(
         sum_b_in <= b_re + b_im;
         sum_w1_in <= w1re + w1im;
         diff_w1_in <= w1im - w1re;
+        a_re_d <= a_re;
+        a_im_d <= a_im;
+        w0re_d <= w0re;
+        b_re_d <= b_re;
+        b_im_d <= b_im;
+        w1re_d <= w1re;
 
-        k1_a <= w0re * sum_a_in;
-        k2_a <= a_re * diff_w0_in;
-        k3_a <= a_im * sum_w0_in;
+        k1_a <= w0re_d * sum_a_in;
+        k2_a <= a_re_d * diff_w0_in;
+        k3_a <= a_im_d * sum_w0_in;
 
-        k1_b <= w1re * sum_b_in;
-        k2_b <= b_re * diff_w1_in;
-        k3_b <= b_im * sum_w1_in;
+        k1_b <= w1re_d * sum_b_in;
+        k2_b <= b_re_d * diff_w1_in;
+        k3_b <= b_im_d * sum_w1_in;
 
         out_a_re <= k1_a - k3_a;
         out_a_im <= k1_a + k2_a;
