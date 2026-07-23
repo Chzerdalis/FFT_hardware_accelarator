@@ -13,6 +13,10 @@ module DelayBuffer #(
 
 reg [WIDTH-1:0] buf_re[0:DEPTH-1];
 reg [WIDTH-1:0] buf_im[0:DEPTH-1];
+
+//(* srl_style = "block" *) reg [WIDTH-1:0] buf_re[0:DEPTH-1];
+//(* srl_style = "block" *) reg [WIDTH-1:0] buf_im[0:DEPTH-1];
+
 integer n;
 
 always @(posedge clock) begin

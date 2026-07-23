@@ -20,10 +20,10 @@ module control_unit_fsm_3rd_stage #(
     // State encoding
     localparam IDLE = 3'b000;
     localparam FILL = 3'b001;
-    localparam PROCESSING = 3'b010;
+    localparam PROCESSING = 3'b010; 
     localparam RESTART_OUT_COUNT = 3'b011;
     localparam RESTART_IN_COUNT = 3'b100;
-    localparam FLUSH = 3'b101;
+    localparam FLUSH = 3'b101; 
 
     reg [2:0] state;
     reg step_count_in, step_count_out;
@@ -180,65 +180,65 @@ module control_unit_fsm_3rd_stage #(
                         // end
                     end
                 end
-                RESTART_IN_COUNT: begin
-                    //stride_segment_counter  <= stride_segment_counter ^ {1'b0, {(stage_num_bits+1){1'b1}}};
-                    if(stride_segment_counter[stage_num_bits:0] == {{(stage_num_bits+1){1'b1}}} && step_mode_in == 1'b1) begin
-                        stride_segment_counter <= stride_segment_counter ^ {1'b0, {(stage_num_bits+1){1'b1}}};
-                    end else begin
-                        stride_segment_counter  <= stride_segment_counter + 1'b1;
-                    end
+                // RESTART_IN_COUNT: begin
+                //     //stride_segment_counter  <= stride_segment_counter ^ {1'b0, {(stage_num_bits+1){1'b1}}};
+                //     if(stride_segment_counter[stage_num_bits:0] == {{(stage_num_bits+1){1'b1}}} && step_mode_in == 1'b1) begin
+                //         stride_segment_counter <= stride_segment_counter ^ {1'b0, {(stage_num_bits+1){1'b1}}};
+                //     end else begin
+                //         stride_segment_counter  <= stride_segment_counter + 1'b1;
+                //     end
 
-                    input_count <= input_count + 1'b1;
-                    butterfly_op_counter <= butterfly_op_counter + 1'b1;
-                    butterfly_op_counter_en <= 1'b1;
-                    flush_count <= flush_count - 1'b1;
-                    step_mode_out <= step_mode_out;
-                    step_mode_in <= 1'b0;
-                    step_count_in <= 1'b1;
-                    step_count_out <= step_count_out;
+                //     input_count <= input_count + 1'b1;
+                //     butterfly_op_counter <= butterfly_op_counter + 1'b1;
+                //     butterfly_op_counter_en <= 1'b1;
+                //     flush_count <= flush_count - 1'b1;
+                //     step_mode_out <= step_mode_out;
+                //     step_mode_in <= 1'b0;
+                //     step_count_in <= 1'b1;
+                //     step_count_out <= step_count_out;
 
-                    if(!input_en) begin
-                        if(flush_count == 0) begin
-                            state <= IDLE;
-                            butterfly_op_counter_en <= 1'b0;
-                        end else begin
-                            state <= FLUSH;
-                        end
-                    end else if (flush_count == 1) begin
-                        state <= RESTART_OUT_COUNT;
-                    end else begin
-                        state <= PROCESSING;
-                    end
-                end
-                RESTART_OUT_COUNT: begin
-                    stride_segment_counter <= stride_segment_counter + 1'b1;
-                    input_count <= input_count + 1'b1;
-                    //butterfly_op_counter <= butterfly_op_counter ^ {1'b0, {(stage_num_bits+1){1'b1}}};
-                    if(butterfly_op_counter[stage_num_bits:0] == {{(stage_num_bits+1){1'b1}}} && step_mode_out == 1'b1) begin
-                        butterfly_op_counter <= butterfly_op_counter ^ {1'b0, {(stage_num_bits+1){1'b1}}};
-                    end else begin
-                        butterfly_op_counter <= butterfly_op_counter + 1'b1;
-                    end
+                //     if(!input_en) begin
+                //         if(flush_count == 0) begin
+                //             state <= IDLE;
+                //             butterfly_op_counter_en <= 1'b0;
+                //         end else begin
+                //             state <= FLUSH;
+                //         end
+                //     end else if (flush_count == 1) begin
+                //         state <= RESTART_OUT_COUNT;
+                //     end else begin
+                //         state <= PROCESSING;
+                //     end
+                // end
+                // RESTART_OUT_COUNT: begin
+                //     stride_segment_counter <= stride_segment_counter + 1'b1;
+                //     input_count <= input_count + 1'b1;
+                //     //butterfly_op_counter <= butterfly_op_counter ^ {1'b0, {(stage_num_bits+1){1'b1}}};
+                //     if(butterfly_op_counter[stage_num_bits:0] == {{(stage_num_bits+1){1'b1}}} && step_mode_out == 1'b1) begin
+                //         butterfly_op_counter <= butterfly_op_counter ^ {1'b0, {(stage_num_bits+1){1'b1}}};
+                //     end else begin
+                //         butterfly_op_counter <= butterfly_op_counter + 1'b1;
+                //     end
 
-                    butterfly_op_counter_en <= 1'b1;
-                    flush_count <= flush_count - 1'b1;
-                    step_mode_out <= 1'b0;
-                    step_mode_in <= step_mode_in;
-                    step_count_in <= step_count_in;
-                    step_count_out <= 1'b1;
+                //     butterfly_op_counter_en <= 1'b1;
+                //     flush_count <= flush_count - 1'b1;
+                //     step_mode_out <= 1'b0;
+                //     step_mode_in <= step_mode_in;
+                //     step_count_in <= step_count_in;
+                //     step_count_out <= 1'b1;
                     
-                    if(!input_en) begin
-                        if(flush_count == 0) begin
-                            state <= IDLE;
-                            butterfly_op_counter_en <= 1'b0;
-                        end else begin
-                            state <= FLUSH;
-                        end
-                    end else begin
-                        state <= PROCESSING;
-                    end
+                //     if(!input_en) begin
+                //         if(flush_count == 0) begin
+                //             state <= IDLE;
+                //             butterfly_op_counter_en <= 1'b0;
+                //         end else begin
+                //             state <= FLUSH;
+                //         end
+                //     end else begin
+                //         state <= PROCESSING;
+                //     end
                     
-                end
+                // end
                 FLUSH: begin
                     stride_segment_counter  <= stride_segment_counter;
                     input_count <= input_count;

@@ -2,8 +2,8 @@
 
 module split_fft_top #(
     parameter WIDTH = 16,
-    parameter N = 64,
-    parameter SIMPLE_MULT = 1
+    parameter N = 256,
+    parameter SIMPLE_MULT = 0
 )(
     input                   clock,
     input                   reset,

@@ -311,11 +311,8 @@ module Split_radix_SecondStage #(
         .stage_num_bits(stage_num_bits)
     ) mem (
         .clock(clock),
-        .reset(reset),
-        .stride_segment_counter(stride_segment_counter_mem[stage_num_bits:0]),
-        .butterfly_op_counter(butterfly_op_counter_mem[stage_num_bits:0]),
-        .mem_counter(stride_segment_counter_mem),
-        .mem_counter_read(butterfly_op_counter_mem),
+        .stride_segment_counter(stride_segment_counter_mem),
+        .butterfly_op_counter(butterfly_op_counter_mem),
         .input_real_0(input_real_0_mem), .input_imag_0(input_imag_0_mem),
         .input_real_1(input_real_1_nomul), .input_imag_1(input_imag_1_nomul),
         .input_real_2(input_real_2_nomul), .input_imag_2(input_imag_2_nomul),
@@ -360,12 +357,14 @@ module Split_radix_SecondStage #(
     assign x3_re =  input_real_2_butt;
     assign x3_im =  input_imag_2_butt;
 
-     delay_reg_reset #(
+    delay_reg_reset #(
         .WIDTH(1), .DELAY(Delay_mult+3+3)
     ) delay_butt_en (
         .clock(clock), .reset(reset), .data_in(butterfly_op_counter_en), .data_out(start_butterfly)
     );
 
+
+    //Maybe i can remove the input pipeline register of the butterfly
     butterfly_complex_core #(
         .WIDTH(WIDTH)
     ) b4 (
@@ -460,6 +459,8 @@ module Split_radix_SecondStage #(
         input_imag_2_rr <= input_imag_2_r;
         input_real_3_rr <= input_real_3_r;
         input_imag_3_rr <= input_imag_3_r;
+
+        //Optimization maybe this reg is not needed
         input_real_0_mem <= mulr_0[PROD-2:PROD-WIDTH-1];
         input_imag_0_mem <= muli_0[PROD-2:PROD-WIDTH-1];
         input_real_3_mem <= mulr_3[PROD-2:PROD-WIDTH-1];
@@ -485,6 +486,11 @@ module Split_radix_SecondStage #(
             output_imag_3 <= y3_im;
         end
 
-        output_en <= butterfly_out_ready;
+        //Conntrol signal needs reseting 
+        if(reset) begin
+            output_en <= 0;
+        end else begin
+            output_en <= butterfly_out_ready;
+        end
     end
 endmodule

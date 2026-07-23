@@ -455,6 +455,12 @@ module Split_radix_ThirdStage #(
         end
 
         step_mode_output <= step_mode_out_output;
-        output_en <= butterfly_out_ready;
+
+        //Conntrol signal needs reseting 
+        if(reset) begin
+            output_en <= 0;
+        end else begin
+            output_en <= butterfly_out_ready;
+        end
     end
 endmodule

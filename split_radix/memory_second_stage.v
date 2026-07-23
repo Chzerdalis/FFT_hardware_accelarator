@@ -6,11 +6,8 @@ module memory_second_stage_1 #(
    parameter stage_num_bits = 9
 )(
    input clock,
-   input reset,
-   input [stage_num_bits:0] stride_segment_counter,
-   input [stage_num_bits:0] butterfly_op_counter,
-   input [stage_num_bits+1:0] mem_counter,
-   input [stage_num_bits+1:0] mem_counter_read,
+   input [stage_num_bits+1:0] stride_segment_counter,
+   input [stage_num_bits+1:0] butterfly_op_counter,
    input [WIDTH-1:0] input_real_0, input_real_1, input_real_2, input_real_3,
    input [WIDTH-1:0] input_imag_0, input_imag_1, input_imag_2, input_imag_3,
    output [WIDTH-1:0] output_imag_0, output_imag_1, output_imag_2, output_imag_3,
@@ -91,308 +88,274 @@ module memory_second_stage_1 #(
    //This is needed beacause the read and write patters are different and is we had only one part
    //While new data would have be written old data that hadnt be read yet would be overwritten
    //Theoretically is the pattern was the same we wouldnt need two parts
-   assign offset = (mem_counter_read[stage_num_bits+1] == 0) ? {(inter_offset_size+1){1'b0}} : {1'b1, {(inter_offset_size){1'b0}}};
+   assign offset = (butterfly_op_counter[stage_num_bits+1] == 0) ? {(inter_offset_size+1){1'b0}} : {1'b1, {(inter_offset_size){1'b0}}};
 
    //Write address is like this since we write the first 24(32-the ones that go straight through) values in the first 16 slots 
    //and the second 24(32-the ones that go straight through) in the other 16 
-   assign write_addr = {mem_counter[stage_num_bits+1], mem_counter[stage_num_bits-1:0]};
+   assign write_addr = {stride_segment_counter[stage_num_bits+1], stride_segment_counter[stage_num_bits-1:0]};
 
-   assign read_addr = {mem_counter_read[stage_num_bits+1], mem_counter_read[stage_num_bits-1:0]};
+   assign read_addr = {butterfly_op_counter[stage_num_bits+1], butterfly_op_counter[stage_num_bits-1:0]};
 
    if(DEPTH >= 4) begin : memory_logic
        always@(posedge clock) begin 
-           if(reset) begin
-               output_0 <= 0; 
-               output_1 <= 0; 
-               output_2 <= 0; 
-               output_3 <= 0;
-               pipe_rdata_A <= 0; 
-               pipe_rdata_B <= 0; 
-               pipe_rdata_C <= 0; 
-               pipe_rdata_D <= 0;
-               ea_addr_A <= 0; 
-               ea_addr_B <= 0; 
-               ea_addr_C <= 0; 
-               ea_addr_D <= 0;
-               pipe1_op <= 0; 
-               pipe2_op <= 0;
-           end else begin
-               //Write input data in memory depending on the stide sigment we are currently in.
-               //For thge second stage we overwrite the data that go to the butterfly after the half of the values have been writen
-               //At this time the 2 inputs can go direclty to the butt but the two can be saved since two old values will be read from the memory
-               if(stride_segment_counter[stage_num_bits] == 1'b0) begin
-                   if(stride_segment_counter[1:0] == 2'b00) begin
-                       mem_A[write_addr] <= {input_real_0, input_imag_0};
-                       mem_B[write_addr] <= {input_real_1, input_imag_1};
-                       mem_C[write_addr] <= {input_real_3, input_imag_3};
-                       mem_D[write_addr] <= {input_real_2, input_imag_2};
-                   end 
-                   else if(stride_segment_counter[1:0] == 2'b01) begin
-                       mem_A[write_addr] <= {input_real_2, input_imag_2};
-                       mem_B[write_addr] <= {input_real_0, input_imag_0};
-                       mem_C[write_addr] <= {input_real_1, input_imag_1};
-                       mem_D[write_addr] <= {input_real_3, input_imag_3};
-                   end 
-                   else if(stride_segment_counter[1:0] == 2'b10) begin
-                       mem_A[write_addr] <= {input_real_3, input_imag_3};
-                       mem_B[write_addr] <= {input_real_2, input_imag_2};
-                       mem_C[write_addr] <= {input_real_0, input_imag_0};
-                       mem_D[write_addr] <= {input_real_1, input_imag_1};
-                   end
-                   else if(stride_segment_counter[1:0] == 2'b11) begin
-                       mem_A[write_addr] <= {input_real_1, input_imag_1};
-                       mem_B[write_addr] <= {input_real_3, input_imag_3};
-                       mem_C[write_addr] <= {input_real_2, input_imag_2};
-                       mem_D[write_addr] <= {input_real_0, input_imag_0};
-                   end
-               end else begin
-                   if(stride_segment_counter[1:0] == 2'b00) begin
-                       //mem_A[write_addr] <= mem_A[write_addr];
-                       mem_B[write_addr] <= {input_real_0, input_imag_0};
-                       //mem_C[write_addr] <= mem_C[write_addr];
-                       mem_D[write_addr] <= {input_real_3, input_imag_3};
-                   end 
-                   else if(stride_segment_counter[1:0] == 2'b01) begin
-                       mem_A[write_addr] <= {input_real_3, input_imag_3};
-                       //mem_B[write_addr] <= mem_B[write_addr];
-                       mem_C[write_addr] <= {input_real_0, input_imag_0};
-                       //mem_D[write_addr] <= mem_D[write_addr];
-                   end 
-                   else if(stride_segment_counter[1:0] == 2'b10) begin
-                       //mem_A[write_addr] <= mem_A[write_addr];
-                       mem_B[write_addr] <= {input_real_3, input_imag_3};
-                       //mem_C[write_addr] <= mem_C[write_addr];
-                       mem_D[write_addr] <= {input_real_0, input_imag_0};
-                   end
-                   else if(stride_segment_counter[1:0] == 2'b11) begin
-                       mem_A[write_addr] <= {input_real_0, input_imag_0};
-                       //mem_B[write_addr] <= mem_B[write_addr];
-                       mem_C[write_addr] <= {input_real_3, input_imag_3};
-                       //mem_D[write_addr] <= mem_D[write_addr];
-                   end
-               end
-               //Read stage 1 calculate the effective address before memory read
-               //To easy the jod of the synthsys tools and maximize frequency
+            //Write input data in memory depending on the stide sigment we are currently in.
+            //For thge second stage we overwrite the data that go to the butterfly after the half of the values have been writen
+            //At this time the 2 inputs can go direclty to the butt but the two can be saved since two old values will be read from the memory
+            if(stride_segment_counter[stage_num_bits] == 1'b0) begin
+                if(stride_segment_counter[1:0] == 2'b00) begin
+                    mem_A[write_addr] <= {input_real_0, input_imag_0};
+                    mem_B[write_addr] <= {input_real_1, input_imag_1};
+                    mem_C[write_addr] <= {input_real_3, input_imag_3};
+                    mem_D[write_addr] <= {input_real_2, input_imag_2};
+                end 
+                else if(stride_segment_counter[1:0] == 2'b01) begin
+                    mem_A[write_addr] <= {input_real_2, input_imag_2};
+                    mem_B[write_addr] <= {input_real_0, input_imag_0};
+                    mem_C[write_addr] <= {input_real_1, input_imag_1};
+                    mem_D[write_addr] <= {input_real_3, input_imag_3};
+                end 
+                else if(stride_segment_counter[1:0] == 2'b10) begin
+                    mem_A[write_addr] <= {input_real_3, input_imag_3};
+                    mem_B[write_addr] <= {input_real_2, input_imag_2};
+                    mem_C[write_addr] <= {input_real_0, input_imag_0};
+                    mem_D[write_addr] <= {input_real_1, input_imag_1};
+                end
+                else if(stride_segment_counter[1:0] == 2'b11) begin
+                    mem_A[write_addr] <= {input_real_1, input_imag_1};
+                    mem_B[write_addr] <= {input_real_3, input_imag_3};
+                    mem_C[write_addr] <= {input_real_2, input_imag_2};
+                    mem_D[write_addr] <= {input_real_0, input_imag_0};
+                end
+            end else begin
+                if(stride_segment_counter[1:0] == 2'b00) begin
+                    //mem_A[write_addr] <= mem_A[write_addr];
+                    mem_B[write_addr] <= {input_real_0, input_imag_0};
+                    //mem_C[write_addr] <= mem_C[write_addr];
+                    mem_D[write_addr] <= {input_real_3, input_imag_3};
+                end 
+                else if(stride_segment_counter[1:0] == 2'b01) begin
+                    mem_A[write_addr] <= {input_real_3, input_imag_3};
+                    //mem_B[write_addr] <= mem_B[write_addr];
+                    mem_C[write_addr] <= {input_real_0, input_imag_0};
+                    //mem_D[write_addr] <= mem_D[write_addr];
+                end 
+                else if(stride_segment_counter[1:0] == 2'b10) begin
+                    //mem_A[write_addr] <= mem_A[write_addr];
+                    mem_B[write_addr] <= {input_real_3, input_imag_3};
+                    //mem_C[write_addr] <= mem_C[write_addr];
+                    mem_D[write_addr] <= {input_real_0, input_imag_0};
+                end
+                else if(stride_segment_counter[1:0] == 2'b11) begin
+                    mem_A[write_addr] <= {input_real_0, input_imag_0};
+                    //mem_B[write_addr] <= mem_B[write_addr];
+                    mem_C[write_addr] <= {input_real_3, input_imag_3};
+                    //mem_D[write_addr] <= mem_D[write_addr];
+                end
+            end
+            //Read stage 1 calculate the effective address before memory read
+            //To easy the jod of the synthsys tools and maximize frequency
 
-               pipe1_op <= butterfly_op_counter; //Register the read muxing signal 
+            pipe1_op <= butterfly_op_counter[stage_num_bits:0]; //Register the read muxing signal 
 
-               //Determine which address each memory needs to read
-               if(butterfly_op_counter[stage_num_bits] == 1'b1) begin
-                   case (butterfly_op_counter[muxing_num_bits+1:muxing_num_bits])
-                       2'b00: ea_addr_A <= next_addr0; 
-                       2'b01: ea_addr_A <= next_addr3;
-                       2'b10: ea_addr_A <= next_addr2;
-                       2'b11: ea_addr_A <= next_addr1;
-                   endcase
+            //Determine which address each memory needs to read
+            if(butterfly_op_counter[stage_num_bits] == 1'b1) begin
+                case (butterfly_op_counter[muxing_num_bits+1:muxing_num_bits])
+                    2'b00: ea_addr_A <= next_addr0; 
+                    2'b01: ea_addr_A <= next_addr3;
+                    2'b10: ea_addr_A <= next_addr2;
+                    2'b11: ea_addr_A <= next_addr1;
+                endcase
 
-                   case (butterfly_op_counter[muxing_num_bits+1:muxing_num_bits])
-                       2'b00: ea_addr_B <= next_addr1;
-                       2'b01: ea_addr_B <= next_addr0;
-                       2'b10: ea_addr_B <= next_addr3;
-                       2'b11: ea_addr_B <= next_addr2;
-                   endcase
+                case (butterfly_op_counter[muxing_num_bits+1:muxing_num_bits])
+                    2'b00: ea_addr_B <= next_addr1;
+                    2'b01: ea_addr_B <= next_addr0;
+                    2'b10: ea_addr_B <= next_addr3;
+                    2'b11: ea_addr_B <= next_addr2;
+                endcase
 
-                   case (butterfly_op_counter[muxing_num_bits+1:muxing_num_bits])
-                       2'b00: ea_addr_C <= next_addr2;
-                       2'b01: ea_addr_C <= next_addr1;
-                       2'b10: ea_addr_C <= next_addr0;
-                       2'b11: ea_addr_C <= next_addr3;
-                   endcase
+                case (butterfly_op_counter[muxing_num_bits+1:muxing_num_bits])
+                    2'b00: ea_addr_C <= next_addr2;
+                    2'b01: ea_addr_C <= next_addr1;
+                    2'b10: ea_addr_C <= next_addr0;
+                    2'b11: ea_addr_C <= next_addr3;
+                endcase
 
-                   case (butterfly_op_counter[muxing_num_bits+1:muxing_num_bits])
-                       2'b00: ea_addr_D <= next_addr3;
-                       2'b01: ea_addr_D <= next_addr2;
-                       2'b10: ea_addr_D <= next_addr1;
-                       2'b11: ea_addr_D <= next_addr0;
-                   endcase
-               end else begin
-                   ea_addr_A <= read_addr;
-                   ea_addr_B <= read_addr;
-                   ea_addr_C <= read_addr;
-                   ea_addr_D <= read_addr;
-               end
+                case (butterfly_op_counter[muxing_num_bits+1:muxing_num_bits])
+                    2'b00: ea_addr_D <= next_addr3;
+                    2'b01: ea_addr_D <= next_addr2;
+                    2'b10: ea_addr_D <= next_addr1;
+                    2'b11: ea_addr_D <= next_addr0;
+                endcase
+            end else begin
+                ea_addr_A <= read_addr;
+                ea_addr_B <= read_addr;
+                ea_addr_C <= read_addr;
+                ea_addr_D <= read_addr;
+            end
 
-               //Read stage 2 read from memory and store in pipe registers 
-               pipe2_op <= pipe1_op;  //Register the read muxing signal 
-                
-               pipe_rdata_A <= mem_A[ea_addr_A];
-               pipe_rdata_B <= mem_B[ea_addr_B];
-               pipe_rdata_C <= mem_C[ea_addr_C];
-               pipe_rdata_D <= mem_D[ea_addr_D];
+            //Read stage 2 read from memory and store in pipe registers 
+            pipe2_op <= pipe1_op;  //Register the read muxing signal 
+            
+            pipe_rdata_A <= mem_A[ea_addr_A];
+            pipe_rdata_B <= mem_B[ea_addr_B];
+            pipe_rdata_C <= mem_C[ea_addr_C];
+            pipe_rdata_D <= mem_D[ea_addr_D];
 
-               //Read stage 3 output muxing
-               if(pipe2_op[stage_num_bits] == 1'b0) begin
-                   if(pipe2_op[1:0] == 2'b00) begin
-                       output_0 <= pipe_rdata_A;
-                       output_1 <= pipe_rdata_B;
-                       output_2 <= pipe_rdata_C;
-                       output_3 <= pipe_rdata_D;
-                   end
-                   else if(pipe2_op[1:0] == 2'b01) begin
-                       output_0 <= pipe_rdata_B;
-                       output_1 <= pipe_rdata_C;
-                       output_2 <= pipe_rdata_D;
-                       output_3 <= pipe_rdata_A;
-                   end
-                   else if(pipe2_op[1:0] == 2'b10) begin
-                       output_0 <= pipe_rdata_C;
-                       output_1 <= pipe_rdata_D;
-                       output_2 <= pipe_rdata_A;
-                       output_3 <= pipe_rdata_B;
-                   end
-                   else if(pipe2_op[1:0] == 2'b11) begin
-                       output_0 <= pipe_rdata_D;
-                       output_1 <= pipe_rdata_A;
-                       output_2 <= pipe_rdata_B;
-                       output_3 <= pipe_rdata_C;
-                   end
-               end else begin
-                   if(pipe2_op[muxing_num_bits+1:muxing_num_bits] == 2'b00) begin
-                       output_0 <= pipe_rdata_A;
-                       output_1 <= pipe_rdata_B;
-                       output_2 <= pipe_rdata_C;
-                       output_3 <= pipe_rdata_D;
-                   end
-                   else if(pipe2_op[muxing_num_bits+1:muxing_num_bits] == 2'b01) begin
-                       output_0 <= pipe_rdata_B;
-                       output_1 <= pipe_rdata_C;
-                       output_2 <= pipe_rdata_D;
-                       output_3 <= pipe_rdata_A;
-                   end
-                   else if(pipe2_op[muxing_num_bits+1:muxing_num_bits] == 2'b10) begin
-                       output_0 <= pipe_rdata_C;
-                       output_1 <= pipe_rdata_D;
-                       output_2 <= pipe_rdata_A;
-                       output_3 <= pipe_rdata_B;
-                   end
-                   else if(pipe2_op[muxing_num_bits+1:muxing_num_bits] == 2'b11) begin
-                       output_0 <= pipe_rdata_D;
-                       output_1 <= pipe_rdata_A;
-                       output_2 <= pipe_rdata_B;
-                       output_3 <= pipe_rdata_C;
-                   end
-               end
-           end 
-       end
+            //Read stage 3 output muxing
+            if(pipe2_op[stage_num_bits] == 1'b0) begin
+                if(pipe2_op[1:0] == 2'b00) begin
+                    output_0 <= pipe_rdata_A;
+                    output_1 <= pipe_rdata_B;
+                    output_2 <= pipe_rdata_C;
+                    output_3 <= pipe_rdata_D;
+                end
+                else if(pipe2_op[1:0] == 2'b01) begin
+                    output_0 <= pipe_rdata_B;
+                    output_1 <= pipe_rdata_C;
+                    output_2 <= pipe_rdata_D;
+                    output_3 <= pipe_rdata_A;
+                end
+                else if(pipe2_op[1:0] == 2'b10) begin
+                    output_0 <= pipe_rdata_C;
+                    output_1 <= pipe_rdata_D;
+                    output_2 <= pipe_rdata_A;
+                    output_3 <= pipe_rdata_B;
+                end
+                else if(pipe2_op[1:0] == 2'b11) begin
+                    output_0 <= pipe_rdata_D;
+                    output_1 <= pipe_rdata_A;
+                    output_2 <= pipe_rdata_B;
+                    output_3 <= pipe_rdata_C;
+                end
+            end else begin
+                if(pipe2_op[muxing_num_bits+1:muxing_num_bits] == 2'b00) begin
+                    output_0 <= pipe_rdata_A;
+                    output_1 <= pipe_rdata_B;
+                    output_2 <= pipe_rdata_C;
+                    output_3 <= pipe_rdata_D;
+                end
+                else if(pipe2_op[muxing_num_bits+1:muxing_num_bits] == 2'b01) begin
+                    output_0 <= pipe_rdata_B;
+                    output_1 <= pipe_rdata_C;
+                    output_2 <= pipe_rdata_D;
+                    output_3 <= pipe_rdata_A;
+                end
+                else if(pipe2_op[muxing_num_bits+1:muxing_num_bits] == 2'b10) begin
+                    output_0 <= pipe_rdata_C;
+                    output_1 <= pipe_rdata_D;
+                    output_2 <= pipe_rdata_A;
+                    output_3 <= pipe_rdata_B;
+                end
+                else if(pipe2_op[muxing_num_bits+1:muxing_num_bits] == 2'b11) begin
+                    output_0 <= pipe_rdata_D;
+                    output_1 <= pipe_rdata_A;
+                    output_2 <= pipe_rdata_B;
+                    output_3 <= pipe_rdata_C;
+                end
+            end
+        end 
    end else begin
        always@(posedge clock) begin 
-           if(reset) begin
-               output_0 <= 0; 
-               output_1 <= 0; 
-               output_2 <= 0; 
-               output_3 <= 0;
-               pipe_rdata_A <= 0; 
-               pipe_rdata_B <= 0; 
-               pipe_rdata_C <= 0; 
-               pipe_rdata_D <= 0;
-               ea_addr_A <= 0; 
-               ea_addr_B <= 0; 
-               ea_addr_C <= 0; 
-               ea_addr_D <= 0;
-               pipe1_op <= 0; 
-               pipe2_op <= 0;
-           end else begin
-               //Write input data in memory depending on the stide sigment we are currently in.
-               //For thge second stage we overwrite the data that go to the butterfly after the half of the values have been writen
-               //At this time the 2 inputs can go direclty to the butt but the two can be saved since two old values will be read from the memory
-               if(stride_segment_counter[stage_num_bits] == 1'b0) begin
-                   if(stride_segment_counter[0] == 1'b0) begin
-                       mem_A[write_addr] <= {input_real_0, input_imag_0};
-                       mem_B[write_addr] <= {input_real_3, input_imag_3};
-                       mem_C[write_addr] <= {input_real_1, input_imag_1};
-                       mem_D[write_addr] <= {input_real_2, input_imag_2};
-                   end 
-                   else if(stride_segment_counter[0] == 1'b1) begin
-                       mem_A[write_addr] <= {input_real_2, input_imag_2};
-                       mem_B[write_addr] <= {input_real_0, input_imag_0};
-                       mem_C[write_addr] <= {input_real_3, input_imag_3};
-                       mem_D[write_addr] <= {input_real_1, input_imag_1};
-                   end 
-               end else begin
-                   if(stride_segment_counter[0] == 1'b0) begin
-                       mem_A[write_addr] <= mem_A[write_addr];
-                       mem_B[write_addr] <= mem_B[write_addr];
-                       mem_C[write_addr] <= {input_real_0, input_imag_0};
-                       mem_D[write_addr] <= {input_real_3, input_imag_3};
-                   end 
-                   else if(stride_segment_counter[0] == 1'b1) begin
-                       mem_A[write_addr] <= {input_real_3, input_imag_3};
-                       mem_B[write_addr] <= mem_B[write_addr];
-                       mem_C[write_addr] <= mem_C[write_addr];
-                       mem_D[write_addr] <= {input_real_0, input_imag_0};
-                   end
-               end
-               //Read stage 1 calculate the effective address before memory read
-               //To easy the jod of the synthsys tools and maximize frequency
+            //Write input data in memory depending on the stide sigment we are currently in.
+            //For thge second stage we overwrite the data that go to the butterfly after the half of the values have been writen
+            //At this time the 2 inputs can go direclty to the butt but the two can be saved since two old values will be read from the memory
+            if(stride_segment_counter[stage_num_bits] == 1'b0) begin
+                if(stride_segment_counter[0] == 1'b0) begin
+                    mem_A[write_addr] <= {input_real_0, input_imag_0};
+                    mem_B[write_addr] <= {input_real_3, input_imag_3};
+                    mem_C[write_addr] <= {input_real_1, input_imag_1};
+                    mem_D[write_addr] <= {input_real_2, input_imag_2};
+                end 
+                else if(stride_segment_counter[0] == 1'b1) begin
+                    mem_A[write_addr] <= {input_real_2, input_imag_2};
+                    mem_B[write_addr] <= {input_real_0, input_imag_0};
+                    mem_C[write_addr] <= {input_real_3, input_imag_3};
+                    mem_D[write_addr] <= {input_real_1, input_imag_1};
+                end 
+            end else begin
+                if(stride_segment_counter[0] == 1'b0) begin
+                    mem_A[write_addr] <= mem_A[write_addr];
+                    mem_B[write_addr] <= mem_B[write_addr];
+                    mem_C[write_addr] <= {input_real_0, input_imag_0};
+                    mem_D[write_addr] <= {input_real_3, input_imag_3};
+                end 
+                else if(stride_segment_counter[0] == 1'b1) begin
+                    mem_A[write_addr] <= {input_real_3, input_imag_3};
+                    mem_B[write_addr] <= mem_B[write_addr];
+                    mem_C[write_addr] <= mem_C[write_addr];
+                    mem_D[write_addr] <= {input_real_0, input_imag_0};
+                end
+            end
+            //Read stage 1 calculate the effective address before memory read
+            //To easy the jod of the synthsys tools and maximize frequency
 
-               pipe1_op <= butterfly_op_counter; //Register the read muxing signal 
+            pipe1_op <= butterfly_op_counter[stage_num_bits:0]; //Register the read muxing signal 
 
-               //Determine which address each memory needs to read
-               if(butterfly_op_counter[stage_num_bits] == 1'b1) begin
-                   case (butterfly_op_counter[0])
-                       1'b0: ea_addr_A <= next_addr0; 
-                       1'b1: ea_addr_A <= next_addr1;
-                   endcase
+            //Determine which address each memory needs to read
+            if(butterfly_op_counter[stage_num_bits] == 1'b1) begin
+                case (butterfly_op_counter[0])
+                    1'b0: ea_addr_A <= next_addr0; 
+                    1'b1: ea_addr_A <= next_addr1;
+                endcase
 
-                   case (butterfly_op_counter[0])
-                       1'b0: ea_addr_B <= next_addr1;
-                       1'b1: ea_addr_B <= next_addr0;
-                   endcase
+                case (butterfly_op_counter[0])
+                    1'b0: ea_addr_B <= next_addr1;
+                    1'b1: ea_addr_B <= next_addr0;
+                endcase
 
-                   case (butterfly_op_counter[0])
-                        1'b0: ea_addr_C <= next_addr0;
-                        1'b1: ea_addr_C <= next_addr1;
-                   endcase
+                case (butterfly_op_counter[0])
+                    1'b0: ea_addr_C <= next_addr0;
+                    1'b1: ea_addr_C <= next_addr1;
+                endcase
 
-                   case (butterfly_op_counter[0])
-                       1'b0: ea_addr_D <= next_addr1;
-                       1'b1: ea_addr_D <= next_addr0;
-                   endcase
-               end else begin
-                   ea_addr_A <= read_addr;
-                   ea_addr_B <= read_addr;
-                   ea_addr_C <= read_addr;
-                   ea_addr_D <= read_addr;
-               end
+                case (butterfly_op_counter[0])
+                    1'b0: ea_addr_D <= next_addr1;
+                    1'b1: ea_addr_D <= next_addr0;
+                endcase
+            end else begin
+                ea_addr_A <= read_addr;
+                ea_addr_B <= read_addr;
+                ea_addr_C <= read_addr;
+                ea_addr_D <= read_addr;
+            end
 
-               //Read stage 2 read from memory and store in pipe registers 
-               pipe2_op <= pipe1_op;  //Register the read muxing signal 
-                
-               pipe_rdata_A <= mem_A[ea_addr_A];
-               pipe_rdata_B <= mem_B[ea_addr_B];
-               pipe_rdata_C <= mem_C[ea_addr_C];
-               pipe_rdata_D <= mem_D[ea_addr_D];
+            //Read stage 2 read from memory and store in pipe registers 
+            pipe2_op <= pipe1_op;  //Register the read muxing signal 
+            
+            pipe_rdata_A <= mem_A[ea_addr_A];
+            pipe_rdata_B <= mem_B[ea_addr_B];
+            pipe_rdata_C <= mem_C[ea_addr_C];
+            pipe_rdata_D <= mem_D[ea_addr_D];
 
-               //Read stage 3 output muxing
-               if(pipe2_op[stage_num_bits] == 1'b0) begin
-                   if(pipe2_op[0] == 1'b0) begin
-                       output_0 <= pipe_rdata_A;
-                       output_1 <= pipe_rdata_C;
-                       output_2 <= pipe_rdata_B;
-                       output_3 <= pipe_rdata_D;
-                   end
-                   else if(pipe2_op[0] == 1'b1) begin
-                       output_0 <= pipe_rdata_B;
-                       output_1 <= pipe_rdata_D;
-                       output_2 <= pipe_rdata_C;
-                       output_3 <= pipe_rdata_A;
-                   end
-               end else begin
-                   if(pipe2_op[0] == 1'b0) begin
-                       output_0 <= pipe_rdata_A;
-                       output_1 <= pipe_rdata_B;
-                       output_2 <= pipe_rdata_C;
-                       output_3 <= pipe_rdata_D;
-                   end
-                   else if(pipe2_op[0] == 1'b1) begin
-                       output_0 <= pipe_rdata_B;
-                       output_1 <= pipe_rdata_C;
-                       output_2 <= pipe_rdata_D;
-                       output_3 <= pipe_rdata_A;
-                   end
-               end
-           end 
-       end
+            //Read stage 3 output muxing
+            if(pipe2_op[stage_num_bits] == 1'b0) begin
+                if(pipe2_op[0] == 1'b0) begin
+                    output_0 <= pipe_rdata_A;
+                    output_1 <= pipe_rdata_C;
+                    output_2 <= pipe_rdata_B;
+                    output_3 <= pipe_rdata_D;
+                end
+                else if(pipe2_op[0] == 1'b1) begin
+                    output_0 <= pipe_rdata_B;
+                    output_1 <= pipe_rdata_D;
+                    output_2 <= pipe_rdata_C;
+                    output_3 <= pipe_rdata_A;
+                end
+            end else begin
+                if(pipe2_op[0] == 1'b0) begin
+                    output_0 <= pipe_rdata_A;
+                    output_1 <= pipe_rdata_B;
+                    output_2 <= pipe_rdata_C;
+                    output_3 <= pipe_rdata_D;
+                end
+                else if(pipe2_op[0] == 1'b1) begin
+                    output_0 <= pipe_rdata_B;
+                    output_1 <= pipe_rdata_C;
+                    output_2 <= pipe_rdata_D;
+                    output_3 <= pipe_rdata_A;
+                end
+            end
+        end 
    end
 
    //split data into real and imaginary parts
@@ -414,11 +377,8 @@ module memory_second_stage #(
     parameter stage_num_bits = 8
 )(
     input clock,
-    input reset,
-    input [stage_num_bits:0] stride_segment_counter,
-    input [stage_num_bits:0] butterfly_op_counter,
-    input [stage_num_bits+1:0] mem_counter,
-    input [stage_num_bits+1:0] mem_counter_read,
+    input [stage_num_bits+1:0] stride_segment_counter,
+    input [stage_num_bits+1:0] butterfly_op_counter,
     input [WIDTH-1:0] input_real_0, input_real_1, input_real_2, input_real_3,
     input [WIDTH-1:0] input_imag_0, input_imag_1, input_imag_2, input_imag_3,
     output [WIDTH-1:0] output_imag_0, output_imag_1, output_imag_2, output_imag_3,
@@ -433,15 +393,15 @@ module memory_second_stage #(
     localparam vertical_offset_3 = 3;
 
     // Force strict BRAM Inference
-//    (* ram_style = "block" *) reg [2*WIDTH-1:0] mem_A [0:2*DEPTH-1];
-//    (* ram_style = "block" *) reg [2*WIDTH-1:0] mem_B [0:2*DEPTH-1];
-//    (* ram_style = "block" *) reg [2*WIDTH-1:0] mem_C [0:2*DEPTH-1];
-//    (* ram_style = "block" *) reg [2*WIDTH-1:0] mem_D [0:2*DEPTH-1];
+    (* ram_style = "block" *) reg [2*WIDTH-1:0] mem_A [0:2*DEPTH-1];
+    (* ram_style = "block" *) reg [2*WIDTH-1:0] mem_B [0:2*DEPTH-1];
+    (* ram_style = "block" *) reg [2*WIDTH-1:0] mem_C [0:2*DEPTH-1];
+    (* ram_style = "block" *) reg [2*WIDTH-1:0] mem_D [0:2*DEPTH-1];
     
-    (* ram_style = "distributed" *) reg [2*WIDTH-1:0] mem_A [0:2*DEPTH-1];
-    (* ram_style = "distributed" *) reg [2*WIDTH-1:0] mem_B [0:2*DEPTH-1];
-    (* ram_style = "distributed" *) reg [2*WIDTH-1:0] mem_C [0:2*DEPTH-1];
-    (* ram_style = "distributed" *) reg [2*WIDTH-1:0] mem_D [0:2*DEPTH-1];
+//    (* ram_style = "distributed" *) reg [2*WIDTH-1:0] mem_A [0:2*DEPTH-1];
+//    (* ram_style = "distributed" *) reg [2*WIDTH-1:0] mem_B [0:2*DEPTH-1];
+//    (* ram_style = "distributed" *) reg [2*WIDTH-1:0] mem_C [0:2*DEPTH-1];
+//    (* ram_style = "distributed" *) reg [2*WIDTH-1:0] mem_D [0:2*DEPTH-1];
 
 //    reg [2*WIDTH-1:0] mem_A [0:2*DEPTH-1];
 //    reg [2*WIDTH-1:0] mem_B [0:2*DEPTH-1];
@@ -485,9 +445,9 @@ module memory_second_stage #(
     reg [2*WIDTH-1:0] pipe_rdata_A, pipe_rdata_B, pipe_rdata_C, pipe_rdata_D;
     reg [stage_num_bits:0] pipe1_op, pipe2_op; 
 
-    assign offset = (mem_counter_read[stage_num_bits+1] == 0) ? {(inter_offset_size+1){1'b0}} : {1'b1, {(inter_offset_size){1'b0}}};
-    assign write_addr = {mem_counter[stage_num_bits+1], mem_counter[stage_num_bits-1:0]};
-    assign read_addr = {mem_counter_read[stage_num_bits+1], mem_counter_read[stage_num_bits-1:0]};
+    assign offset = (butterfly_op_counter[stage_num_bits+1] == 0) ? {(inter_offset_size+1){1'b0}} : {1'b1, {(inter_offset_size){1'b0}}};
+    assign write_addr = {stride_segment_counter[stage_num_bits+1], stride_segment_counter[stage_num_bits-1:0]};
+    assign read_addr = {butterfly_op_counter[stage_num_bits+1], butterfly_op_counter[stage_num_bits-1:0]};
 
     // Shorthand data buses to clean up the multiplexer logic
     wire [2*WIDTH-1:0] in0 = {input_real_0, input_imag_0};
@@ -546,84 +506,76 @@ module memory_second_stage #(
     endgenerate
 
     // Main Clocked Process 
-    always @(posedge clock) begin 
-        if(reset) begin
-            output_0 <= 0; output_1 <= 0; output_2 <= 0; output_3 <= 0;
-            pipe_rdata_A <= 0; pipe_rdata_B <= 0; pipe_rdata_C <= 0; pipe_rdata_D <= 0;
-            ea_addr_A <= 0; ea_addr_B <= 0; ea_addr_C <= 0; ea_addr_D <= 0;
-            pipe1_op <= 0; pipe2_op <= 0;
+    always @(posedge clock) begin       
+        // --- THE PERFECT BRAM WRITE TEMPLATE ---
+        // Because the complex MUX logic is outside, Vivado maps these instantly.
+        if (we_A) mem_A[write_addr] <= din_A;
+        if (we_B) mem_B[write_addr] <= din_B;
+        if (we_C) mem_C[write_addr] <= din_C;
+        if (we_D) mem_D[write_addr] <= din_D;
+
+        // --- STAGE 1: Calculate Read Address ---
+        pipe1_op <= butterfly_op_counter[stage_num_bits:0]; //Register the read muxing signal
+
+        if(DEPTH >= 4) begin
+            if(butterfly_op_counter[stage_num_bits] == 1'b1) begin
+                case (butterfly_op_counter[muxing_num_bits+1:muxing_num_bits])
+                    2'b00: begin ea_addr_A <= next_addr0; ea_addr_B <= next_addr1; ea_addr_C <= next_addr2; ea_addr_D <= next_addr3; end
+                    2'b01: begin ea_addr_A <= next_addr3; ea_addr_B <= next_addr0; ea_addr_C <= next_addr1; ea_addr_D <= next_addr2; end
+                    2'b10: begin ea_addr_A <= next_addr2; ea_addr_B <= next_addr3; ea_addr_C <= next_addr0; ea_addr_D <= next_addr1; end
+                    2'b11: begin ea_addr_A <= next_addr1; ea_addr_B <= next_addr2; ea_addr_C <= next_addr3; ea_addr_D <= next_addr0; end
+                endcase
+            end else begin
+                ea_addr_A <= read_addr; ea_addr_B <= read_addr; ea_addr_C <= read_addr; ea_addr_D <= read_addr;
+            end
         end else begin
-            
-            // --- THE PERFECT BRAM WRITE TEMPLATE ---
-            // Because the complex MUX logic is outside, Vivado maps these instantly.
-            if (we_A) mem_A[write_addr] <= din_A;
-            if (we_B) mem_B[write_addr] <= din_B;
-            if (we_C) mem_C[write_addr] <= din_C;
-            if (we_D) mem_D[write_addr] <= din_D;
-
-            // --- STAGE 1: Calculate Read Address ---
-            pipe1_op <= butterfly_op_counter; 
-
-            if(DEPTH >= 4) begin
-                if(butterfly_op_counter[stage_num_bits] == 1'b1) begin
-                    case (butterfly_op_counter[muxing_num_bits+1:muxing_num_bits])
-                        2'b00: begin ea_addr_A <= next_addr0; ea_addr_B <= next_addr1; ea_addr_C <= next_addr2; ea_addr_D <= next_addr3; end
-                        2'b01: begin ea_addr_A <= next_addr3; ea_addr_B <= next_addr0; ea_addr_C <= next_addr1; ea_addr_D <= next_addr2; end
-                        2'b10: begin ea_addr_A <= next_addr2; ea_addr_B <= next_addr3; ea_addr_C <= next_addr0; ea_addr_D <= next_addr1; end
-                        2'b11: begin ea_addr_A <= next_addr1; ea_addr_B <= next_addr2; ea_addr_C <= next_addr3; ea_addr_D <= next_addr0; end
-                    endcase
-                end else begin
-                    ea_addr_A <= read_addr; ea_addr_B <= read_addr; ea_addr_C <= read_addr; ea_addr_D <= read_addr;
-                end
+            if(butterfly_op_counter[stage_num_bits] == 1'b1) begin
+                case (butterfly_op_counter[0])
+                    1'b0: begin ea_addr_A <= next_addr0; ea_addr_B <= next_addr1; ea_addr_C <= next_addr0; ea_addr_D <= next_addr1; end
+                    1'b1: begin ea_addr_A <= next_addr1; ea_addr_B <= next_addr0; ea_addr_C <= next_addr1; ea_addr_D <= next_addr0; end
+                endcase
             end else begin
-                if(butterfly_op_counter[stage_num_bits] == 1'b1) begin
-                    case (butterfly_op_counter[0])
-                        1'b0: begin ea_addr_A <= next_addr0; ea_addr_B <= next_addr1; ea_addr_C <= next_addr0; ea_addr_D <= next_addr1; end
-                        1'b1: begin ea_addr_A <= next_addr1; ea_addr_B <= next_addr0; ea_addr_C <= next_addr1; ea_addr_D <= next_addr0; end
-                    endcase
-                end else begin
-                    ea_addr_A <= read_addr; ea_addr_B <= read_addr; ea_addr_C <= read_addr; ea_addr_D <= read_addr;
-                end
+                ea_addr_A <= read_addr; ea_addr_B <= read_addr; ea_addr_C <= read_addr; ea_addr_D <= read_addr;
             end
+        end
 
-            // --- STAGE 2: Memory Read to Pipe ---
-            pipe2_op <= pipe1_op; 
-            pipe_rdata_A <= mem_A[ea_addr_A];
-            pipe_rdata_B <= mem_B[ea_addr_B];
-            pipe_rdata_C <= mem_C[ea_addr_C];
-            pipe_rdata_D <= mem_D[ea_addr_D];
+        // --- STAGE 2: Memory Read to Pipe ---
+        pipe2_op <= pipe1_op; 
+        pipe_rdata_A <= mem_A[ea_addr_A];
+        pipe_rdata_B <= mem_B[ea_addr_B];
+        pipe_rdata_C <= mem_C[ea_addr_C];
+        pipe_rdata_D <= mem_D[ea_addr_D];
 
-            // --- STAGE 3: Output Muxing ---
-            if(DEPTH >= 4) begin
-                if(pipe2_op[stage_num_bits] == 1'b0) begin
-                    case(pipe2_op[1:0])
-                        2'b00: begin output_0 <= pipe_rdata_A; output_1 <= pipe_rdata_B; output_2 <= pipe_rdata_C; output_3 <= pipe_rdata_D; end
-                        2'b01: begin output_0 <= pipe_rdata_B; output_1 <= pipe_rdata_C; output_2 <= pipe_rdata_D; output_3 <= pipe_rdata_A; end
-                        2'b10: begin output_0 <= pipe_rdata_C; output_1 <= pipe_rdata_D; output_2 <= pipe_rdata_A; output_3 <= pipe_rdata_B; end
-                        2'b11: begin output_0 <= pipe_rdata_D; output_1 <= pipe_rdata_A; output_2 <= pipe_rdata_B; output_3 <= pipe_rdata_C; end
-                    endcase
-                end else begin
-                    case(pipe2_op[muxing_num_bits+1:muxing_num_bits])
-                        2'b00: begin output_0 <= pipe_rdata_A; output_1 <= pipe_rdata_B; output_2 <= pipe_rdata_C; output_3 <= pipe_rdata_D; end
-                        2'b01: begin output_0 <= pipe_rdata_B; output_1 <= pipe_rdata_C; output_2 <= pipe_rdata_D; output_3 <= pipe_rdata_A; end
-                        2'b10: begin output_0 <= pipe_rdata_C; output_1 <= pipe_rdata_D; output_2 <= pipe_rdata_A; output_3 <= pipe_rdata_B; end
-                        2'b11: begin output_0 <= pipe_rdata_D; output_1 <= pipe_rdata_A; output_2 <= pipe_rdata_B; output_3 <= pipe_rdata_C; end
-                    endcase
-                end
+        // --- STAGE 3: Output Muxing ---
+        if(DEPTH >= 4) begin
+            if(pipe2_op[stage_num_bits] == 1'b0) begin
+                case(pipe2_op[1:0])
+                    2'b00: begin output_0 <= pipe_rdata_A; output_1 <= pipe_rdata_B; output_2 <= pipe_rdata_C; output_3 <= pipe_rdata_D; end
+                    2'b01: begin output_0 <= pipe_rdata_B; output_1 <= pipe_rdata_C; output_2 <= pipe_rdata_D; output_3 <= pipe_rdata_A; end
+                    2'b10: begin output_0 <= pipe_rdata_C; output_1 <= pipe_rdata_D; output_2 <= pipe_rdata_A; output_3 <= pipe_rdata_B; end
+                    2'b11: begin output_0 <= pipe_rdata_D; output_1 <= pipe_rdata_A; output_2 <= pipe_rdata_B; output_3 <= pipe_rdata_C; end
+                endcase
             end else begin
-                if(pipe2_op[stage_num_bits] == 1'b0) begin
-                    case(pipe2_op[0])
-                        1'b0: begin output_0 <= pipe_rdata_A; output_1 <= pipe_rdata_C; output_2 <= pipe_rdata_B; output_3 <= pipe_rdata_D; end
-                        1'b1: begin output_0 <= pipe_rdata_B; output_1 <= pipe_rdata_D; output_2 <= pipe_rdata_C; output_3 <= pipe_rdata_A; end
-                    endcase
-                end else begin
-                    case(pipe2_op[0])
-                        1'b0: begin output_0 <= pipe_rdata_A; output_1 <= pipe_rdata_B; output_2 <= pipe_rdata_C; output_3 <= pipe_rdata_D; end
-                        1'b1: begin output_0 <= pipe_rdata_B; output_1 <= pipe_rdata_C; output_2 <= pipe_rdata_D; output_3 <= pipe_rdata_A; end
-                    endcase
-                end
+                case(pipe2_op[muxing_num_bits+1:muxing_num_bits])
+                    2'b00: begin output_0 <= pipe_rdata_A; output_1 <= pipe_rdata_B; output_2 <= pipe_rdata_C; output_3 <= pipe_rdata_D; end
+                    2'b01: begin output_0 <= pipe_rdata_B; output_1 <= pipe_rdata_C; output_2 <= pipe_rdata_D; output_3 <= pipe_rdata_A; end
+                    2'b10: begin output_0 <= pipe_rdata_C; output_1 <= pipe_rdata_D; output_2 <= pipe_rdata_A; output_3 <= pipe_rdata_B; end
+                    2'b11: begin output_0 <= pipe_rdata_D; output_1 <= pipe_rdata_A; output_2 <= pipe_rdata_B; output_3 <= pipe_rdata_C; end
+                endcase
             end
-        end 
+        end else begin
+            if(pipe2_op[stage_num_bits] == 1'b0) begin
+                case(pipe2_op[0])
+                    1'b0: begin output_0 <= pipe_rdata_A; output_1 <= pipe_rdata_C; output_2 <= pipe_rdata_B; output_3 <= pipe_rdata_D; end
+                    1'b1: begin output_0 <= pipe_rdata_B; output_1 <= pipe_rdata_D; output_2 <= pipe_rdata_C; output_3 <= pipe_rdata_A; end
+                endcase
+            end else begin
+                case(pipe2_op[0])
+                    1'b0: begin output_0 <= pipe_rdata_A; output_1 <= pipe_rdata_B; output_2 <= pipe_rdata_C; output_3 <= pipe_rdata_D; end
+                    1'b1: begin output_0 <= pipe_rdata_B; output_1 <= pipe_rdata_C; output_2 <= pipe_rdata_D; output_3 <= pipe_rdata_A; end
+                endcase
+            end
+        end
     end
 
     // Split data into real and imaginary parts
