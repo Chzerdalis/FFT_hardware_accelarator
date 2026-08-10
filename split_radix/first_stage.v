@@ -2,7 +2,8 @@
 
 module Split_radix_FirstStage #(
     parameter WIDTH = 16, // Data Bit Lenght
-    parameter Num_of_samples = 1024 //How many inputs
+    parameter Num_of_samples = 1024, //How many inputs
+    parameter output_pipeline_bram = 1
 )(
     input                   clock,       //  System Clock
     input                   reset,        //  Active High Asynchronous Reset
@@ -36,7 +37,8 @@ module Split_radix_FirstStage #(
     wire [WIDTH-1:0] delay_out_real_3, delay_out_imag_3;
     //end wires for stages > 1
 
-    reg input_en_r, butterfly_op_counter_en_r, start_butterfly_r, butterfly_op_counter_en_rr;
+    reg input_en_r, butterfly_op_counter_en_r, start_butterfly_r, butterfly_op_counter_en_rr,
+    butterfly_op_counter_en_rrr;
 
     wire butterfly_out_ready, start_butterfly;
 
@@ -135,9 +137,9 @@ module Split_radix_FirstStage #(
     assign x3_re =  delay_out_real_3;
     assign x3_im =  delay_out_imag_3;
 
-    assign start_butterfly = butterfly_op_counter_en_rr;
+   // assign start_butterfly = butterfly_op_counter_en_rr;
 
-    butterfly_complex_core #(
+    butterfly_complex_core_reduced #(
         .WIDTH(WIDTH)
     ) b4 (
         .clock(clock), .reset(reset),
@@ -156,7 +158,8 @@ module Split_radix_FirstStage #(
     memory_first_stage #(
         .WIDTH(WIDTH),
         .DEPTH(Depth),
-        .stage_num_bits(stage_num_bits)
+        .stage_num_bits(stage_num_bits),
+        .output_pipeline_bram(output_pipeline_bram)
     ) mem (
         .clock(clock),
         .stride_segment_counter(stride_segment_counter),
@@ -191,16 +194,34 @@ module Split_radix_FirstStage #(
         end
     end
 
-    always @(posedge clock) begin
-        if (reset) begin
-            butterfly_op_counter_en_r <= 1'b0;
-            start_butterfly_r <= {(stage_num_bits+1){1'b0}};
-            butterfly_op_counter_en_rr <= 1'b0;
-        end else begin
-            butterfly_op_counter_en_r <= butterfly_op_counter_en;
-            start_butterfly_r <= start_butterfly;
-            butterfly_op_counter_en_rr <= butterfly_op_counter_en_r;
+    generate
+        if(output_pipeline_bram) begin : gen_pipeline_bram
+            always @(posedge clock) begin
+                if (reset) begin
+                    butterfly_op_counter_en_r <= 1'b0;
+                    start_butterfly_r <= {(stage_num_bits+1){1'b0}};
+                    butterfly_op_counter_en_rr <= 1'b0;
+                    butterfly_op_counter_en_rrr <= 1'b0;
+                end else begin
+                    butterfly_op_counter_en_r <= butterfly_op_counter_en;
+                    start_butterfly_r <= butterfly_op_counter_en_rrr;
+                    butterfly_op_counter_en_rr <= butterfly_op_counter_en_r;
+                    butterfly_op_counter_en_rrr <= butterfly_op_counter_en_rr;
+                end
+            end
+        end else begin : gen_pipeline_no_bram
+            always @(posedge clock) begin
+                if (reset) begin
+                    butterfly_op_counter_en_r <= 1'b0;
+                    start_butterfly_r <= {(stage_num_bits+1){1'b0}};
+                    butterfly_op_counter_en_rr <= 1'b0;
+                end else begin
+                    butterfly_op_counter_en_r <= butterfly_op_counter_en;
+                    start_butterfly_r <= butterfly_op_counter_en_rr;
+                    butterfly_op_counter_en_rr <= butterfly_op_counter_en_r;
+                end
+            end
         end
-    end
+    endgenerate
 
 endmodule

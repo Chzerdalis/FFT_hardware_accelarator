@@ -221,7 +221,10 @@ module tb_split_fft_top();
     split_fft_top #(
         .WIDTH(WIDTH),
         .N(Num_of_samples),
-        .SIMPLE_MULT(1)
+        .SIMPLE_MULT(1),
+        .input_pipeline_bram(1),   ///0 input ans 1 output not implemented functionality
+        .output_pipeline_bram(1),
+        .Fast_DSP(1)
     ) dut (
         .clock(clock),
         .reset(reset),

@@ -3,14 +3,17 @@
 module split_fft_top #(
     parameter WIDTH = 16,
     parameter N = 256,
-    parameter SIMPLE_MULT = 0
+    parameter SIMPLE_MULT = 1,
+    parameter input_pipeline_bram = 0,
+    parameter output_pipeline_bram = 0,
+    parameter Fast_DSP = 0
 )(
     input                   clock,
     input                   reset,
     input                   input_en,
     input       [WIDTH-1:0] input_real_0,
     input       [WIDTH-1:0] input_real_1,
-    input       [WIDTH-1:0] input_real_2,
+    input       [WIDTH-1:0] input_real_2, 
     input       [WIDTH-1:0] input_real_3,
     input       [WIDTH-1:0] input_imag_0,
     input       [WIDTH-1:0] input_imag_1,
@@ -156,7 +159,10 @@ module split_fft_top #(
                 .WIDTH(WIDTH),
                 .Num_of_samples(N),
                 .SIMPLE_MULT(SIMPLE_MULT),
-                .STAGE_NUM(i+1)
+                .STAGE_NUM(i+1),
+                .input_pipeline_bram(input_pipeline_bram),
+                .output_pipeline_bram(output_pipeline_bram),
+                .Fast_DSP(Fast_DSP)
             ) third_stage_inst (
                 .clock(clock),
                 .reset(reset),
@@ -199,7 +205,8 @@ module split_fft_top #(
         .WIDTH(WIDTH),
         .Num_of_samples(N),
         .STAGE_NUM(STAGE_NUM - 1),
-        .SIMPLE_MULT(SIMPLE_MULT)
+        .SIMPLE_MULT(SIMPLE_MULT),
+        .Fast_DSP(Fast_DSP)
     ) sec_to_last_stage_inst (
         .clock(clock),
         .reset(reset),
@@ -240,7 +247,8 @@ module split_fft_top #(
         .WIDTH(WIDTH),
         .Num_of_samples(N),
         .STAGE_NUM(STAGE_NUM),
-        .SIMPLE_MULT(SIMPLE_MULT)
+        .SIMPLE_MULT(SIMPLE_MULT),
+        .Fast_DSP(Fast_DSP)
     ) last_stage_inst (
         .clock(clock),
         .reset(reset),

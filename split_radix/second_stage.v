@@ -3,7 +3,9 @@
 module Split_radix_SecondStage #(
     parameter WIDTH = 16, // Data Bit Lenght
     parameter Num_of_samples = 256, //How many inputs
-    parameter SIMPLE_MULT = 1
+    parameter SIMPLE_MULT = 1,
+    parameter output_pipeline_bram = 1,
+    parameter Fast_DSP = 1
 )(
     input                   clock,       //  System Clock
     input                   reset,        //  Active High Asynchronous Reset
@@ -21,7 +23,9 @@ module Split_radix_SecondStage #(
     localparam Num_of_samples_bits = $clog2(Num_of_samples/4);
     localparam TW = WIDTH/2;
     localparam PROD = WIDTH + TW;
-    localparam Delay_mult = (SIMPLE_MULT == 1) ? 2 : 3;
+    localparam Delay_mult = ((SIMPLE_MULT == 1) ? 2 : 3) + ((Fast_DSP == 1) ? 1 : 0); //Delay for the multiplier output, if simple mult is used then delay is 1, else delay is 2
+    localparam output_pipeline_bram_delay = (output_pipeline_bram == 1) ? 1 : 0;
+
 
     //Wires needed for stages > 1
     //Counters to calculate the twiddle factors and manage the delay buffers
@@ -36,8 +40,8 @@ module Split_radix_SecondStage #(
     wire signed [PROD:0] mulr_0, muli_0, mulr_3, muli_3; 
     wire signed [WIDTH-1:0] input_real_1_nomul, input_imag_1_nomul, input_real_2_nomul, input_imag_2_nomul;
     wire signed [WIDTH-1:0] input_real_1_butt, input_imag_1_butt, input_real_2_butt, input_imag_2_butt;
-    reg [WIDTH-1:0] input_real_0_mem, input_real_3_mem;
-    reg [WIDTH-1:0] input_imag_0_mem, input_imag_3_mem;
+    wire [WIDTH-1:0] input_real_0_mem, input_real_3_mem;
+    wire [WIDTH-1:0] input_imag_0_mem, input_imag_3_mem;
 
     //Counter to flush the pipeline at the end of the data
     reg [Num_of_samples_bits-1:0] flush_count;
@@ -256,7 +260,8 @@ module Split_radix_SecondStage #(
     ComplexMultiplier #(
         .WIDTH(WIDTH),
         .PROD(PROD),
-        .SIMPLE_MULT(SIMPLE_MULT)
+        .SIMPLE_MULT(SIMPLE_MULT),
+        .Fast_DSP(Fast_DSP)
     ) complex_multiplier (
         .clock(clock),
         .a_re(input_real_0_rr), .a_im(input_imag_0_rr),
@@ -268,47 +273,52 @@ module Split_radix_SecondStage #(
     );
 
     delay_reg #(
-        .WIDTH(WIDTH), .DELAY(Delay_mult + 1)
+        .WIDTH(WIDTH), .DELAY(Delay_mult)
     ) delay_nomul_r_1 (
         .clock(clock), .data_in(input_real_1_rr), .data_out(input_real_1_nomul)
     );
 
     delay_reg #(
-        .WIDTH(WIDTH), .DELAY(Delay_mult + 1)
+        .WIDTH(WIDTH), .DELAY(Delay_mult)
     ) delay_nomul_i_1 (
         .clock(clock), .data_in(input_imag_1_rr), .data_out(input_imag_1_nomul)
     );
 
     delay_reg #(
-        .WIDTH(WIDTH), .DELAY(Delay_mult + 1)
+        .WIDTH(WIDTH), .DELAY(Delay_mult)
     ) delay_nomul_r_2 (
         .clock(clock), .data_in(input_real_2_rr), .data_out(input_real_2_nomul)
     );
 
     delay_reg #(
-        .WIDTH(WIDTH), .DELAY(Delay_mult + 1)
+        .WIDTH(WIDTH), .DELAY(Delay_mult)
     ) delay_nomul_i_2 (
         .clock(clock), .data_in(input_imag_2_rr), .data_out(input_imag_2_nomul)
     );
 
     delay_reg_reset #(
-        .WIDTH(stage_num_bits+2), .DELAY(Delay_mult+3)
+        .WIDTH(stage_num_bits+2), .DELAY(Delay_mult+2)
     ) delay_stride_seg (
         .clock(clock), .reset(reset), .data_in(stride_segment_counter), .data_out(stride_segment_counter_mem)
     );
 
     delay_reg_reset #(
-        .WIDTH(stage_num_bits+2), .DELAY(Delay_mult+3)
+        .WIDTH(stage_num_bits+2), .DELAY(Delay_mult+2)
     ) delay_butterfly_op (
         .clock(clock), .reset(reset), .data_in(butterfly_op_counter), .data_out(butterfly_op_counter_mem)
     );
 
+    assign input_real_0_mem = mulr_0[PROD-2:PROD-WIDTH-1];
+    assign input_imag_0_mem = muli_0[PROD-2:PROD-WIDTH-1];
+    assign input_real_3_mem = mulr_3[PROD-2:PROD-WIDTH-1];
+    assign input_imag_3_mem = muli_3[PROD-2:PROD-WIDTH-1];
 
     //Na afaireseis ta mem
     memory_second_stage #(
         .WIDTH(WIDTH),
         .DEPTH(Depth),
-        .stage_num_bits(stage_num_bits)
+        .stage_num_bits(stage_num_bits),
+        .output_pipeline_bram(output_pipeline_bram)
     ) mem (
         .clock(clock),
         .stride_segment_counter(stride_segment_counter_mem),
@@ -324,25 +334,25 @@ module Split_radix_SecondStage #(
     );
 
     delay_reg #(
-        .WIDTH(WIDTH), .DELAY(2)
+        .WIDTH(WIDTH), .DELAY(2 + output_pipeline_bram_delay)
     ) delay_pass_thought_r_1 (
         .clock(clock), .data_in(input_real_1_nomul), .data_out(input_real_1_butt)
     );
 
     delay_reg #(
-        .WIDTH(WIDTH), .DELAY(2)
+        .WIDTH(WIDTH), .DELAY(2 + output_pipeline_bram_delay)
     ) delay_pass_thought_i_1 (
         .clock(clock), .data_in(input_imag_1_nomul), .data_out(input_imag_1_butt)
     );
 
     delay_reg #(
-        .WIDTH(WIDTH), .DELAY(2)
+        .WIDTH(WIDTH), .DELAY(2 + output_pipeline_bram_delay)
     ) delay_pass_thought_r_2 (
         .clock(clock), .data_in(input_real_2_nomul), .data_out(input_real_2_butt)
     );
 
     delay_reg #(
-        .WIDTH(WIDTH), .DELAY(2)
+        .WIDTH(WIDTH), .DELAY(2 + output_pipeline_bram_delay)
     ) delay_pass_thought_i_2 (
         .clock(clock), .data_in(input_imag_2_nomul), .data_out(input_imag_2_butt)
     );
@@ -358,14 +368,14 @@ module Split_radix_SecondStage #(
     assign x3_im =  input_imag_2_butt;
 
     delay_reg_reset #(
-        .WIDTH(1), .DELAY(Delay_mult+3+3)
+        .WIDTH(1), .DELAY(Delay_mult+2+3+output_pipeline_bram_delay)
     ) delay_butt_en (
         .clock(clock), .reset(reset), .data_in(butterfly_op_counter_en), .data_out(start_butterfly)
     );
 
 
     //Maybe i can remove the input pipeline register of the butterfly
-    butterfly_complex_core #(
+    butterfly_complex_core_reduced #(
         .WIDTH(WIDTH)
     ) b4 (
         .clock(clock), .reset(reset),
@@ -382,55 +392,55 @@ module Split_radix_SecondStage #(
     );
 
     delay_reg #(
-        .WIDTH(WIDTH), .DELAY(3)
+        .WIDTH(WIDTH), .DELAY(2)
     ) delay_pass_thought_mem_out_r_0 (
         .clock(clock), .data_in(mem_out_real_0), .data_out(mem_out_real_0_output)
     );
 
     delay_reg #(
-        .WIDTH(WIDTH), .DELAY(3)
+        .WIDTH(WIDTH), .DELAY(2)
     ) delay_pass_thought_mem_out_i_0 (
         .clock(clock), .data_in(mem_out_imag_0), .data_out(mem_out_imag_0_output)
     );
 
     delay_reg #(
-        .WIDTH(WIDTH), .DELAY(3)
+        .WIDTH(WIDTH), .DELAY(2)
     ) delay_pass_thought_mem_out_r_1 (
         .clock(clock), .data_in(mem_out_real_1), .data_out(mem_out_real_1_output)
     );
 
     delay_reg #(
-        .WIDTH(WIDTH), .DELAY(3)
+        .WIDTH(WIDTH), .DELAY(2)
     ) delay_pass_thought_mem_out_i_1 (
         .clock(clock), .data_in(mem_out_imag_1), .data_out(mem_out_imag_1_output)
     );
 
     delay_reg #(
-        .WIDTH(WIDTH), .DELAY(3)
+        .WIDTH(WIDTH), .DELAY(2)
     ) delay_pass_thought_mem_out_r_2 (
         .clock(clock), .data_in(mem_out_real_2), .data_out(mem_out_real_2_output)
     );
 
     delay_reg #(
-        .WIDTH(WIDTH), .DELAY(3)
+        .WIDTH(WIDTH), .DELAY(2)
     ) delay_pass_thought_mem_out_i_2 (
         .clock(clock), .data_in(mem_out_imag_2), .data_out(mem_out_imag_2_output)
     );
 
     delay_reg #(
-        .WIDTH(WIDTH), .DELAY(3)
+        .WIDTH(WIDTH), .DELAY(2)
     ) delay_pass_thought_mem_out_r_3 (
         .clock(clock), .data_in(mem_out_real_3), .data_out(mem_out_real_3_output)
     );
 
     delay_reg #(
-        .WIDTH(WIDTH), .DELAY(3)
+        .WIDTH(WIDTH), .DELAY(2)
     ) delay_pass_thought_mem_out_i_3 (
         .clock(clock), .data_in(mem_out_imag_3), .data_out(mem_out_imag_3_output)
     );
 
     delay_reg_reset #(
-        .WIDTH(1), .DELAY(3+3)
+        .WIDTH(1), .DELAY(2+3+output_pipeline_bram_delay)
     ) delay_butt_op_count_output(
         .clock(clock), .reset(reset), .data_in(butterfly_op_counter_mem[stage_num_bits]), .data_out(butterfly_op_counter_output)
     );
@@ -461,10 +471,10 @@ module Split_radix_SecondStage #(
         input_imag_3_rr <= input_imag_3_r;
 
         //Optimization maybe this reg is not needed
-        input_real_0_mem <= mulr_0[PROD-2:PROD-WIDTH-1];
-        input_imag_0_mem <= muli_0[PROD-2:PROD-WIDTH-1];
-        input_real_3_mem <= mulr_3[PROD-2:PROD-WIDTH-1];
-        input_imag_3_mem <= muli_3[PROD-2:PROD-WIDTH-1];
+        // input_real_0_mem <= mulr_0[PROD-2:PROD-WIDTH-1];
+        // input_imag_0_mem <= muli_0[PROD-2:PROD-WIDTH-1];
+        // input_real_3_mem <= mulr_3[PROD-2:PROD-WIDTH-1];
+        // input_imag_3_mem <= muli_3[PROD-2:PROD-WIDTH-1];
 
         if(butterfly_op_counter_output) begin
             output_real_0 <= mem_out_real_0_output;

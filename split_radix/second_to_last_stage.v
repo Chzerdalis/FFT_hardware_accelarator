@@ -4,7 +4,8 @@ module Split_radix_secToLast_stage #(
     parameter WIDTH = 16, // Data Bit Lenght
     parameter Num_of_samples = 256, //How many inputs
     parameter STAGE_NUM = 3, //Stage number of the FFT
-    parameter SIMPLE_MULT = 1
+    parameter SIMPLE_MULT = 1,
+    parameter Fast_DSP = 0
 )(
     input                   clock,       //  System Clock
     input                   reset,        //  Active High Asynchronous Reset
@@ -22,7 +23,7 @@ module Split_radix_secToLast_stage #(
     localparam Num_of_samples_bits = $clog2(Num_of_samples/4);
     localparam TW = WIDTH/2;
     localparam PROD = WIDTH + TW;
-    localparam Delay_mult = (SIMPLE_MULT == 1) ? 2 : 3; //Delay for the multiplier output, if simple mult is used then delay is 1, else delay is 2
+    localparam Delay_mult = ((SIMPLE_MULT == 1) ? 2 : 3) + ((Fast_DSP == 1) ? 1 : 0); //Delay for the multiplier output, if simple mult is used then delay is 1, else delay is 2
 
     wire [stage_num_bits+1:0] butterfly_op_counter;
     wire [stage_num_bits+1:0] stride_segment_counter, butterfly_op_counter_output; //Here stride segment counter and butterfly are combined with mem_counter and mem_counter_read to save registers
@@ -169,7 +170,8 @@ module Split_radix_secToLast_stage #(
     ComplexMultiplier #(
         .WIDTH(WIDTH),
         .PROD(PROD),
-        .SIMPLE_MULT(SIMPLE_MULT)
+        .SIMPLE_MULT(SIMPLE_MULT),
+        .Fast_DSP(Fast_DSP)
     ) complex_multiplier (
         .clock(clock),
         .a_re(input_real_0_rr), .a_im(input_imag_0_rr),

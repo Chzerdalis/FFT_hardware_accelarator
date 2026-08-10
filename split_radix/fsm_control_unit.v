@@ -4,7 +4,8 @@ module control_unit_fsm_3rd_stage #(
     parameter stage_num_bits = 2,
     parameter Num_of_samples = 256,
     parameter step_size = 4,
-    parameter Num_of_samples_bits = 8
+    parameter Num_of_samples_bits = 8,
+    parameter input_pipeline_bram = 0
 )(
     input clock,
     input reset,
@@ -28,6 +29,8 @@ module control_unit_fsm_3rd_stage #(
     reg [2:0] state;
     reg step_count_in, step_count_out;
     reg [Num_of_samples_bits-1:0] flush_count, input_count;
+
+    localparam start_butterfly_const = (input_pipeline_bram == 0) ? {1'b0, {(stage_num_bits+1-2){1'b1}}, 1'b0} : {1'b0, {(stage_num_bits+1-2){1'b1}}, 1'b1};
 
     // State transition logic
     always @(posedge clock or posedge reset) begin
@@ -81,7 +84,7 @@ module control_unit_fsm_3rd_stage #(
                     step_count_out          <= 1'b1;
                     flush_count             <= 0;
 
-                    if(stride_segment_counter[stage_num_bits:0] == {1'b0, {(stage_num_bits+1-2){1'b1}}, 1'b0}) begin
+                    if(stride_segment_counter[stage_num_bits:0] == start_butterfly_const) begin
                         state <= PROCESSING;
                         butterfly_op_counter_en <= 1'b1;
                         flush_count <= flush_count - 1'b1;

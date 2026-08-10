@@ -55,6 +55,9 @@ def quantize_twiddles(twiddles, bit_width, type_fft="radix-2", fft_size=16, stag
         # print(temp_idx_real)
         # print(temp_idx_imag)
 
+        print(temp_real)
+        print(temp_imag)
+
         real_q = np.array(temp_real)
         imag_q = np.array(temp_imag)
         

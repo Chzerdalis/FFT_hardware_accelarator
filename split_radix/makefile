@@ -89,7 +89,7 @@ tb_last_stage:
 tb_split_fft_top:
 	$(CC) $(FLAGS) -o $(EXE) $(src_tb_split_fft_top)
 	vvp $(EXE)
-	surfer -s surfer_file/top tb_split_fft_top.vcd
+#	surfer -s surfer_file/top tb_split_fft_top.vcd
 
 clean:
 	rm -rf $(EXE)
