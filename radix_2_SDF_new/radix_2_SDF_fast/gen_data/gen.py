@@ -1,8 +1,8 @@
 import numpy as np
 import sys
 
-#np.random.seed(43)
-np.random.seed(87)
+np.random.seed(43)
+#np.random.seed(87)
 
 try:
     N = int(sys.argv[1])

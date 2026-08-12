@@ -66,6 +66,7 @@ elif Data_width == 18:
     x_quantized = (x_all.real * 0xFF).astype(int) + 1j * (x_all.imag * 0xFF).astype(int)
 elif Data_width == 16:
     x_quantized = (x_all.real * 0x7F).astype(int) + 1j * (x_all.imag * 0x7F).astype(int)
+    #x_quantized = np.round(x_all.real * 0x7F).astype(int) + 1j * np.round(x_all.imag * 0x7F).astype(int)
 else:
     raise ValueError("Unsupported Data Width")
 

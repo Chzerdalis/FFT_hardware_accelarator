@@ -1,2 +1,0 @@
-Φτίαξε τα reset να είναι ασυχρονα για το control path, αφαιρεσετα για τα data path παντού
-κάνε optimization στα pipelines (-1 στο butterfly του split, αφαίρεσαι αυτό πριν το mem split radix) 

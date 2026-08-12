@@ -2,8 +2,8 @@
 
 module tb_top;
     parameter WIDTH = 32;
-    parameter Num_of_samples = 256;
-    parameter Num_of_windows = 1;
+    parameter Num_of_samples = 64;
+    parameter Num_of_windows = 3;
 
     reg clock;
     reg reset;

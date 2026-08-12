@@ -1,7 +1,7 @@
 import sys
 import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.metrics import r2_score
+# import matplotlib.pyplot as plt
+# from sklearn.metrics import r2_score
 
 def psnr(original, compressed, max_val):
     mse = np.mean((original - compressed) ** 2)
@@ -39,49 +39,49 @@ out_imag = out[:, 1]
 correct_real = correct[:, 0]
 correct_imag = correct[:, 1]
 
-r2_real = r2_score(correct_real, out_real)
-r2_imag = r2_score(correct_imag, out_imag)
+# r2_real = r2_score(correct_real, out_real)
+# r2_imag = r2_score(correct_imag, out_imag)
 
 max_value = 2**(BIT - 1) - 1
 psnr_real = psnr(correct_real, out_real, max_value)
 psnr_imag = psnr(correct_imag, out_imag, max_value)
 
-print(f"R² Score (Real): {r2_real:.6f}")
-print(f"R² Score (Imag): {r2_imag:.6f}")
+# print(f"R² Score (Real): {r2_real:.6f}")
+# print(f"R² Score (Imag): {r2_imag:.6f}")
 print(f"PSNR (Real): {psnr_real:.2f} dB")
 print(f"PSNR (Imag): {psnr_imag:.2f} dB")
 
-plt.figure(figsize=(12, 6))
+# plt.figure(figsize=(12, 6))
 
-#plt.subplot(1, 2, 1)
-plt.plot(correct_real, label="Correct Real", color='green', linewidth=2)
-plt.plot(out_real, label="Output Real", color='red', linestyle='--')
-plt.title(f"Real Part (R² = {r2_real:.4f}, PSNR = {psnr_real:.2f} dB)")
-plt.xlabel("Index")
-plt.ylabel("Amplitude")
-plt.grid(True)
+# #plt.subplot(1, 2, 1)
+# plt.plot(correct_real, label="Correct Real", color='green', linewidth=2)
+# plt.plot(out_real, label="Output Real", color='red', linestyle='--')
+# plt.title(f"Real Part (R² = {r2_real:.4f}, PSNR = {psnr_real:.2f} dB)")
+# plt.xlabel("Index")
+# plt.ylabel("Amplitude")
+# plt.grid(True)
 
-# Add vertical lines every N samples
-for i in range(N, len(correct_real), N):
-    plt.axvline(x=i, color='red', linestyle=':', linewidth=1, label='End of window' if i == N else "")
+# # Add vertical lines every N samples
+# for i in range(N, len(correct_real), N):
+#     plt.axvline(x=i, color='red', linestyle=':', linewidth=1, label='End of window' if i == N else "")
 
-plt.legend()
+# plt.legend()
 
-plt.figure(figsize=(12, 6))
+# plt.figure(figsize=(12, 6))
 
-#plt.subplot(1, 2, 2)
-plt.plot(correct_imag, label="Correct Imag", color='blue', linewidth=2)
-plt.plot(out_imag, label="Output Imag", color='orange', linestyle='--')
-plt.title(f"Imaginary Part (R² = {r2_imag:.4f}, PSNR = {psnr_imag:.2f} dB)")
-plt.xlabel("Index")
-plt.ylabel("Amplitude")
-plt.grid(True)
+# #plt.subplot(1, 2, 2)
+# plt.plot(correct_imag, label="Correct Imag", color='blue', linewidth=2)
+# plt.plot(out_imag, label="Output Imag", color='orange', linestyle='--')
+# plt.title(f"Imaginary Part (R² = {r2_imag:.4f}, PSNR = {psnr_imag:.2f} dB)")
+# plt.xlabel("Index")
+# plt.ylabel("Amplitude")
+# plt.grid(True)
 
-# Add vertical lines every N samples
-for i in range(N, len(correct_imag), N):
-    plt.axvline(x=i, color='red', linestyle=':', linewidth=1, label='End of window' if i == N else "")
+# # Add vertical lines every N samples
+# for i in range(N, len(correct_imag), N):
+#     plt.axvline(x=i, color='red', linestyle=':', linewidth=1, label='End of window' if i == N else "")
 
-plt.legend()
+# plt.legend()
 
-plt.tight_layout()
-plt.show()
+# plt.tight_layout()
+# plt.show()

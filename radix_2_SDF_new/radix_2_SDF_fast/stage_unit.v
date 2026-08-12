@@ -180,7 +180,7 @@ module SdfUnit2_fast #(
 
     assign start_butterfly = (STAGE_NUM == 1) ? input_en : butterfly_op_counter_en;
 
-    butterfly_radix_2_pipelined_casc #(
+    butterfly_radix_2_pipelined#(
         .WIDTH(WIDTH)
     ) b0 (
         .clock(clock),
