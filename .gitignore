@@ -1,0 +1,9 @@
+.venv/
+Final_designs/Final Designs Radix-2/
+Final_designs/Radix-4/Final Designs Radix-4/
+Final_designs/Software/*
+!Final_designs/Software/FFT_softaware_2.py
+!Final_designs/Software/FFT_softaware.py
+Final_designs/Data/*
+!Final_designs/Data/synthesis_results.csv
+

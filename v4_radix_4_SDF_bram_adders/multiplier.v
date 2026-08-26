@@ -592,3 +592,266 @@ module multiplier_sythesis_2 #(
     end
 
 endmodule
+
+
+`timescale 1ns/1ps
+
+(* use_dsp = "no" *)
+module Carry_mult #(
+    parameter A_WIDTH = 25,
+    parameter B_WIDTH = 16,
+    parameter CHUNK = 8
+)(
+    input                          clock,
+    input                          reset,
+    input                          start,
+    input      signed [A_WIDTH-1:0] a,
+    input      signed [B_WIDTH-1:0] b,
+    output reg signed [A_WIDTH+B_WIDTH-1:0] product,
+    output reg                     done
+);
+
+    // =========================================================================
+    // Parameters
+    // =========================================================================
+    localparam P_WIDTH  = A_WIDTH + B_WIDTH;
+
+    localparam NCHUNKS  = (P_WIDTH + CHUNK - 1) / CHUNK;
+    localparam PAD_WIDTH = NCHUNKS * CHUNK;
+
+    // =========================================================================
+    // Core carry-save multiplier pipeline
+    // =========================================================================
+    reg signed [P_WIDTH-1:0]   a_pipe     [0:B_WIDTH-1];
+    reg signed [B_WIDTH-1:0]   b_pipe     [0:B_WIDTH-1];
+    reg        [P_WIDTH-1:0]   sum_pipe   [0:B_WIDTH-1];
+    reg        [P_WIDTH-1:0]   carry_pipe [0:B_WIDTH-1];
+    reg                        valid_pipe [0:B_WIDTH-1];
+
+    // =========================================================================
+    // Final partial product latch
+    // =========================================================================
+    reg [P_WIDTH-1:0] final_sum;
+    reg [P_WIDTH-1:0] final_carry;
+    reg [P_WIDTH-1:0] final_pp;
+    reg               final_valid;
+    reg               final_do_sub;
+
+    // =========================================================================
+    // Extra CSA stage before final carry-propagate adder
+    // =========================================================================
+    wire [P_WIDTH-1:0] pp_mod_w;
+    wire               pp_cin_w;
+
+    assign pp_mod_w = final_do_sub ? ~final_pp : {P_WIDTH{1'b0}};
+    assign pp_cin_w = final_do_sub;
+
+    wire [P_WIDTH-1:0] csa_sum_w;
+    wire [P_WIDTH-1:0] csa_carry_w;
+
+    assign csa_sum_w = final_sum ^ final_carry ^ pp_mod_w;
+
+    assign csa_carry_w =
+        ((final_sum   & final_carry) |
+         (final_sum   & pp_mod_w)    |
+         (final_carry & pp_mod_w)) << 1;
+
+    reg [P_WIDTH-1:0] csa_sum_r;
+    reg [P_WIDTH-1:0] csa_carry_r;
+    reg               csa_cin_r;
+    reg               csa_valid_r;
+
+    // =========================================================================
+    // Pipelined chunk carry-propagate adder
+    // =========================================================================
+    (* keep = "true" *) reg [PAD_WIDTH-1:0] cpa_a_pipe      [0:NCHUNKS-1];
+    (* keep = "true" *) reg [PAD_WIDTH-1:0] cpa_b_pipe      [0:NCHUNKS-1];
+    (* keep = "true" *) reg [PAD_WIDTH-1:0] cpa_result_pipe [0:NCHUNKS-1];
+    (* keep = "true" *) reg                 cpa_carry_pipe  [0:NCHUNKS-1];
+    reg                                           cpa_valid_pipe  [0:NCHUNKS-1];
+
+    wire signed [PAD_WIDTH-1:0] csa_sum_pad;
+    wire signed [PAD_WIDTH-1:0] csa_carry_pad;
+
+    generate
+        if (PAD_WIDTH > P_WIDTH) begin : gen_pad
+            assign csa_sum_pad   = {{(PAD_WIDTH-P_WIDTH){csa_sum_r[P_WIDTH-1]}}, csa_sum_r};
+            assign csa_carry_pad = {{(PAD_WIDTH-P_WIDTH){csa_carry_r[P_WIDTH-1]}}, csa_carry_r};
+        end else begin : gen_no_pad
+            assign csa_sum_pad  = csa_sum_r;
+            assign csa_carry_pad = csa_carry_r;
+        end
+    endgenerate
+
+    // =========================================================================
+    // Temporary combinational regs used inside clocked process
+    // =========================================================================
+    reg [P_WIDTH-1:0] comb_pp;
+    reg [P_WIDTH-1:0] comb_sum;
+    reg [P_WIDTH-1:0] comb_carry;
+
+    reg [CHUNK:0] add_tmp;
+
+    integer i;
+    integer k;
+
+    // =========================================================================
+    // Main pipeline
+    // =========================================================================
+    always @(posedge clock) begin
+        if (reset) begin
+            product <= 0;
+            done    <= 0;
+
+            for (i = 0; i < B_WIDTH; i = i + 1) begin
+                a_pipe[i]     <= 0;
+                b_pipe[i]     <= 0;
+                sum_pipe[i]   <= 0;
+                carry_pipe[i] <= 0;
+                valid_pipe[i] <= 0;
+            end
+
+            final_sum    <= 0;
+            final_carry  <= 0;
+            final_pp     <= 0;
+            final_valid  <= 0;
+            final_do_sub <= 0;
+
+            csa_sum_r   <= 0;
+            csa_carry_r <= 0;
+            csa_cin_r   <= 0;
+            csa_valid_r <= 0;
+
+            for (k = 0; k < NCHUNKS; k = k + 1) begin
+                cpa_a_pipe[k]      <= 0;
+                cpa_b_pipe[k]      <= 0;
+                cpa_result_pipe[k] <= 0;
+                cpa_carry_pipe[k]  <= 0;
+                cpa_valid_pipe[k]  <= 0;
+            end
+
+        end else begin
+
+            // =============================================================
+            // Stage 0: input latch and first partial product
+            // =============================================================
+            valid_pipe[0] <= start;
+            a_pipe[0]     <= {{B_WIDTH{a[A_WIDTH-1]}}, a};
+            b_pipe[0]     <= b;
+
+            if (b[0])
+                comb_pp = {{B_WIDTH{a[A_WIDTH-1]}}, a};
+            else
+                comb_pp = {P_WIDTH{1'b0}};
+
+            sum_pipe[0]   <= comb_pp;
+            carry_pipe[0] <= {P_WIDTH{1'b0}};
+
+
+            // =============================================================
+            // Carry-save reduction stages for bits 1 to B_WIDTH-2
+            // =============================================================
+            for (i = 1; i < B_WIDTH-1; i = i + 1) begin
+                valid_pipe[i] <= valid_pipe[i-1];
+                a_pipe[i]     <= a_pipe[i-1];
+                b_pipe[i]     <= b_pipe[i-1];
+
+                if (b_pipe[i-1][i])
+                    comb_pp = a_pipe[i-1] << i;
+                else
+                    comb_pp = {P_WIDTH{1'b0}};
+
+                comb_sum = sum_pipe[i-1] ^ carry_pipe[i-1] ^ comb_pp;
+
+                comb_carry =
+                    ((sum_pipe[i-1]   & carry_pipe[i-1]) |
+                     (sum_pipe[i-1]   & comb_pp)         |
+                     (carry_pipe[i-1] & comb_pp)) << 1;
+
+                sum_pipe[i]   <= comb_sum;
+                carry_pipe[i] <= comb_carry;
+            end
+
+
+            // =============================================================
+            // Final signed MSB partial product latch
+            // =============================================================
+            i = B_WIDTH - 1;
+
+            if (b_pipe[i-1][i])
+                comb_pp = a_pipe[i-1] << i;
+            else
+                comb_pp = {P_WIDTH{1'b0}};
+
+            final_sum    <= sum_pipe[i-1];
+            final_carry  <= carry_pipe[i-1];
+            final_pp     <= comb_pp;
+            final_do_sub <= b_pipe[i-1][i];
+            final_valid  <= valid_pipe[i-1];
+
+
+            // =============================================================
+            // Extra stage: CSA for final_sum + final_carry +/- final_pp
+            //
+            // If final_do_sub = 1:
+            //     final_sum + final_carry - final_pp
+            //
+            // becomes:
+            //     final_sum + final_carry + ~final_pp + 1
+            //
+            // No long carry chain here.
+            // =============================================================
+            csa_sum_r   <= csa_sum_w;
+            csa_carry_r <= csa_carry_w;
+            csa_cin_r   <= pp_cin_w;
+            csa_valid_r <= final_valid;
+
+
+            // =============================================================
+            // Pipelined final carry-propagate adder
+            // Each stage adds only CHUNK bits.
+            // For WIDTH=16, P_WIDTH=24, CHUNK=8:
+            //
+            // stage 0: bits [7:0]
+            // stage 1: bits [15:8]
+            // stage 2: bits [23:16]
+            // =============================================================
+            for (k = 0; k < NCHUNKS; k = k + 1) begin
+                if (k == 0) begin
+                    add_tmp =
+                        {1'b0, csa_sum_pad[0 +: CHUNK]} +
+                        {1'b0, csa_carry_pad[0 +: CHUNK]} +
+                        csa_cin_r;
+
+                    cpa_a_pipe[k]      <= csa_sum_pad;
+                    cpa_b_pipe[k]      <= csa_carry_pad;
+                    cpa_result_pipe[k] <= {PAD_WIDTH{1'b0}};
+                    cpa_result_pipe[k][0 +: CHUNK] <= add_tmp[CHUNK-1:0];
+                    cpa_carry_pipe[k]  <= add_tmp[CHUNK];
+                    cpa_valid_pipe[k]  <= csa_valid_r;
+                end else begin
+                    add_tmp =
+                        {1'b0, cpa_a_pipe[k-1][k*CHUNK +: CHUNK]} +
+                        {1'b0, cpa_b_pipe[k-1][k*CHUNK +: CHUNK]} +
+                        cpa_carry_pipe[k-1];
+
+                    cpa_a_pipe[k]      <= cpa_a_pipe[k-1];
+                    cpa_b_pipe[k]      <= cpa_b_pipe[k-1];
+                    cpa_result_pipe[k] <= cpa_result_pipe[k-1];
+                    cpa_result_pipe[k][k*CHUNK +: CHUNK] <= add_tmp[CHUNK-1:0];
+                    cpa_carry_pipe[k]  <= add_tmp[CHUNK];
+                    cpa_valid_pipe[k]  <= cpa_valid_pipe[k-1];
+                end
+            end
+
+
+            // =============================================================
+            // Output register
+            // =============================================================
+            product <= cpa_result_pipe[NCHUNKS-1][P_WIDTH-1:0];
+            done    <= cpa_valid_pipe[NCHUNKS-1];
+
+        end
+    end
+
+endmodule

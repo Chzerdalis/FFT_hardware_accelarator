@@ -1,38 +1,38 @@
 `timescale 1ps/1ps
 
-module tb_radix2_top();
+module tb_radix4_top();
 
-    parameter WIDTH = 16;
-    parameter Tw_WIDTH = 8;
-    parameter Num_of_samples = 1024;
-    parameter MAX_FILE_SAMPLES = 100000; 
+    parameter WIDTH = 11;
+    parameter Tw_WIDTH = 9;
+    parameter Num_of_samples = 256;
+    parameter output_pipeline_bram = 1;
+    parameter Bram = 0;
     parameter SimpleMult = 1;
     parameter Fast_DSP = 0;
     parameter carry_save = 1;
-    parameter Bram = 0;
     parameter bit_growth = 1;
+    parameter MAX_FILE_SAMPLES = 100000;
 
     reg clock;
     reg reset;
     reg input_en;
-    
-    localparam STAGE_NUM = $clog2(Num_of_samples);
-    localparam Max_stage_num = (bit_growth == 1) ? (WIDTH - Tw_WIDTH) : STAGE_NUM;
+
+    localparam STAGE_NUM = $clog2(Num_of_samples)/$clog2(4);
+    localparam Max_stage_num = (bit_growth == 1) ? ((WIDTH > Tw_WIDTH) ? (WIDTH - Tw_WIDTH)/2 : 0) : STAGE_NUM;
     localparam bit_growth_stages = (STAGE_NUM - Max_stage_num > 0) ? (STAGE_NUM - Max_stage_num) : 0;
-    localparam Max_width = WIDTH + bit_growth_stages;
+    localparam Max_width = WIDTH + 2*bit_growth_stages;
     localparam out_width = (bit_growth == 1) ? (Max_width) : WIDTH;
 
-    // Radix-2 only uses 2 parallel inputs/outputs
-    reg [WIDTH-1:0] input_real_0, input_real_1;
-    reg [WIDTH-1:0] input_imag_0, input_imag_1;
-    wire output_en;
-    wire [Max_width-1:0] output_real_0, output_real_1;
-    wire [Max_width-1:0] output_imag_0, output_imag_1;
+    // Radix-4 uses 4 parallel inputs/outputs
+    reg  [WIDTH-1:0] input_real_0, input_real_1, input_real_2, input_real_3;
+    reg  [WIDTH-1:0] input_imag_0, input_imag_1, input_imag_2, input_imag_3;
+    wire             output_en;
+    wire [Max_width-1:0] output_real_0, output_real_1, output_real_2, output_real_3;
+    wire [Max_width-1:0] output_imag_0, output_imag_1, output_imag_2, output_imag_3;
 
-    // Array size doubled to hold 2 windows (512 samples total) for ping-pong output
+    // Array size doubled to hold 2 windows for ping-pong output
     reg [Max_width-1:0] output_real [0:(2*Num_of_samples) - 1];
     reg [Max_width-1:0] output_imag [0:(2*Num_of_samples) - 1];
-
     // Arrays to hold the file data loaded at time 0
     reg signed [WIDTH-1:0] file_real_data [0:MAX_FILE_SAMPLES - 1];
     reg signed [WIDTH-1:0] file_imag_data [0:MAX_FILE_SAMPLES - 1];
@@ -40,15 +40,16 @@ module tb_radix2_top();
 
     integer output_count = 0;
 
-    // Instantiate Radix-2 Top Module
+    // Instantiate Radix-4 Top Module
     fft_top #(
         .WIDTH(WIDTH),
         .Tw_WIDTH(Tw_WIDTH),
         .Num_of_samples(Num_of_samples),
+        .output_pipeline_bram(output_pipeline_bram),
+        .Bram(Bram),
         .SimpleMult(SimpleMult),
         .Fast_DSP(Fast_DSP),
         .carry_save(carry_save),
-        .Bram(Bram),
         .bit_growth(bit_growth)
     ) dut (
         .clock(clock),
@@ -56,13 +57,21 @@ module tb_radix2_top();
         .input_en(input_en),
         .input_real_0(input_real_0),
         .input_real_1(input_real_1),
+        .input_real_2(input_real_2),
+        .input_real_3(input_real_3),
         .input_imag_0(input_imag_0),
         .input_imag_1(input_imag_1),
+        .input_imag_2(input_imag_2),
+        .input_imag_3(input_imag_3),
         .output_en(output_en),
         .output_real_0(output_real_0),
         .output_real_1(output_real_1),
+        .output_real_2(output_real_2),
+        .output_real_3(output_real_3),
         .output_imag_0(output_imag_0),
-        .output_imag_1(output_imag_1)
+        .output_imag_1(output_imag_1),
+        .output_imag_2(output_imag_2),
+        .output_imag_3(output_imag_3)
     );
 
     initial begin
@@ -98,7 +107,7 @@ module tb_radix2_top();
                 total_samples_read = total_samples_read + 1;
             end
         end
-        
+
         i=0;
         while(i<total_samples_read) begin
             //$display("Loaded Sample %0d: Imag = %d, Real = %d", i, file_imag_data[i], file_real_data[i]);
@@ -106,7 +115,6 @@ module tb_radix2_top();
         end
 
         $fclose(in_file_id);
-        //$display("Loaded %0d samples from input file into memory.", total_samples_read);
     end
 
     // ---------------------------------------------------------
@@ -124,34 +132,40 @@ module tb_radix2_top();
         input_en <= 0;
         input_real_0 <= 0; input_imag_0 <= 0;
         input_real_1 <= 0; input_imag_1 <= 0;
+        input_real_2 <= 0; input_imag_2 <= 0;
+        input_real_3 <= 0; input_imag_3 <= 0;
         #5;
-        
+
         // Apply reset
         reset = 1;
         #10;
         @ (posedge clock);
         reset <= 0;
         #100;
-        
+
         // Enable input and stream from memory arrays
         input_en <= 1;
-        
-        // Loop through the pre-loaded arrays, 2 samples at a time
-        for (i = 0; i < total_samples_read; i = i + 2) begin
+
+        // Loop through the pre-loaded arrays, 4 samples at a time
+        for (i = 0; i < total_samples_read; i = i + 4) begin
             input_real_0 <= file_real_data[i+0];
             input_imag_0 <= file_imag_data[i+0];
             input_real_1 <= file_real_data[i+1];
             input_imag_1 <= file_imag_data[i+1];
-            
-            #10; // Wait 1 clock cycle to feed the next 2 samples
+            input_real_2 <= file_real_data[i+2];
+            input_imag_2 <= file_imag_data[i+2];
+            input_real_3 <= file_real_data[i+3];
+            input_imag_3 <= file_imag_data[i+3];
+
+            #10; // Wait 1 clock cycle to feed the next 4 samples
         end
-        
+
         input_en <= 0;
         $display("Finished streaming data to FFT. Waiting for outputs to flush...");
-        
+
         // Wait enough time for the final FFT windows to compute and flush out
         #(MAX_FILE_SAMPLES * 10);
-        
+
         $fclose(out_file_id);
         $fclose(file_id);
         $display("Simulation complete. Outputs saved to fft_output.txt.");
@@ -159,53 +173,63 @@ module tb_radix2_top();
     end
 
     initial begin
-        $dumpfile("tb_radix2_top.vcd");
-        $dumpvars(0, tb_radix2_top);
+        $dumpfile("tb_radix4_top.vcd");
+        $dumpvars(0, tb_radix4_top);
     end
 
     // ---------------------------------------------------------
     // 3. Ping-Pong Output Capturing and File Writing
+    //
+    // Radix-4 emits 4 samples per cycle over Num_of_samples/4 cycles.
+    // The four ports carry the four QUARTERS of the window, so port n
+    // lands at (n * Num_of_samples/4) + output_count.
     // ---------------------------------------------------------
-    
+
     integer k, t = 0;
-    
+
     // Variables for ping-pong buffer index management
     reg frame_ready = 0;
     integer window_count = 0;
-    integer write_offset = 0; 
-    integer print_offset = 0; 
+    integer write_offset = 0;
+    integer print_offset = 0;
 
     // Capture the outputs continuously using a ping-pong offset
     always @(posedge clock) begin
         if (reset) begin
             output_count <= 0;
             write_offset <= 0;
-            frame_ready <= 0;
+            frame_ready  <= 0;
         end else begin
             frame_ready <= 0; // Default: clear trigger
-            
+
             if (output_en) begin
-                // Write into the array using the base write_offset (2 samples at a time)
+                // Write into the array using the base write_offset (4 samples at a time)
                 output_real[write_offset + output_count + 0] <= output_real_0;
                 output_imag[write_offset + output_count + 0] <= output_imag_0;
-                
-                output_real[write_offset + output_count + Num_of_samples/2] <= output_real_1;
-                output_imag[write_offset + output_count + Num_of_samples/2] <= output_imag_1;
-                
-                // If we hit the end of the 256-sample window
-                if (output_count == (Num_of_samples/2 - 1)) begin
+
+                output_real[write_offset + output_count + Num_of_samples/4] <= output_real_1;
+                output_imag[write_offset + output_count + Num_of_samples/4] <= output_imag_1;
+
+                output_real[write_offset + output_count + Num_of_samples/2] <= output_real_2;
+                output_imag[write_offset + output_count + Num_of_samples/2] <= output_imag_2;
+
+                output_real[write_offset + output_count + 3*Num_of_samples/4] <= output_real_3;
+                output_imag[write_offset + output_count + 3*Num_of_samples/4] <= output_imag_3;
+
+                // If we hit the end of the window (Num_of_samples/4 cycles)
+                if (output_count == (Num_of_samples/4 - 1)) begin
                     output_count <= 0;
-                    
+
                     // Lock in the current offset for the print block
                     print_offset <= write_offset;
-                    
-                    // Toggle the write offset between 0 and 256 for the next cycle
+
+                    // Toggle the write offset between 0 and Num_of_samples
                     if (write_offset == 0) begin
                         write_offset <= Num_of_samples;
                     end else begin
                         write_offset <= 0;
                     end
-                    
+
                     frame_ready <= 1; // Trigger print
                 end else begin
                     output_count <= output_count + 1;
@@ -218,34 +242,32 @@ module tb_radix2_top();
     always @(posedge clock) begin
         if (frame_ready) begin
             window_count = window_count + 1;
-            
+
             for (k = 0; k < Num_of_samples; k = k + 1) begin
                 // Write raw data sequentially to the text file (Real Imaginary)
-                $fdisplay(out_file_id, "%d %d", 
-                          $signed(output_real[print_offset + k]), 
+                $fdisplay(out_file_id, "%d %d",
+                          $signed(output_real[print_offset + k]),
                           $signed(output_imag[print_offset + k]));
             end
         end
     end
 
     integer file_id;
-    
+
     // Variables for both counters
     reg input_en_d = 0;
     reg output_en_d = 0;
-    
+
     reg counting_latency = 0;
     integer t_latency = 0;
-    
+
     reg counting_active = 0;
     integer t_active = 0;
 
     // Open the file at the very beginning of the simulation
     initial begin
-        // "w" opens it in write mode (overwrites the file each time you run the sim)
-        // Use "a" (append) if you want to keep old results
-        file_id = $fopen("../Data/latencies.txt", "w"); 
-        
+        file_id = $fopen("../Data/latencies.txt", "w");
+
         if (file_id == 0) begin
             $display("Error: Could not open latencies file.");
             $finish;
@@ -258,11 +280,11 @@ module tb_radix2_top();
         output_en_d <= output_en;
 
         // =========================================================
-        // METRIC 1: Latency (Input Rise to Output Rise)
+        // METRIC 1: Latency (Input Fall to Output Rise)
         // =========================================================
         if (!input_en_d && input_en) begin
             counting_latency <= 1;
-            t_latency <= 1; 
+            t_latency <= 1;
         end
         else if (counting_latency && !output_en) begin
             t_latency <= t_latency + 1;
@@ -270,7 +292,6 @@ module tb_radix2_top();
 
         if (!output_en_d && output_en) begin
             counting_latency <= 0;
-            // Write to file instead of console
             $fdisplay(file_id, "%0d", t_latency);
         end
 
@@ -279,7 +300,7 @@ module tb_radix2_top();
         // =========================================================
         if (!input_en_d && input_en) begin
             counting_active <= 1;
-            t_active <= 1; 
+            t_active <= 1;
         end
         else if (counting_active) begin
             t_active <= t_active + 1;
@@ -287,7 +308,6 @@ module tb_radix2_top();
 
         if (output_en_d && !output_en) begin
             counting_active <= 0;
-            // Write to file instead of console
             $fdisplay(file_id, "%0d", t_active);
         end
     end

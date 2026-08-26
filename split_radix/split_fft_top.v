@@ -4,9 +4,9 @@ module split_fft_top #(
     parameter WIDTH = 16,
     parameter N = 256,
     parameter SIMPLE_MULT = 1,
-    parameter input_pipeline_bram = 0,
-    parameter output_pipeline_bram = 0,
-    parameter Fast_DSP = 0
+    parameter input_pipeline_bram = 1,
+    parameter output_pipeline_bram = 1,
+    parameter Fast_DSP = 1
 )(
     input                   clock,
     input                   reset,

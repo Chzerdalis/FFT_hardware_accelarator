@@ -55,8 +55,8 @@ def quantize_twiddles(twiddles, bit_width, type_fft="radix-2", fft_size=16, stag
         # print(temp_idx_real)
         # print(temp_idx_imag)
 
-        print(temp_real)
-        print(temp_imag)
+        # print(temp_real)
+        # print(temp_imag)
 
         real_q = np.array(temp_real)
         imag_q = np.array(temp_imag)
@@ -155,7 +155,7 @@ def quantize_twiddles(twiddles, bit_width, type_fft="radix-2", fft_size=16, stag
     # 5. Finally, zip them together into lists of tuples: [(original_index, value), ...]
     return real_q, imag_q
 
-def find_cshm_slots_alfabets_for_fft_size_and_type(max_slots=3, max_alphabet_size=8, fft_size=16, type_fft="radix-2", stage=1, bit_width=8, tolerance_per=0):
+def find_cshm_slots_alfabets_for_fft_size_and_type(max_slots=3, max_alphabet_size=8, fft_size=16, type_fft="radix-2", stage=1, bit_width=8, tolerance_per=0, roun=False):
     """
     Finds the best possible combination og alphabets and slots for a given FFT size, 
     type, stage, and bit width. It checks if the hardware can generate all required twiddle factors within a specified tolerance.
@@ -178,6 +178,9 @@ def find_cshm_slots_alfabets_for_fft_size_and_type(max_slots=3, max_alphabet_siz
         print(f"\nQuantizing twiddles for {bit_width}-bit width, FFT Size: {fft_size}, Type: {type_fft}, Stage: {stage}")
         real_quantized, imag_quantized = quantize_twiddles(twiddles, bit_width, type_fft=type_fft, fft_size=fft_size, stage=stage)
         target_range = set(real_quantized.tolist() + imag_quantized.tolist())
+        if roun:
+            target_range = set(2 * round(x / 2) for x in (real_quantized.tolist() + imag_quantized.tolist()))
+
 
 
     # Calculate the tolerance window for this bit-width
@@ -218,6 +221,7 @@ def find_cshm_slots_alfabets_for_fft_size_and_type(max_slots=3, max_alphabet_siz
             for target in target_range:
                 # If NO generated hardware value falls within the +/- tolerance of the target, mark it missing
                 if not any(abs(val - target) <= tolerance for val in n_slot_values):
+                # if not any(abs(val - target) <= tolerance_per * abs(target) for val in n_slot_values):
                     missing_values.add(target)
             
             if not missing_values:
@@ -362,12 +366,13 @@ if __name__ == "__main__":
 
     #find_cshm_instructions_2(fft_size=256, bit_width=8, type_fft="radix-2", stage=5, alphabets=4, num_slots=2, tolerance_per=0)
 
-    if len(sys.argv) == 6:
+    if len(sys.argv) == 7:
         Type_search = sys.argv[1]
         fft_type = sys.argv[2]
         fft_size = int(sys.argv[3])
         bit_width = int(sys.argv[4])
         tolerance_per = int(sys.argv[5]) / 1000.0 
+        roun = int(sys.argv[6])
     else:
         raise ValueError("Usage: python cshm.py <Type_search> <fft_type> <fft_size> <bit_width> <tolerance>")
 
@@ -377,5 +382,7 @@ if __name__ == "__main__":
         elif(fft_type == "radix-4"):
             stages = int(np.log2(fft_size) / 2)
 
+        print(f"round: {roun}")
+
         for i in range(1, stages+1):
-            find_cshm_slots_alfabets_for_fft_size_and_type(max_slots=3, max_alphabet_size=10, fft_size=fft_size, bit_width=bit_width, type_fft=fft_type, stage=i, tolerance_per=tolerance_per)
+            find_cshm_slots_alfabets_for_fft_size_and_type(max_slots=3, max_alphabet_size=10, fft_size=fft_size, bit_width=bit_width, type_fft=fft_type, stage=i, tolerance_per=tolerance_per, roun=roun)

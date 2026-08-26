@@ -1,105 +1,14 @@
 `timescale 1ns/1ps
 
-// module butterfly #(
-//     parameter   WIDTH = 32
-// )(
-//     input signed [WIDTH-1:0] ar, ai, br, bi,
-//     input signed [WIDTH/2-1:0] wr, wi,
-//     output signed [WIDTH-1:0] out1r, out1i, out2r, out2i
-// );
-//     wire signed [2*WIDTH-1:0] mr = br * wr - bi * wi;
-//     wire signed [2*WIDTH-1:0] mi = br * wi + bi * wr;
-
-//     assign out1r = ar + mr[WIDTH/2 + WIDTH-2 : WIDTH/2-1];
-//     assign out1i = ai + mi[WIDTH/2 + WIDTH-2 : WIDTH/2-1];
-//     assign out2r = ar - mr[WIDTH/2 + WIDTH-2 : WIDTH/2-1];
-//     assign out2i = ai - mi[WIDTH/2 + WIDTH-2 : WIDTH/2-1];
-// endmodule
-
-
-// module butterfly_radix_2_pipelined_og #(
-//     parameter WIDTH = 32
-// )(  
-//     input clock,
-//     input reset,
-//     input start,
-//     input signed [WIDTH-1:0] ar, ai, br, bi,
-//     input signed [WIDTH/2-1:0] wr, wi,
-//     output reg signed [WIDTH-1:0] out1r, out1i, out2r, out2i,
-//     output reg done
-// );  
-//     localparam TW = WIDTH/2;
-//     localparam PROD = WIDTH + TW;
-
-//     //Input registers
-//     reg signed [WIDTH-1:0] ar_reg, ai_reg, br_reg, bi_reg;
-//     reg signed [WIDTH/2-1:0] wr_reg, wi_reg;
-//     reg start_1;
-
-//     //Multiplication registers
-//     reg signed [PROD-1:0] mr_1_reg, mi_1_reg, mr_2_reg, mi_2_reg;
-//     reg signed [WIDTH-1:0] ar_reg_2, ai_reg_2;
-//     reg start_2;
-
-//     //Product additions registers
-//     reg signed [PROD-1:0] mr_reg, mi_reg;
-//     reg signed [WIDTH-1:0] ar_reg_3, ai_reg_3;
-//     reg start_3;
-    
-//     //Do one multiplication in one clock cycle per datapath
-//     wire signed [PROD-1:0] mr_1 = br_reg * wr_reg;
-//     wire signed [PROD-1:0] mi_1 = br_reg * wi_reg;
-//     wire signed [PROD-1:0] mr_2 = bi_reg * wi_reg;
-//     wire signed [PROD-1:0] mi_2 = bi_reg * wr_reg;
-
-//     //Do the product additions
-//     wire signed [PROD-1:0] mr = mr_1_reg - mr_2_reg;
-//     wire signed [PROD-1:0] mi = mi_1_reg + mi_2_reg;
-
-//     //Output registers
-//     wire signed [WIDTH-1:0] out1r_reg = ar_reg_3 + mr_reg[PROD-2 : TW-1];
-//     wire signed [WIDTH-1:0] out1i_reg = ai_reg_3 + mi_reg[PROD-2 : TW-1];
-//     wire signed [WIDTH-1:0] out2r_reg = ar_reg_3 - mr_reg[PROD-2 : TW-1];
-//     wire signed [WIDTH-1:0] out2i_reg = ai_reg_3 - mi_reg[PROD-2 : TW-1];
-
-//     always@(posedge clock) begin
-//         if (reset) begin
-//             ar_reg <= 0; ai_reg <= 0; br_reg <= 0; bi_reg <= 0;
-//             wr_reg <= 0; wi_reg <= 0;
-//             start_1 <= 0;
-
-//             mr_1_reg <= 0; mi_1_reg <= 0; mr_2_reg <= 0; mi_2_reg <= 0;
-//             ar_reg_2 <= 0; ai_reg_2 <= 0;
-//             start_2 <= 0;
-
-//             mr_reg <= 0; mi_reg <= 0;
-//             ar_reg_3 <= 0; ai_reg_3 <= 0;
-//             start_3 <= 0;
-
-//             out1i <= 0; out1r <= 0; out2i <= 0; out2r <= 0;
-//             done <= 0;
-//         end else begin
-//             //Stage 1: Register inputs and start signal
-//             ar_reg <= ar; ai_reg <= ai; br_reg <= br; bi_reg <= bi;
-//             wr_reg <= wr; wi_reg <= wi;
-//             start_1 <= start;
-//             //Stage 2: Register multiplication results and stage 1 registers
-//             mr_1_reg <= mr_1; mi_1_reg <= mi_1; mr_2_reg <= mr_2; mi_2_reg <= mi_2;
-//             ar_reg_2 <= ar_reg; ai_reg_2 <= ai_reg;
-//             start_2 <= start_1;
-//             //Stage 3: Register product additions results and stage 2 registers
-//             mr_reg <= mr; mi_reg <= mi;
-//             ar_reg_3 <= ar_reg_2; ai_reg_3 <= ai_reg_2;
-//             start_3 <= start_2;
-//             //Stage 4: Register outputs and stage 3 registers
-//             out1r <= out1r_reg; out1i <= out1i_reg; out2r <= out2r_reg; out2i <= out2i_reg;
-//             done <= start_3;
-//         end
-//     end
-// endmodule 
+`ifdef NO_DSP
+    `define DSP_ATTR (* use_dsp = "no" *)
+`else
+    `define DSP_ATTR (* use_dsp = "yes" *)
+`endif
 
 module butterfly_radix_2_pipelined #(
     parameter WIDTH = 32,
+    parameter Tw_WIDTH = 16,
     parameter SimpleMult = 0,
     parameter Fast_DSP = 0,
     parameter stage_num = 1,
@@ -110,21 +19,23 @@ module butterfly_radix_2_pipelined #(
     input                  reset,
     input                  start,
     input  signed [WIDTH-1:0]   ar, ai, br, bi,
-    input  signed [WIDTH/2-1:0] wr, wi,
+    input  signed [Tw_WIDTH-1:0] wr, wi,
     output reg signed [WIDTH-1:0] out1r, out1i, out2r, out2i,
-    output reg                  done
+    output wire                  done
 );  
-    localparam TW = WIDTH/2;
+    localparam TW = Tw_WIDTH;
     localparam PROD = WIDTH + TW;
-    localparam CarrySavedelay_simple = (WIDTH/2 + (WIDTH/2 + WIDTH)/CHUNK + 2);
-    localparam CarrySavedelay_cheap = (WIDTH/2 + (WIDTH/2 + WIDTH)/CHUNK + 3);
-    localparam delay_mult = (stage_num != 1) ? ((Fast_DSP == 1) ? 3 : 2) + (SimpleMult == 1 ? 0 : 1) + 
+    localparam CarrySavedelay_simple = (Tw_WIDTH + (Tw_WIDTH + WIDTH - 1)/CHUNK + 2);
+    localparam CarrySavedelay_cheap = (Tw_WIDTH + 1 + (Tw_WIDTH + 1 + WIDTH - 1)/CHUNK + 2);
+    localparam delay_mult = (stage_num != 1) ? ((Fast_DSP == 1) ? 4 : 2) + (SimpleMult == 1 ? 0 : 1) + 
     (carry_save == 1 ? (SimpleMult == 1 ? CarrySavedelay_simple : CarrySavedelay_cheap) : 0) : 0;
     
 
     function signed [WIDTH-1:0] scale_product;
         input signed [PROD-1:0] x;
+        reg signed [PROD-1:0] rounded_x;
         begin
+            //rounded_x = x + (1 << (TW - 2)); 
             scale_product = $signed(x[PROD-2:TW-1]);
         end
     endfunction
@@ -133,12 +44,14 @@ module butterfly_radix_2_pipelined #(
     // Complex Multiplier Instantiation (4 cycle latency)
     // ------------------------------------------------------------
     wire signed [PROD-1:0] mr_full, mi_full;
+    reg signed  [WIDTH-1:0] mr_reg, mi_reg;
 
     generate
         if(stage_num != 1) begin : stage_gen
             if (SimpleMult) begin : simple_mult
                 SimpleMult #(
                     .WIDTH(WIDTH),
+                    .Tw_WIDTH(Tw_WIDTH),
                     .PROD(PROD),
                     .Fast_DSP(Fast_DSP),
                     .carry_save(carry_save),
@@ -155,6 +68,7 @@ module butterfly_radix_2_pipelined #(
             end else begin : cheap_mult
                 CheapMult #(
                     .WIDTH(WIDTH),
+                    .Tw_WIDTH(Tw_WIDTH),
                     .PROD(PROD),
                     .Fast_DSP(Fast_DSP),
                     .carry_save(carry_save),
@@ -170,16 +84,16 @@ module butterfly_radix_2_pipelined #(
                 );
             end
         end else begin : stage_1
-                assign mr_full = br << (WIDTH-1)/2;
-                assign mi_full = bi << (WIDTH-1)/2;
+                assign mr_full = {{TW{br[WIDTH-1]}}, br } << (Tw_WIDTH - 1);
+                assign mi_full = {{TW{bi[WIDTH-1]}}, bi } << (Tw_WIDTH - 1);
         end
     endgenerate
 
-    reg [WIDTH-1:0] ar_delayed, ai_delayed;
+    wire [WIDTH-1:0] ar_delayed, ai_delayed;
 
     delay_reg #(
         .WIDTH(WIDTH),
-        .DELAY(delay_mult)
+        .DELAY(delay_mult + 1)
     ) u_delay_a (
         .clock(clock),
         .data_in(ar),
@@ -188,7 +102,7 @@ module butterfly_radix_2_pipelined #(
 
     delay_reg #(
         .WIDTH(WIDTH),
-        .DELAY(delay_mult)
+        .DELAY(delay_mult + 1)
     ) u_delay_ai (
         .clock(clock),
         .data_in(ai),
@@ -198,7 +112,7 @@ module butterfly_radix_2_pipelined #(
 
     delay_reg_reset #(
         .WIDTH(1),
-        .DELAY(delay_mult+1)
+        .DELAY(delay_mult+1+1)
     ) u_delay_start (
         .clock(clock),
         .reset(reset),
@@ -206,19 +120,24 @@ module butterfly_radix_2_pipelined #(
         .data_out(done)
     );
 
+    
+        always @(posedge clock) begin
+            mr_reg <= scale_product(mr_full);
+            mi_reg <= scale_product(mi_full);
 
-    always @(posedge clock) begin
-        out1r <= ar_delayed + scale_product(mr_full);
-        out1i <= ai_delayed + scale_product(mi_full);
-        
-        out2r <= ar_delayed - scale_product(mr_full);
-        out2i <= ai_delayed - scale_product(mi_full);
-    end
-
+            out1r <= ar_delayed + mr_reg;
+            out1i <= ai_delayed + mi_reg;
+            
+            out2r <= ar_delayed - mr_reg;
+            out2i <= ai_delayed - mi_reg;
+        end
+       
 endmodule
 
+`DSP_ATTR
 module SimpleMult #(
     parameter WIDTH = 16,
+    parameter Tw_WIDTH = 8,
     parameter PROD = 32,
     parameter Fast_DSP = 1,
     parameter carry_save = 1,
@@ -226,7 +145,7 @@ module SimpleMult #(
 )(
     input clock,
     input signed[WIDTH-1:0] a_re, a_im,
-    input signed [WIDTH/2 -1:0] w0re, w0im,
+    input signed [Tw_WIDTH -1:0] w0re, w0im,
     output reg signed[PROD:0] out_a_re, out_a_im
 );
 
@@ -234,19 +153,28 @@ module SimpleMult #(
         if (Fast_DSP) begin : fast_dsp
             reg signed [PROD-1:0]    rr_a_s1, ri_a_s1;
             reg signed [WIDTH-1:0]   a_im_s1;
-            reg signed [WIDTH/2-1:0] w0re_s1, w0im_s1;
+            reg signed [Tw_WIDTH-1:0] w0re_s1, w0im_s1;
+            reg signed [Tw_WIDTH-1:0]   w0_re_reg, w0_im_reg;
+            reg signed [WIDTH-1:0] a_re_reg, a_im_reg;
 
-            reg signed [PROD-1:0]    rr_a_s2, ri_a_s2, ii_a_s2, ir_a_s2;
+
+            reg signed [PROD-1:0]    rr_a_s2, ri_a_s2; 
+            reg signed [PROD-1:0] ii_a_s2, ir_a_s2;
 
             always @(posedge clock) begin
+                w0_re_reg <= w0re;
+                w0_im_reg <= w0im;
+                a_re_reg <= a_re;
+                a_im_reg <= a_im;
+
                 // Stage 1 //
                 // Channel A
-                rr_a_s1 <= a_re * w0re;
-                ri_a_s1 <= a_re * w0im;
+                rr_a_s1 <= a_re_reg * w0_re_reg;
+                ri_a_s1 <= a_re_reg * w0_im_reg;
                 
-                a_im_s1 <= a_im;
-                w0re_s1 <= w0re;
-                w0im_s1 <= w0im;
+                a_im_s1 <= a_im_reg;
+                w0re_s1 <= w0_re_reg;
+                w0im_s1 <= w0_im_reg;
 
                 // Stage 2 //
                 // Channel A
@@ -263,11 +191,12 @@ module SimpleMult #(
             end
         end else begin : slow_dsp
             if(carry_save) begin : carry_save_mult
-                wire signed[PROD-1:0] rr_a, ii_a, ri_a, ir_a;
+                (* use_dsp = "no" *) wire signed[PROD-1:0] rr_a, ii_a, ri_a, ir_a;
 
+                (* use_dsp = "no" *)
                 Carry_mult #(
                     .A_WIDTH(WIDTH),
-                    .B_WIDTH(WIDTH/2),
+                    .B_WIDTH(Tw_WIDTH),
                     .CHUNK(CHUNK)
                 ) u_carry_mult_1 (
                     .clock(clock),
@@ -279,9 +208,10 @@ module SimpleMult #(
                     .done()
                 );
 
-                Carry_mult #(
+                (* use_dsp = "no" *)
+                 Carry_mult #(
                     .A_WIDTH(WIDTH),
-                    .B_WIDTH(WIDTH/2),
+                    .B_WIDTH(Tw_WIDTH),
                     .CHUNK(CHUNK)
                 ) u_carry_mult_2 (
                     .clock(clock),
@@ -293,9 +223,10 @@ module SimpleMult #(
                     .done()
                 );
 
+                (* use_dsp = "no" *)
                 Carry_mult #(
                     .A_WIDTH(WIDTH),
-                    .B_WIDTH(WIDTH/2),
+                    .B_WIDTH(Tw_WIDTH),
                     .CHUNK(CHUNK)
                 ) u_carry_mult_3 (
                     .clock(clock),
@@ -307,9 +238,10 @@ module SimpleMult #(
                     .done()
                 );
 
+                (* use_dsp = "no" *)
                 Carry_mult #(
                     .A_WIDTH(WIDTH),
-                    .B_WIDTH(WIDTH/2),
+                    .B_WIDTH(Tw_WIDTH),
                     .CHUNK(CHUNK)
                 ) u_carry_mult_4 (
                     .clock(clock),
@@ -342,8 +274,10 @@ module SimpleMult #(
     endgenerate
 endmodule
 
+`DSP_ATTR
 module CheapMult #(
     parameter WIDTH = 16,
+    parameter Tw_WIDTH = 8,
     parameter PROD  = 32,
     parameter Fast_DSP = 1,
     parameter carry_save = 1,
@@ -351,34 +285,42 @@ module CheapMult #(
 )(
     input  clock,
     input  signed [WIDTH-1:0]   a_re, a_im,
-    input  signed [WIDTH/2-1:0] w0re, w0im,
+    input  signed [Tw_WIDTH-1:0] w0re, w0im,
     output reg signed [PROD:0] out_a_re, out_a_im
 );
     generate 
         if (Fast_DSP) begin : fast_dsp
-            reg signed [WIDTH:0]     sum_a_s1;
-            reg signed [WIDTH/2:0]   sum_w0_s1, diff_w0_s1;
+            (* use_dsp = "no" *) reg signed [WIDTH:0]     sum_a_s1;
+            (* use_dsp = "no" *) reg signed [Tw_WIDTH:0]   sum_w0_s1, diff_w0_s1;
 
             reg signed [WIDTH-1:0]   a_re_s1, a_im_s1;
-            reg signed [WIDTH/2-1:0] w0re_s1;
+            reg signed [Tw_WIDTH-1:0] w0re_s1;
 
             reg signed [PROD:0]      k1_a_s2, k2_a_s2;
             
             reg signed [WIDTH-1:0]   a_im_s2;
-            reg signed [WIDTH/2:0]   sum_w0_s2;
+            reg signed [Tw_WIDTH:0]   sum_w0_s2;
 
             reg signed [PROD:0]      k1_a_s3, k2_a_s3, k3_a_s3;
+            reg signed [PROD:0] out_a_im_reg;
+            reg signed [Tw_WIDTH-1:0]   w0_re_reg, w0_im_reg;
+            reg signed [WIDTH-1:0] a_re_reg, a_im_reg;
 
 
             always @(posedge clock) begin
+                w0_re_reg <= w0re;
+                w0_im_reg <= w0im;
+                a_re_reg <= a_re;
+                a_im_reg <= a_im;
+
                 // Stage 1 //
                 // Channel A
-                sum_a_s1   <= a_re + a_im;
-                sum_w0_s1  <= w0re + w0im;
-                diff_w0_s1 <= w0im - w0re;
-                a_re_s1    <= a_re;
-                a_im_s1    <= a_im;
-                w0re_s1    <= w0re;
+                sum_a_s1   <= a_re_reg + a_im_reg;
+                sum_w0_s1  <= w0_re_reg + w0_im_reg;
+                diff_w0_s1 <= w0_im_reg - w0_re_reg;
+                a_re_s1    <= a_re_reg;
+                a_im_s1    <= a_im_reg;
+                w0re_s1    <= w0_re_reg;
 
                 // Stage 2 //
                 // Channel A
@@ -392,29 +334,30 @@ module CheapMult #(
                 // Channel A
                 k3_a_s3 <= a_im_s2 * sum_w0_s2;
                 
+                out_a_im_reg <= k1_a_s2 + k2_a_s2;
                 k1_a_s3 <= k1_a_s2;
-                k2_a_s3 <= k2_a_s2;
 
                 // Stage 4 //
                 // Channel A
                 out_a_re <= k1_a_s3 - k3_a_s3;
-                out_a_im <= k1_a_s3 + k2_a_s3;
+                out_a_im <= out_a_im_reg;
             end
         end else begin : slow_dsp
             if(carry_save) begin : carry_save_mult
-                reg signed [WIDTH:0]   sum_a_in;
-                reg signed [WIDTH/2:0] sum_w0_in;
-                reg signed [WIDTH/2:0] diff_w0_in;
+                (* use_dsp = "no" *) reg signed [WIDTH:0]   sum_a_in;
+                (* use_dsp = "no" *) reg signed [Tw_WIDTH:0] sum_w0_in;
+                (* use_dsp = "no" *) reg signed [Tw_WIDTH:0] diff_w0_in;
 
-                reg signed [WIDTH-1:0]   a_re_d, a_im_d;
-                reg signed [WIDTH/2-1:0] w0re_d;
+                (* use_dsp = "no" *) reg signed [WIDTH-1:0]   a_re_d, a_im_d;
+                (* use_dsp = "no" *) reg signed [Tw_WIDTH-1:0] w0re_d;
 
-                wire signed [PROD:0] k1_a, k2_a, k3_a;
-                reg signed [PROD:0] k1_a_reg;
-
+                (* use_dsp = "no" *) wire signed [PROD:0] k1_a, k2_a, k3_a;
+                (* use_dsp = "no" *) reg signed [PROD:0] k1_a_reg;
+                
+                (* use_dsp = "no" *)
                 Carry_mult #(
                     .A_WIDTH(WIDTH+1),
-                    .B_WIDTH(WIDTH/2),
+                    .B_WIDTH(Tw_WIDTH),
                     .CHUNK(CHUNK)
                 ) u_carry_mult_1 (
                     .clock(clock),
@@ -425,10 +368,10 @@ module CheapMult #(
                     .product(k1_a),
                     .done()
                 );
-
+                (* use_dsp = "no" *)
                 Carry_mult #(
                     .A_WIDTH(WIDTH),
-                    .B_WIDTH(WIDTH/2 + 1),
+                    .B_WIDTH(Tw_WIDTH + 1),
                     .CHUNK(CHUNK)
                 ) u_carry_mult_2 (
                     .clock(clock),
@@ -439,10 +382,10 @@ module CheapMult #(
                     .product(k2_a),
                     .done()
                 );
-
+                (* use_dsp = "no" *)
                 Carry_mult #(
                     .A_WIDTH(WIDTH),
-                    .B_WIDTH(WIDTH/2 + 1),
+                    .B_WIDTH(Tw_WIDTH + 1),
                     .CHUNK(CHUNK)
                 ) u_carry_mult_3 (
                     .clock(clock),
@@ -468,12 +411,12 @@ module CheapMult #(
                     out_a_im <= k1_a_reg + k2_a;
                 end
             end else begin : no_carry_save_mult
-                reg signed [WIDTH:0]   sum_a_in;
-                reg signed [WIDTH/2:0] sum_w0_in;
-                reg signed [WIDTH/2:0] diff_w0_in;
+                (* use_dsp = "no" *) reg signed [WIDTH:0]   sum_a_in;
+                (* use_dsp = "no" *) reg signed [Tw_WIDTH:0] sum_w0_in;
+                (* use_dsp = "no" *) reg signed [Tw_WIDTH:0] diff_w0_in;
 
                 reg signed [WIDTH-1:0]   a_re_d, a_im_d;
-                reg signed [WIDTH/2-1:0] w0re_d;
+                reg signed [Tw_WIDTH-1:0] w0re_d;
 
                 reg signed [PROD:0] k1_a, k2_a, k3_a;
 

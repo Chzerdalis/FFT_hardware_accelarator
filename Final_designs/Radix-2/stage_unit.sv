@@ -2,11 +2,12 @@
 
 module SdfUnit2_fast #(
     parameter   WIDTH = 32, 
+    parameter   Tw_WIDTH = 16,
     parameter   STAGE_NUM = 1,   
     parameter   Num_of_samples = 16,
-    parameter string twiddle_file_real = "../Data/f_twiddle_real.mem",
-    parameter string twiddle_file_imag = "../Data/f_twiddle_imag.mem",
-    parameter   SimpleMult = 0,
+    parameter   twiddle_file_real = "../Data/f_twiddle_real.mem",
+    parameter   twiddle_file_imag = "../Data/f_twiddle_imag.mem",
+    parameter   SimpleMult = 1,
     parameter   Fast_DSP = 0,
     parameter   carry_save = 1,
     parameter   Bram = 1
@@ -21,7 +22,7 @@ module SdfUnit2_fast #(
     output  reg [WIDTH-1:0] output_imag_0, output_imag_1  
 );
 
-    localparam stage_num_bits = STAGE_NUM - 2;  
+    localparam stage_num_bits = (STAGE_NUM - 2 < 0) ? 0 : STAGE_NUM - 2;
     localparam Num_of_samples_flash = $clog2(Num_of_samples/2);
     localparam Stride = 1 << STAGE_NUM;
     localparam shift_value = $clog2(Num_of_samples/Stride);
@@ -29,14 +30,13 @@ module SdfUnit2_fast #(
     localparam Depth_B = Depth_A/2;
     localparam twiddle_array_size = 1 << (STAGE_NUM-1);
 
-    wire [31:0] twiddle_array_size_d = twiddle_array_size;
-
     reg [stage_num_bits:0] stride_segment_counter;
     reg [stage_num_bits:0] butterfly_op_counter;
     reg [Num_of_samples_flash-1:0] flush_counter;
     reg butterfly_op_counter_en;
 
-    wire [$clog2(Num_of_samples)-1:0] twiddle_index;
+    //wire [$clog2(Num_of_samples)-1:0] twiddle_index;
+    wire [stage_num_bits:0] twiddle_index;
 
     wire signed [WIDTH-1:0] x0_re, x0_im, y0_re, y0_im;
     wire signed [WIDTH-1:0] x1_re, x1_im, y1_re, y1_im;
@@ -46,10 +46,10 @@ module SdfUnit2_fast #(
 
     wire start_butterfly, butterfly_out_ready;
 
-    wire [WIDTH/2 - 1:0] wr, wi;
+    wire [Tw_WIDTH - 1:0] wr, wi;
 
-    (* ram_style = "distributed" *) reg [WIDTH/2 - 1:0] w_real [0: twiddle_array_size -1];
-    (* ram_style = "distributed" *) reg [WIDTH/2 - 1:0] w_imag [0: twiddle_array_size -1];
+    (* ram_style = "distributed" *) reg [Tw_WIDTH - 1:0] w_real [0: twiddle_array_size -1];
+    (* ram_style = "distributed" *) reg [Tw_WIDTH - 1:0] w_imag [0: twiddle_array_size -1];
 
     
     initial begin
@@ -73,7 +73,7 @@ module SdfUnit2_fast #(
                         if(stride_segment_counter == HALF_STRIDE_VAL && butterfly_op_counter_en == 0) begin
                             butterfly_op_counter_en <= 1'b1;
                             butterfly_op_counter <= butterfly_op_counter;
-                            flush_counter <= Num_of_samples/2 - 1;
+                            flush_counter <= $bits(flush_counter)'(Num_of_samples/2 - 1);
                         end else if (butterfly_op_counter_en) begin
                             butterfly_op_counter <= butterfly_op_counter + 1'b1;
                             butterfly_op_counter_en <= 1'b1;
@@ -104,7 +104,7 @@ module SdfUnit2_fast #(
     endgenerate
 
     //assign twiddle_index = (STAGE_NUM == 1) ? 3'b0 : (butterfly_op_counter << shift_value);
-    assign twiddle_index = (STAGE_NUM == 1) ? 3'b0 : (butterfly_op_counter);
+    assign twiddle_index = (STAGE_NUM == 1) ? 0 : (butterfly_op_counter);
 
     assign wr = w_real[twiddle_index];
     assign wi = w_imag[twiddle_index];
@@ -121,11 +121,12 @@ module SdfUnit2_fast #(
 
     butterfly_radix_2_pipelined #(
         .WIDTH(WIDTH),
+        .Tw_WIDTH(Tw_WIDTH),
         .SimpleMult(SimpleMult),
         .Fast_DSP(Fast_DSP),
         .stage_num(STAGE_NUM),
         .carry_save(carry_save),
-        .CHUNK(WIDTH/2)
+        .CHUNK(8)
     ) b0 (
         .clock(clock),
         .reset(reset),
@@ -157,7 +158,8 @@ module SdfUnit2_fast #(
 
         DelayBuffer #(
             .DEPTH(Depth_A),
-            .WIDTH(WIDTH)
+            .WIDTH(WIDTH),
+            .Bram(Bram)
         ) db1 (
             .clock(clock),
             .input_real(delay_in_real_1),
