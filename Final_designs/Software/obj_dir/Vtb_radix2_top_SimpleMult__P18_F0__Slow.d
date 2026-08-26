@@ -1,3 +1,0 @@
-Vtb_radix2_top_SimpleMult__P18_F0__Slow.o: \
- Vtb_radix2_top_SimpleMult__P18_F0__Slow.cpp Vtb_radix2_top__pch.h \
- Vtb_radix2_top_SimpleMult__P18_F0.h Vtb_radix2_top__Syms.h

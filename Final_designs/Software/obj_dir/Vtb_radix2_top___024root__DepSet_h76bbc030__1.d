@@ -1,3 +1,0 @@
-Vtb_radix2_top___024root__DepSet_h76bbc030__1.o: \
- Vtb_radix2_top___024root__DepSet_h76bbc030__1.cpp Vtb_radix2_top__pch.h \
- Vtb_radix2_top__Syms.h Vtb_radix2_top___024root.h
