@@ -386,3 +386,5 @@ if __name__ == "__main__":
 
         for i in range(1, stages+1):
             find_cshm_slots_alfabets_for_fft_size_and_type(max_slots=3, max_alphabet_size=10, fft_size=fft_size, bit_width=bit_width, type_fft=fft_type, stage=i, tolerance_per=tolerance_per, roun=roun)
+        # for i in range(1, stages+1):
+        #     find_cshm_instructions_2(fft_size=fft_size, bit_width=bit_width, type_fft=fft_type, stage=i, alphabets=4, num_slots=2, tolerance_per=tolerance_per)

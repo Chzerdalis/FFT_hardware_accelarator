@@ -1,0 +1,1 @@
+xvlog cshm.v tb_cshm_2_keys.v && xelab -debug typical tb_cshm_2_keys && xsim tb_cshm_2_keys -R

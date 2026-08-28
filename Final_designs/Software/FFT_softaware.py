@@ -5,6 +5,316 @@ import sys
 import os
 import shutil
 
+"""
+Twiddle ROM generation with optional inline CSHM (shift-and-add) encoding.
+
+    # raw twiddles (original behaviour)
+    generate_twiddles(256, 9, type_fft=0)
+
+    # CSHM instruction words instead
+    enc = CSHMEncoder(bit_width=9, alphabets=8, num_slots=2)
+    generate_twiddles(256, 9, type_fft=0, cshm=enc)
+    enc.word_bits      # <-- ROM width the RTL must use (NOT twiddle_width)
+
+Instruction word layout, slot 0 in the MSBs:
+
+    [ alpha_idx : alpha_bits ][ sign : 1 ][ shift : shift_bits ]  x num_slots
+
+hardware computes:  sum_i  (+/-) (alphabet[alpha_idx_i] * x) << shift_i
+"""
+
+import math
+import itertools
+import numpy as np
+
+
+# ===========================================================================
+# CSHM encoder
+# ===========================================================================
+
+class CSHMEncoder:
+    """
+    bit_width      width the twiddles were quantised to
+    alphabets      int N -> [1, 3, 5, ...] of length N, or an explicit list
+    num_slots      number of shift-add terms per constant
+    tolerance_per  allowed error as a fraction of full scale (0 = exact only)
+    allow_nearest  use the closest reachable value instead of failing
+    """
+
+    def __init__(self, bit_width, alphabets=8, num_slots=2, tolerance_per=0.0,
+                 max_magnitude=None, allow_nearest=False):
+        if isinstance(alphabets, int):
+            if alphabets <= 0:
+                raise ValueError("alphabets must be > 0")
+            alphabets = [2 * n + 1 for n in range(alphabets)]
+        self.alphabets = list(alphabets)
+        self.bit_width = bit_width
+        self.num_slots = num_slots
+        self.tolerance_per = tolerance_per
+        self.allow_nearest = allow_nearest
+        self.max_magnitude = (1 << (bit_width - 1)) if max_magnitude is None else max_magnitude
+        self.tolerance = tolerance_per * self.max_magnitude
+
+        shifts = range(bit_width)
+        single_terms = []
+        for alpha in self.alphabets:
+            for shift in shifts:
+                for sign in (1, -1):
+                    single_terms.append((sign * (alpha << shift), sign, alpha, shift))
+
+        # cheapest (fewest total shifts) way to build each reachable value
+        self._best = {}
+        for combo in itertools.combinations_with_replacement(single_terms, num_slots):
+            total = sum(t[0] for t in combo)
+            cost = sum(t[3] for t in combo)
+            prev = self._best.get(total)
+            if prev is None or cost < prev[0]:
+                self._best[total] = (cost, combo)
+        self._reachable = sorted(self._best.keys())
+
+        self.alpha_bits = math.ceil(math.log2(len(self.alphabets))) if len(self.alphabets) > 1 else 0
+        self.shift_bits = max(1, math.ceil(math.log2(bit_width)))
+        self.slot_bits = self.alpha_bits + 1 + self.shift_bits
+        self.word_bits = self.slot_bits * num_slots
+
+        self._cache = {}
+        self.exact = 0
+        self.approx = 0
+        self.max_abs_error = 0
+
+    @property
+    def hex_chars(self):
+        return (self.word_bits + 3) // 4
+
+    def _match(self, value):
+        cands = [v for v in self._reachable if abs(v - value) <= self.tolerance]
+        if cands:
+            return min(cands, key=lambda v: abs(v - value))
+        if self.allow_nearest:
+            return min(self._reachable, key=lambda v: abs(v - value))
+        return None
+
+    def prevalidate(self, values):
+        """Raise if any value is unreachable, before anything is written."""
+        bad = sorted({int(v) for v in values if self._match(int(v)) is None})
+        if bad:
+            raise ValueError(
+                f"CSHM cannot represent {len(bad)} value(s) with num_slots="
+                f"{self.num_slots}, alphabet={self.alphabets}, tolerance_per="
+                f"{self.tolerance_per}: {bad[:12]}{' ...' if len(bad) > 12 else ''}. "
+                f"Increase num_slots, widen the alphabet, raise tolerance_per, "
+                f"or set allow_nearest=True."
+            )
+
+    def encode(self, value):
+        """Signed twiddle value -> packed instruction word."""
+        value = int(value)
+        hit = self._cache.get(value)
+        if hit is not None:
+            return hit
+
+        best = self._match(value)
+        if best is None:
+            raise ValueError(
+                f"CSHM cannot represent {value} (tolerance {self.tolerance})."
+            )
+
+        word = 0
+        for (_v, sign, alpha, shift) in self._best[best][1]:
+            slot = (self.alphabets.index(alpha) << (1 + self.shift_bits))
+            slot |= (0 if sign > 0 else 1) << self.shift_bits
+            slot |= shift
+            word = (word << self.slot_bits) | slot
+
+        if best == value:
+            self.exact += 1
+        else:
+            self.approx += 1
+            self.max_abs_error = max(self.max_abs_error, abs(best - value))
+        self._cache[value] = word
+        return word
+
+    def equation(self, value):
+        """Readable shift-add expression chosen for a value."""
+        best = self._match(int(value))
+        if best is None:
+            return None
+        parts = []
+        for i, (_v, sign, alpha, shift) in enumerate(self._best[best][1]):
+            lead = ("-" if sign < 0 else "") if i == 0 else (" - " if sign < 0 else " + ")
+            parts.append(f"{lead}({alpha}x << {shift})")
+        return "".join(parts)
+
+    def summary(self):
+        return (f"CSHM word={self.word_bits}b ({self.num_slots} x "
+                f"[alpha:{self.alpha_bits}|sign:1|shift:{self.shift_bits}]) "
+                f"| distinct={len(self._cache)} exact={self.exact} "
+                f"approx={self.approx} max_err={self.max_abs_error}")
+
+    # -- inverse, for checking a ROM word or the RTL decoder ---------------
+
+    def decode(self, word):
+        """word -> list of (sign, alpha, shift)."""
+        slots = []
+        for i in range(self.num_slots):
+            sh = self.slot_bits * (self.num_slots - 1 - i)
+            slot = (word >> sh) & ((1 << self.slot_bits) - 1)
+            shift = slot & ((1 << self.shift_bits) - 1)
+            sign = -1 if (slot >> self.shift_bits) & 1 else 1
+            idx = (slot >> (self.shift_bits + 1)) & ((1 << self.alpha_bits) - 1) if self.alpha_bits else 0
+            slots.append((sign, self.alphabets[idx], shift))
+        return slots
+
+    def evaluate(self, word):
+        """word -> the constant it represents."""
+        return sum(s * (a << sh) for s, a, sh in self.decode(word))
+
+
+# ===========================================================================
+# Twiddle generation
+# ===========================================================================
+
+def generate_twiddles(N, twiddle_width, type_fft=0, bit_growth=0, cshm=None,
+                      data_dir="../Data"):
+    """
+    cshm:  None        -> raw two's-complement twiddle values (unchanged)
+           CSHMEncoder -> packed CSHM instruction words
+           dict        -> e.g. {"alphabets": 8, "num_slots": 2}
+
+    When encoding, the whole value set is validated before any file is
+    written, so an unrepresentable value fails cleanly rather than leaving
+    a half-raw / half-encoded ROM set on disk.
+    """
+    if type_fft == 0:
+        stages = int(math.log2(N))
+    elif type_fft == 1:
+        stages = int(math.log2(N)) // 2   # radix-4: half the stages
+    elif type_fft == 2:
+        stages = int(math.log2(N))        # split-radix: same as radix-2
+    else:
+        raise ValueError(f"unknown type_fft: {type_fft}")
+
+    k = np.arange(N)
+    twiddles = np.exp(-2j * np.pi * k / N)
+
+    real_file_r2   = lambda s: f"{data_dir}/f_twiddle_real_{s}.mem"
+    imag_file_r2   = lambda s: f"{data_dir}/f_twiddle_imag_{s}.mem"
+    real_file_r4_1 = lambda s: f"{data_dir}/f_twiddle_real_{s}_1.mem"
+    imag_file_r4_1 = lambda s: f"{data_dir}/f_twiddle_imag_{s}_1.mem"
+    real_file_r4_2 = lambda s: f"{data_dir}/f_twiddle_real_{s}_2.mem"
+    imag_file_r4_2 = lambda s: f"{data_dir}/f_twiddle_imag_{s}_2.mem"
+    real_file_r4_3 = lambda s: f"{data_dir}/f_twiddle_real_{s}_3.mem"
+    imag_file_r4_3 = lambda s: f"{data_dir}/f_twiddle_imag_{s}_3.mem"
+
+    fractional_bits = twiddle_width - 1
+    scale_factor = 1 << fractional_bits
+    min_val = -scale_factor
+    max_val = scale_factor - 1
+
+    # error_magnitude = 0.01 * scale_factor
+    
+    # # Generate random errors for real and imaginary parts
+    # error_real = np.random.uniform(-error_magnitude, error_magnitude, size=N)
+    # error_imag = np.random.uniform(-error_magnitude, error_magnitude, size=N)
+
+    # # Create a mask that is True for roughly 5% of the indices
+    # apply_error_mask = np.random.rand(N) < 0.05
+
+    # # Zero out the error for the 95% of values that should remain untouched
+    # error_real = error_real * apply_error_mask
+    # error_imag = error_imag * apply_error_mask
+
+    # # Apply scaling, inject the 2% error (only on 30% of them), then clip and mask
+    # twiddle_real = np.clip((twiddles.real * scale_factor) + error_real, min_val, max_val).astype(int)
+    # twiddle_imag = np.clip((twiddles.imag * scale_factor) + error_imag, min_val, max_val).astype(int) 
+
+    twiddle_real = np.clip(twiddles.real * scale_factor, min_val, max_val).astype(int)
+    twiddle_imag = np.clip(twiddles.imag * scale_factor, min_val, max_val).astype(int)
+
+    if isinstance(cshm, dict):
+        cshm = CSHMEncoder(bit_width=twiddle_width, **cshm)
+    encoding = cshm is not None
+
+    if encoding:
+        cshm.prevalidate(set(twiddle_real.tolist()) | set(twiddle_imag.tolist()))
+        out_bits = cshm.word_bits
+    else:
+        out_bits = twiddle_width
+
+    hex_chars = (out_bits + 3) // 4
+    out_mask = (1 << out_bits) - 1
+
+    def dump(path, values):
+        with open(path, "w") as f:
+            for v in values:
+                word = cshm.encode(v) if encoding else int(v)
+                f.write(f"{word & out_mask:0{hex_chars}X}\n")
+
+    for stage in range(1, stages + 1):
+        if type_fft == 0:
+            real_q = twiddle_real[0: N // 2]
+            imag_q = twiddle_imag[0: N // 2]
+            stride = (N // 2) // 2 ** (stage - 1)
+            iter_count = 2 ** (stage - 1)
+
+            dump(real_file_r2(stage), [real_q[stride * j] for j in range(iter_count)])
+            dump(imag_file_r2(stage), [imag_q[stride * j] for j in range(iter_count)])
+
+        elif type_fft == 1:
+            real_q, imag_q = twiddle_real, twiddle_imag
+            stride = (N // 4) // 4 ** (stage - 1)
+            iter_count = 4 ** (stage - 1)
+
+            dump(real_file_r4_1(stage), [real_q[stride * j] for j in range(iter_count)])
+            dump(imag_file_r4_1(stage), [imag_q[stride * j] for j in range(iter_count)])
+            dump(real_file_r4_2(stage), [real_q[stride * j * 2] for j in range(iter_count)])
+            dump(imag_file_r4_2(stage), [imag_q[stride * j * 2] for j in range(iter_count)])
+            dump(real_file_r4_3(stage), [real_q[stride * j * 3] for j in range(iter_count)])
+            dump(imag_file_r4_3(stage), [imag_q[stride * j * 3] for j in range(iter_count)])
+
+        elif type_fft == 2:
+            real_q, imag_q = twiddle_real, twiddle_imag
+            if stage == 1:
+                continue                  # split-radix stage 1 has no twiddle
+            stride = 2 ** (stage - 2)
+            iter_count = int(N // (2 ** stage))
+
+            dump(real_file_r4_1(stage), [real_q[stride * j] for j in range(iter_count)])
+            dump(imag_file_r4_1(stage), [imag_q[stride * j] for j in range(iter_count)])
+            dump(real_file_r4_2(stage), [real_q[stride * j * 3] for j in range(iter_count)])
+            dump(imag_file_r4_2(stage), [imag_q[stride * j * 3] for j in range(iter_count)])
+
+    return twiddles.real, twiddles.imag
+
+
+def twiddle_files(fft_size, type_fft, data_dir="../Data"):
+    """The .mem paths generate_twiddles writes for this configuration."""
+    if type_fft == 0:
+        stages = int(math.log2(fft_size))
+    elif type_fft == 1:
+        stages = int(math.log2(fft_size)) // 2
+    elif type_fft == 2:
+        stages = int(math.log2(fft_size))
+    else:
+        raise ValueError(f"unknown type_fft: {type_fft}")
+
+    files = []
+    for stage in range(1, stages + 1):
+        if type_fft == 0:
+            files += [f"{data_dir}/f_twiddle_real_{stage}.mem",
+                      f"{data_dir}/f_twiddle_imag_{stage}.mem"]
+        elif type_fft == 1:
+            for k in (1, 2, 3):
+                files += [f"{data_dir}/f_twiddle_real_{stage}_{k}.mem",
+                          f"{data_dir}/f_twiddle_imag_{stage}_{k}.mem"]
+        else:
+            if stage == 1:
+                continue
+            for k in (1, 2):
+                files += [f"{data_dir}/f_twiddle_real_{stage}_{k}.mem",
+                          f"{data_dir}/f_twiddle_imag_{stage}_{k}.mem"]
+    return files
+
 def clean_data_folder(folder_path="../Data"):
     """
     Deletes all files and subdirectories inside the specified folder.
@@ -199,162 +509,6 @@ def generate_input_output(Num_of_windows, N, tw_width, type_fft=0, signal_mode="
 
     return x_reordered
 
-    
-def generate_twiddles(N, twiddle_width, type_fft=0, bit_growth=0):
-    if type_fft == 0:
-        stages = int(math.log2(N))
-    elif type_fft == 1:
-        stages = int(math.log2(N)) // 2  # Radix-4 has half the number of stages
-    #max_stage_num = twiddle_width + 1
-    #Current_bits_stages = min(stages, max_stage_num)
-    #bit_growth_stages = max(0, stages - max_stage_num)
-
-    k = np.arange(N)
-    twiddles = np.exp(-2j * np.pi * k / N)
-
-    real_file_r2 = lambda stage: f"../Data/f_twiddle_real_{stage}.mem"
-    imag_file_r2 = lambda stage: f"../Data/f_twiddle_imag_{stage}.mem"
-
-    real_file_r4_1 = lambda stage: f"../Data/f_twiddle_real_{stage}_1.mem"
-    imag_file_r4_1 = lambda stage: f"../Data/f_twiddle_imag_{stage}_1.mem"
-
-    real_file_r4_2 = lambda stage: f"../Data/f_twiddle_real_{stage}_2.mem"
-    imag_file_r4_2 = lambda stage: f"../Data/f_twiddle_imag_{stage}_2.mem"
-
-    real_file_r4_3 = lambda stage: f"../Data/f_twiddle_real_{stage}_3.mem"
-    imag_file_r4_3 = lambda stage: f"../Data/f_twiddle_imag_{stage}_3.mem"
-
-    # =========================================================================
-    # Fallback for No Bit Growth
-    # =========================================================================
-    # Calculate scaling once for the static width
-    fractional_bits = twiddle_width - 1
-    scale_factor = 1 << fractional_bits
-    min_val = -scale_factor
-    max_val = scale_factor - 1
-    mask = (1 << twiddle_width) - 1
-
-    twiddle_real = np.clip(twiddles.real * scale_factor, min_val, max_val).astype(int) & mask
-    twiddle_imag = np.clip(twiddles.imag * scale_factor, min_val, max_val).astype(int) & mask
-
-    for stage in range(1, stages + 1):
-        if (type_fft == 0): 
-            real_q = twiddle_real[0 : N // 2]
-            imag_q = twiddle_imag[0 : N // 2]
-
-            stride = (N // 2) // 2**(stage-1)
-            iter_count = 2**(stage-1)
-
-            temp_real = []
-            temp_imag = []
-
-            for j in range(0, iter_count):
-                temp_real.append(real_q[stride*j])
-                temp_imag.append(imag_q[stride*j])
-
-            hex_chars = (twiddle_width + 3) // 4
-            with open(real_file_r2(stage), "w") as f_real:
-                for value in temp_real:
-                    f_real.write(f"{value:0{hex_chars}X}\n")
-
-            with open(imag_file_r2(stage), "w") as f_imag:
-                for value in temp_imag:
-                    f_imag.write(f"{value:0{hex_chars}X}\n")
-        elif (type_fft == 1): 
-            real_q = twiddle_real
-            imag_q = twiddle_imag
-
-            stride = (N // 4) // 4**(stage-1)
-            iter_count = 4**(stage-1)
-
-            temp_real_1 = []
-            temp_imag_1 = []
-            temp_real_2 = []
-            temp_imag_2 = []
-            temp_real_3 = []
-            temp_imag_3 = []
-
-            for j in range(0, iter_count):
-                temp_real_1.append(real_q[stride*j])
-                temp_imag_1.append(imag_q[stride*j])
-            
-            for j in range(0, iter_count):
-                temp_real_2.append(real_q[stride*j*2])
-                temp_imag_2.append(imag_q[stride*j*2])
-
-            for j in range(0, iter_count):
-                temp_real_3.append(real_q[stride*j*3])
-                temp_imag_3.append(imag_q[stride*j*3])
-
-            hex_chars = (twiddle_width + 3) // 4
-
-            with open(real_file_r4_1(stage), "w") as f_real:
-                for value in temp_real_1:
-                    f_real.write(f"{value:0{hex_chars}X}\n")
-
-            with open(imag_file_r4_1(stage), "w") as f_imag:
-                for value in temp_imag_1:
-                    f_imag.write(f"{value:0{hex_chars}X}\n")
-
-            with open(real_file_r4_2(stage), "w") as f_real:
-                for value in temp_real_2:
-                    f_real.write(f"{value:0{hex_chars}X}\n")
-
-            with open(imag_file_r4_2(stage), "w") as f_imag:
-                for value in temp_imag_2:
-                    f_imag.write(f"{value:0{hex_chars}X}\n")
-
-            with open(real_file_r4_3(stage), "w") as f_real:
-                for value in temp_real_3:
-                    f_real.write(f"{value:0{hex_chars}X}\n")
-
-            with open(imag_file_r4_3(stage), "w") as f_imag:
-                for value in temp_imag_3:
-                    f_imag.write(f"{value:0{hex_chars}X}\n")
-
-            with open(real_file_r2(stage), "w") as f_real:
-                for value in real_q:
-                    f_real.write(f"{value:0{hex_chars}X}\n")
-
-            with open(imag_file_r2(stage), "w") as f_imag:
-                for value in imag_q:
-                    f_imag.write(f"{value:0{hex_chars}X}\n")
-
-
-    if __debug__:
-        print(f"Generated twiddles for {stages} stages.")
-
-    # Return the base twiddles for reference
-    return twiddles.real, twiddles.imag
-
-# def generate_twiddle_pkg(N, src_dir, type_fft=0):
-#     if type_fft == 0:
-#         stages = int(math.log2(N))
-#     elif type_fft == 1:
-#         stages = int(math.log2(N)) // 2  # Radix-4 has half the number of stages
-
-#     real_file = lambda stage: f"../Data/f_twiddle_real_{stage}.mem"
-#     imag_file = lambda stage: f"../Data/f_twiddle_imag_{stage}.mem"
-
-#     # 1. Generate the REAL file macro tree
-#     pkg_content = "`define GET_REAL_FILE(idx) \\\n"
-#     for stage in range(1, stages + 1):
-#         pkg_content += f"    ((idx) == {stage-1}) ? \"{real_file(stage)}\" : \\\n"
-#     pkg_content += f"    \"{real_file(1)}\"\n\n" # Default fallback
-
-#     # 2. Generate the IMAG file macro tree
-#     pkg_content += "`define GET_IMAG_FILE(idx) \\\n"
-#     for stage in range(1, stages + 1):
-#         pkg_content += f"    ((idx) == {stage-1}) ? \"{imag_file(stage)}\" : \\\n"
-#     pkg_content += f"    \"{imag_file(1)}\"\n\n" # Default fallback
-
-#     # Write to a header file
-#     filepath = f"{src_dir}twiddle_pkg.vh"
-#     with open(filepath, "w") as f:
-#         f.write(pkg_content)
-        
-#     print(f"Generated {filepath} with ternary macros for {stages} stages.")
-
 def generate_twiddle_pkg(N, src_dir, type_fft=0):
     """
     Generate twiddle_pkg.vh with ternary-macro file lookup trees.
@@ -371,8 +525,8 @@ def generate_twiddle_pkg(N, src_dir, type_fft=0):
         stages = int(math.log2(N))
     elif type_fft == 1:
         stages = int(math.log2(N)) // 2  # Radix-4 has half the number of stages
-    else:
-        raise ValueError(f"unknown type_fft: {type_fft}")
+    elif type_fft == 2:
+        stages = int(math.log2(N))  # Split-Radix has the same number of stages as Radix-2
 
     def build_macro(macro_name, path_fn):
         """Build one ternary lookup tree mapping stage index -> filename."""
@@ -392,7 +546,7 @@ def generate_twiddle_pkg(N, src_dir, type_fft=0):
         pkg_content += build_macro("GET_REAL_FILE", real_file)
         pkg_content += build_macro("GET_IMAG_FILE", imag_file)
 
-    else:
+    elif type_fft == 1:
         # ---------------- Radix-4: three twiddle pairs per stage ----------
         # NOTE: these filename patterns must match exactly what
         # generate_twiddles() writes for the radix-4 case.
@@ -407,109 +561,144 @@ def generate_twiddle_pkg(N, src_dir, type_fft=0):
         for k in (1, 2, 3):
             pkg_content += build_macro(f"GET_REAL_FILE_{k}", real_file_r4(k))
             pkg_content += build_macro(f"GET_IMAG_FILE_{k}", imag_file_r4(k))
+    elif type_fft == 2:
+        # ---------------- Radix-4: three twiddle pairs per stage ----------
+        # NOTE: these filename patterns must match exactly what
+        # generate_twiddles() writes for the radix-4 case.
+        # Order is stage first, then the twiddle index k (1,2,3).
+        real_file_r4 = lambda k: (
+            lambda stage: f"../Data/f_twiddle_real_{stage}_{k}.mem"
+        )
+        imag_file_r4 = lambda k: (
+            lambda stage: f"../Data/f_twiddle_imag_{stage}_{k}.mem"
+        )
+
+        for k in (1, 2):
+            pkg_content += build_macro(f"GET_REAL_FILE_{k}", real_file_r4(k))
+            pkg_content += build_macro(f"GET_IMAG_FILE_{k}", imag_file_r4(k))
 
     # Write to a header file
     filepath = f"{src_dir}twiddle_pkg.vh"
     with open(filepath, "w") as f:
         f.write(pkg_content)
 
-    radix = "radix-2" if type_fft == 0 else "radix-4"
+    radix = "radix-2" if type_fft == 0 else "radix-4" if type_fft == 1 else "split-radix"
     per_stage = 1 if type_fft == 0 else 3
     print(
         f"Generated {filepath} with ternary macros for {stages} {radix} "
         f"stages ({per_stage} twiddle pair(s) per stage)."
     )
-    
-def compile_simulation(Data_width=16, N=256, window_size=1):
-    # 1. Define the source directory and files
-    src_dir = "../Radix-2/"
-    
-    design_files = [
-        f"{src_dir}butterfly.v",
-        f"{src_dir}delay_buffer.v",
-        f"{src_dir}stage_unit.sv",
-        f"{src_dir}tb_top_radix_2.v",
-        f"{src_dir}fft_radix_2_top.sv"
-    ]
-    
-    parameters_file = [
-        f"-Ptb_radix2_top.WIDTH={Data_width}", 
-        f"-Ptb_radix2_top.Num_of_samples={N}",
-        f"-Ptb_radix2_top.MAX_FILE_SAMPLES={window_size * N + 1000}",
-    ] 
 
-
-    # 2. Compile the Verilog files
-    print("Compiling...")
-    compile_cmd = ["iverilog", "-o", "sim.vvp", "-g2012"] + design_files + parameters_file
-    
-    result = subprocess.run(compile_cmd, capture_output=True, text=True)
-    if result.returncode != 0:
-        print("Compilation failed!")
-        print("Standard Output:")
-        print(result.stdout)
-        print("Standard Error:")
-        print(result.stderr)
-        sys.exit(1)
-
-def compile_simulation_verilator(Data_width=16, Tw_width=8, N=256, type_fft=0, window_size=1, SimpleMult=0, Fast_DSP=0, carry_save=0, Bram=1, bit_growth=0, output_pipeline_bram=0, waves=False):
+def compile_simulation_verilator(Data_width=16, Tw_width=8, N=256, type_fft=0, window_size=1, SimpleMult=0, Fast_DSP=0, carry_save=0, Bram=1, bit_growth=0, output_pipeline_bram=0, input_pipeline_bram=0, Cshm=0, Key_width=14, waves=False):
     # 1. Define the source directory and files
     if type_fft == 0:
-        src_dir = "../Radix-2/"
+        if Cshm == 0:
+            src_dir = "../Radix-2/"
+        else:
+            src_dir = "../Radix-2_cshm/"
     elif type_fft == 1:
-        src_dir = "../Radix-4/"
-    
-    generate_twiddle_pkg(N, src_dir, type_fft) 
+        if Cshm == 0:
+            src_dir = "../Radix-4/"
+        else:
+            src_dir = "../Radix-4_cshm/"
+    elif type_fft == 2:
+        if Cshm == 0:
+            src_dir = "../Radix-split/"
+        else:
+            src_dir = "../Radix-split_cshm/"
 
-    if(type_fft == 0):
-        design_files = [
-            f"{src_dir}twiddle_pkg.vh",
-            f"{src_dir}butterfly.v",
-            f"{src_dir}delay_buffer.v",
-            f"{src_dir}stage_unit.sv",
-            f"{src_dir}tb_top_radix_2.v",
-            f"{src_dir}fft_radix_2_top.sv",
-            f"{src_dir}delay_reg.v",
-            f"{src_dir}Carry_mult.v",
-        ]
-    
-        # Verilator uses -G to override top-level parameters
-        parameters = [
-            f"-GWIDTH={Data_width}", 
-            f"-GNum_of_samples={N}",
-            f"-GTw_WIDTH={Tw_width}",
-            f"-GMAX_FILE_SAMPLES={window_size * N + 1000}",
-            f"-GSimpleMult={SimpleMult}",
-            f"-GFast_DSP={Fast_DSP}",
-            f"-Gcarry_save={carry_save}",
-            f"-GBram={Bram}",
-            f"-Gbit_growth={bit_growth}"
-        ]
-    elif(type_fft == 1):
-        design_files = [
-            f"{src_dir}butterfly.v",
-            f"{src_dir}memory.v",
-            f"{src_dir}stage_unit.sv",
-            f"{src_dir}tb_top_radix_4.v",
-            f"{src_dir}fft_radix_4_top.sv",
-            f"{src_dir}delay_reg.v",
-            f"{src_dir}Carry_mult.v"
-        ]
-    
-        # Verilator uses -G to override top-level parameters
-        parameters = [
-            f"-GWIDTH={Data_width}", 
-            f"-GNum_of_samples={N}",
-            f"-GTw_WIDTH={Tw_width}",
-            f"-GBram={Bram}",
-            f"-GSimpleMult={SimpleMult}",
-            f"-GFast_DSP={Fast_DSP}",
-            f"-Gcarry_save={carry_save}",
-            f"-Goutput_pipeline_bram={output_pipeline_bram}",
-            f"-Gbit_growth={bit_growth}",
-            f"-GMAX_FILE_SAMPLES={window_size * N + 1000}"
-        ]
-    
+    generate_twiddle_pkg(N, src_dir, type_fft)
+
+    if type_fft == 0:
+        if Cshm == 0:
+            design_files = [
+                f"{src_dir}twiddle_pkg.vh", f"{src_dir}butterfly.v", f"{src_dir}delay_buffer.v",
+                f"{src_dir}stage_unit.sv", f"{src_dir}tb_top_radix_2.v", f"{src_dir}fft_radix_2_top.sv",
+                f"{src_dir}delay_reg.v", f"{src_dir}Carry_mult.v"
+            ]
+            parameters = [
+                f"-GWIDTH={Data_width}", f"-GNum_of_samples={N}", f"-GTw_WIDTH={Tw_width}",
+                f"-GMAX_FILE_SAMPLES={window_size * N + 1000}", f"-GSimpleMult={SimpleMult}",
+                f"-GFast_DSP={Fast_DSP}", f"-Gcarry_save={carry_save}", f"-GBram={Bram}", f"-Gbit_growth={bit_growth}"
+            ]
+        else:
+            design_files = [
+                f"{src_dir}twiddle_pkg.vh", f"{src_dir}butterfly.v", f"{src_dir}delay_buffer.v",
+                f"{src_dir}stage_unit.sv", f"{src_dir}tb_top_radix_2.v", f"{src_dir}fft_radix_2_top.sv",
+                f"{src_dir}delay_reg.v",  f"{src_dir}cshm.v"
+            ]
+            parameters = [
+                f"-GWIDTH={Data_width}", f"-GNum_of_samples={N}", f"-GTw_WIDTH={Tw_width}",
+                f"-GMAX_FILE_SAMPLES={window_size * N + 1000}",
+                f"-GBram={Bram}", f"-Gbit_growth={bit_growth}",
+                f"-GKEY_WIDTH={Key_width}"
+            ]
+        top_module = "tb_radix2_top"
+
+    elif type_fft == 1:
+        if Cshm == 0:    
+            design_files = [
+                f"{src_dir}butterfly.v", f"{src_dir}memory.v", f"{src_dir}stage_unit.sv",
+                f"{src_dir}tb_top_radix_4.v", f"{src_dir}fft_radix_4_top.sv", f"{src_dir}delay_reg.v", f"{src_dir}Carry_mult.v",
+                f"{src_dir}twiddle_pkg.vh"
+            ]
+            parameters = [
+                f"-GWIDTH={Data_width}", f"-GNum_of_samples={N}", f"-GTw_WIDTH={Tw_width}",
+                f"-GBram={Bram}", f"-GSimpleMult={SimpleMult}", f"-GFast_DSP={Fast_DSP}",
+                f"-Gcarry_save={carry_save}", f"-Goutput_pipeline_bram={output_pipeline_bram}",
+                f"-Gbit_growth={bit_growth}", f"-GMAX_FILE_SAMPLES={window_size * N + 1000}"
+            ]
+        else:
+            design_files = [
+                f"{src_dir}butterfly.v", f"{src_dir}memory.v", f"{src_dir}stage_unit.sv",
+                f"{src_dir}tb_top_radix_4.v", f"{src_dir}fft_radix_4_top.sv", f"{src_dir}delay_reg.v", f"{src_dir}cshm.v",
+                f"{src_dir}twiddle_pkg.vh"
+            ]
+            parameters = [
+                f"-GWIDTH={Data_width}", f"-GNum_of_samples={N}", f"-GTw_WIDTH={Tw_width}",
+                f"-GBram={Bram}", f"-Goutput_pipeline_bram={output_pipeline_bram}",
+                f"-Gbit_growth={bit_growth}", f"-GMAX_FILE_SAMPLES={window_size * N + 1000}",
+                f"-GKEY_WIDTH={Key_width}"
+            ]
+        top_module = "tb_radix4_top"
+
+    elif type_fft == 2:
+        if Cshm == 0:
+            design_files = [
+                f"{src_dir}tb_split_fft_top.v", f"{src_dir}split_fft_top.v", f"{src_dir}first_stage.v",
+                f"{src_dir}fsm_control_unit_last_stage.v", f"{src_dir}second_stage.v", f"{src_dir}third_stage_fsm.v",
+                f"{src_dir}memory_first_stage.v", f"{src_dir}memory_second_stage.v", f"{src_dir}memory_third_stage.v",
+                f"{src_dir}fsm_control_unit.v", f"{src_dir}complex_multiplier.v", f"{src_dir}delay_reg.v",
+                f"{src_dir}butterfly.v", f"{src_dir}second_to_last_stage.v", f"{src_dir}last_stage.v",
+                f"{src_dir}Carry_mult.v"
+            ]
+            parameters = [
+                f"-GWIDTH={Data_width}", f"-GNum_of_samples={N}", 
+                f"-GMAX_FILE_SAMPLES={window_size * N + 1000}",
+                f"-GSimpleMult={SimpleMult}", f"-GFast_DSP={Fast_DSP}", f"-GTw_WIDTH={Tw_width}", 
+                f"-Gcarry_save={carry_save}",
+                f"-GBram={Bram}",
+                f"-Goutput_pipeline_bram={output_pipeline_bram}", f"-Ginput_pipeline_bram={input_pipeline_bram}"
+            ]
+        else:
+            design_files = [
+                f"{src_dir}tb_split_fft_top.v", f"{src_dir}split_fft_top.v", f"{src_dir}first_stage.v",
+                f"{src_dir}fsm_control_unit_last_stage.v", f"{src_dir}second_stage.v", f"{src_dir}third_stage_fsm.v",
+                f"{src_dir}memory_first_stage.v", f"{src_dir}memory_second_stage.v", f"{src_dir}memory_third_stage.v",
+                f"{src_dir}fsm_control_unit.v", f"{src_dir}complex_multiplier.v", f"{src_dir}delay_reg.v",
+                f"{src_dir}butterfly.v", f"{src_dir}second_to_last_stage.v", f"{src_dir}last_stage.v",
+                f"{src_dir}cshm.v"
+            ]
+            parameters = [
+                f"-GWIDTH={Data_width}", f"-GNum_of_samples={N}", 
+                f"-GMAX_FILE_SAMPLES={window_size * N + 1000}",
+                f"-GTw_WIDTH={Tw_width}", f"-GBram={Bram}",
+                f"-Goutput_pipeline_bram={output_pipeline_bram}", f"-Ginput_pipeline_bram={input_pipeline_bram}",
+                f"-GKEY_WIDTH={Key_width}"
+            ]
+        top_module = "tb_split_fft_top"
+
+
     if __debug__:
         print("Compiling with Verilator...")
 
@@ -547,68 +736,179 @@ def compile_simulation_verilator(Data_width=16, Tw_width=8, N=256, type_fft=0, w
         print(result.stderr)
         sys.exit(1)
 
-def compile_simulation_xsim(Data_width=16, Tw_width=8, N=256, type_fft=0, window_size=1, SimpleMult=0, Fast_DSP=0, carry_save=0, Bram=1, bit_growth=0, output_pipeline_bram=0, waves=False):
+def compile_simulation_xsim(Data_width=16, Tw_width=8, N=256, type_fft=0, window_size=1, SimpleMult=0, Fast_DSP=0, carry_save=0, Bram=1, bit_growth=0, output_pipeline_bram=0, input_pipeline_bram=0, Cshm=0, Key_width=14, waves=False):
     # 1. Define the source directory and files based on type_fft
     if type_fft == 0:
-        src_dir = "../Radix-2/"
+        if Cshm == 0:
+            src_dir = "../Radix-2/"
+        else:
+            src_dir = "../Radix-2_cshm/"
     elif type_fft == 1:
-        src_dir = "../Radix-4/"
-    
+        if Cshm == 0:
+            src_dir = "../Radix-4/"
+        else:
+            src_dir = "../Radix-4_cshm/"
+    elif type_fft == 2:
+        if Cshm == 0:
+            src_dir = "../Radix-split/"
+        else:
+            src_dir = "../Radix-split_cshm/"
+
     generate_twiddle_pkg(N, src_dir, type_fft) 
 
     if type_fft == 0:
-        design_files = [
-            f"{src_dir}twiddle_pkg.vh",
-            f"{src_dir}butterfly.v",
-            f"{src_dir}delay_buffer.v",
-            f"{src_dir}stage_unit.sv",
-            f"{src_dir}tb_top_radix_2.v",
-            f"{src_dir}fft_radix_2_top.sv",
-            f"{src_dir}delay_reg.v",
-            f"{src_dir}Carry_mult.v",
-        ]
-        top_module = "tb_radix2_top"
-        snapshot_name = "tb_radix2_top_snapshot"
-        
-        # Generic parameters for Radix-2
-        generics = [
-            "-generic_top", f"WIDTH={Data_width}",
-            "-generic_top", f"Num_of_samples={N}",
-            "-generic_top", f"Tw_WIDTH={Tw_width}",
-            "-generic_top", f"MAX_FILE_SAMPLES={window_size * N + 1000}",
-            "-generic_top", f"SimpleMult={SimpleMult}",
-            "-generic_top", f"Fast_DSP={Fast_DSP}",
-            "-generic_top", f"carry_save={carry_save}",
-            "-generic_top", f"Bram={Bram}",
-            "-generic_top", f"bit_growth={bit_growth}"
-        ]
+        if Cshm == 0:
+            design_files = [
+                f"{src_dir}twiddle_pkg.vh",
+                f"{src_dir}butterfly.v",
+                f"{src_dir}delay_buffer.v",
+                f"{src_dir}stage_unit.sv",
+                f"{src_dir}tb_top_radix_2.v",
+                f"{src_dir}fft_radix_2_top.sv",
+                f"{src_dir}delay_reg.v",
+                f"{src_dir}Carry_mult.v",
+            ]
+            top_module = "tb_radix2_top"
+            snapshot_name = "tb_radix2_top_snapshot"
+            
+            # Generic parameters for Radix-2
+            generics = [
+                "-generic_top", f"WIDTH={Data_width}",
+                "-generic_top", f"Num_of_samples={N}",
+                "-generic_top", f"Tw_WIDTH={Tw_width}",
+                "-generic_top", f"MAX_FILE_SAMPLES={window_size * N + 1000}",
+                "-generic_top", f"SimpleMult={SimpleMult}",
+                "-generic_top", f"Fast_DSP={Fast_DSP}",
+                "-generic_top", f"carry_save={carry_save}",
+                "-generic_top", f"Bram={Bram}",
+                "-generic_top", f"bit_growth={bit_growth}"
+            ]
+        else:
+            design_files = [
+                f"{src_dir}twiddle_pkg.vh",
+                f"{src_dir}butterfly.v",
+                f"{src_dir}delay_buffer.v",
+                f"{src_dir}stage_unit.sv",
+                f"{src_dir}tb_top_radix_2.v",
+                f"{src_dir}fft_radix_2_top.sv",
+                f"{src_dir}delay_reg.v",
+                f"{src_dir}cshm.v"
+            ]
+            top_module = "tb_radix2_top"
+            snapshot_name = "tb_radix2_top_snapshot"
+            
+            # Generic parameters for Radix-2 with CSHM
+            generics = [
+                "-generic_top", f"WIDTH={Data_width}",
+                "-generic_top", f"Num_of_samples={N}",
+                "-generic_top", f"Tw_WIDTH={Tw_width}",
+                "-generic_top", f"MAX_FILE_SAMPLES={window_size * N + 1000}",
+                "-generic_top", f"Bram={Bram}",
+                "-generic_top", f"bit_growth={bit_growth}",
+                "-generic_top", f"KEY_WIDTH={Key_width}"
+            ]
 
     elif type_fft == 1:
-        design_files = [
-            f"{src_dir}butterfly.v",
-            f"{src_dir}memory.v",
-            f"{src_dir}stage_unit.sv",
-            f"{src_dir}tb_top_radix_4.v",
-            f"{src_dir}fft_radix_4_top.sv",
-            f"{src_dir}delay_reg.v",
-            f"{src_dir}Carry_mult.v"
-        ]
-        top_module = "tb_radix4_top"
-        snapshot_name = "tb_radix4_top_snapshot"
-        
-        # Generic parameters for Radix-4
-        generics = [
-            "-generic_top", f"WIDTH={Data_width}",
-            "-generic_top", f"Num_of_samples={N}",
-            "-generic_top", f"Tw_WIDTH={Tw_width}",
-            "-generic_top", f"MAX_FILE_SAMPLES={window_size * N + 1000}",
-            "-generic_top", f"SimpleMult={SimpleMult}",
-            "-generic_top", f"Fast_DSP={Fast_DSP}",
-            "-generic_top", f"carry_save={carry_save}",
-            "-generic_top", f"Bram={Bram}",
-            "-generic_top", f"output_pipeline_bram={output_pipeline_bram}",
-            "-generic_top", f"bit_growth={bit_growth}"
-        ]
+        if Cshm == 0:
+            design_files = [
+                f"{src_dir}butterfly.v",
+                f"{src_dir}memory.v",
+                f"{src_dir}stage_unit.sv",
+                f"{src_dir}tb_top_radix_4.v",
+                f"{src_dir}fft_radix_4_top.sv",
+                f"{src_dir}delay_reg.v",
+                f"{src_dir}Carry_mult.v"
+            ]
+            top_module = "tb_radix4_top"
+            snapshot_name = "tb_radix4_top_snapshot"
+            
+            # Generic parameters for Radix-4
+            generics = [
+                "-generic_top", f"WIDTH={Data_width}",
+                "-generic_top", f"Num_of_samples={N}",
+                "-generic_top", f"Tw_WIDTH={Tw_width}",
+                "-generic_top", f"MAX_FILE_SAMPLES={window_size * N + 1000}",
+                "-generic_top", f"SimpleMult={SimpleMult}",
+                "-generic_top", f"Fast_DSP={Fast_DSP}",
+                "-generic_top", f"carry_save={carry_save}",
+                "-generic_top", f"Bram={Bram}",
+                "-generic_top", f"output_pipeline_bram={output_pipeline_bram}",
+                "-generic_top", f"bit_growth={bit_growth}"
+            ]
+        else:
+            design_files = [
+                f"{src_dir}butterfly.v",
+                f"{src_dir}memory.v",
+                f"{src_dir}stage_unit.sv",
+                f"{src_dir}tb_top_radix_4.v",
+                f"{src_dir}fft_radix_4_top.sv",
+                f"{src_dir}delay_reg.v",
+                f"{src_dir}cshm.v"
+            ]
+            top_module = "tb_radix4_top"
+            snapshot_name = "tb_radix4_top_snapshot"
+            
+            # Generic parameters for Radix-4 with CSHM
+            generics = [
+                "-generic_top", f"WIDTH={Data_width}",
+                "-generic_top", f"Num_of_samples={N}",
+                "-generic_top", f"Tw_WIDTH={Tw_width}",
+                "-generic_top", f"MAX_FILE_SAMPLES={window_size * N + 1000}",
+                "-generic_top", f"Bram={Bram}",
+                "-generic_top", f"output_pipeline_bram={output_pipeline_bram}",
+                "-generic_top", f"bit_growth={bit_growth}",
+                "-generic_top", f"KEY_WIDTH={Key_width}"
+            ]
+    elif type_fft == 2:
+        if Cshm == 0:
+            design_files = [
+                f"{src_dir}tb_split_fft_top.v", f"{src_dir}split_fft_top.v", f"{src_dir}first_stage.v",
+                f"{src_dir}fsm_control_unit_last_stage.v", f"{src_dir}second_stage.v", f"{src_dir}third_stage_fsm.v",
+                f"{src_dir}memory_first_stage.v", f"{src_dir}memory_second_stage.v", f"{src_dir}memory_third_stage.v",
+                f"{src_dir}fsm_control_unit.v", f"{src_dir}complex_multiplier.v", f"{src_dir}delay_reg.v",
+                f"{src_dir}butterfly.v", f"{src_dir}second_to_last_stage.v", f"{src_dir}last_stage.v",
+                f"{src_dir}Carry_mult.v"
+            ]
+            top_module = "tb_split_fft_top"
+            snapshot_name = "tb_split_fft_top_snapshot"
+            
+            # Generic parameters for Split-Radix (mapped directly to the TB parameters)
+            generics = [
+                "-generic_top", f"WIDTH={Data_width}",
+                "-generic_top", f"Tw_WIDTH={Tw_width}",
+                "-generic_top", f"Num_of_samples={N}",
+                "-generic_top", f"MAX_FILE_SAMPLES={window_size * N + 1000}"
+                "-generic_top", f"SimpleMult={SimpleMult}",
+                "-generic_top", f"Fast_DSP={Fast_DSP}",
+                "-generic_top", f"carry_save={carry_save}",
+                "-generic_top", f"input_pipeline_bram={input_pipeline_bram}"
+                "-generic_top", f"output_pipeline_bram={output_pipeline_bram}",
+                "-generic_top", f"Bram={Bram}"
+            ]
+        else:
+            design_files = [
+                f"{src_dir}tb_split_fft_top.v", f"{src_dir}split_fft_top.v", f"{src_dir}first_stage.v",
+                f"{src_dir}fsm_control_unit_last_stage.v", f"{src_dir}second_stage.v", f"{src_dir}third_stage_fsm.v",
+                f"{src_dir}memory_first_stage.v", f"{src_dir}memory_second_stage.v", f"{src_dir}memory_third_stage.v",
+                f"{src_dir}fsm_control_unit.v", f"{src_dir}complex_multiplier.v", f"{src_dir}delay_reg.v",
+                f"{src_dir}butterfly.v", f"{src_dir}second_to_last_stage.v", f"{src_dir}last_stage.v",
+                f"{src_dir}cshm.v"
+            ]
+            top_module = "tb_split_fft_top"
+            snapshot_name = "tb_split_fft_top_snapshot"
+            
+            # Generic parameters for Split-Radix with CSHM
+            generics = [
+                "-generic_top", f"WIDTH={Data_width}",
+                "-generic_top", f"Tw_WIDTH={Tw_width}",
+                "-generic_top", f"Num_of_samples={N}",
+                "-generic_top", f"MAX_FILE_SAMPLES={window_size * N + 1000}"
+                "-generic_top", f"input_pipeline_bram={input_pipeline_bram}"
+                "-generic_top", f"output_pipeline_bram={output_pipeline_bram}",
+                "-generic_top", f"Bram={Bram}",
+                "-generic_top", f"KEY_WIDTH={Key_width}"
+            ]
+
     
     if __debug__:
         print(f"Compiling with Xilinx XSIM (Radix-{2 if type_fft == 0 else 4})...")
@@ -659,6 +959,8 @@ def run_simulation_verilator(type_fft=0):
         sim_cmd = ["./obj_dir/Vtb_radix2_top"]
     elif type_fft == 1:
         sim_cmd = ["./obj_dir/Vtb_radix4_top"]
+    elif type_fft == 2:
+        sim_cmd = ["./obj_dir/Vtb_split_fft_top"]
     
     result = subprocess.run(sim_cmd, capture_output=True, text=True)
     
@@ -856,7 +1158,7 @@ def analyze_vector_advanced(a, fs=1.0):
     return characteristics
     
 def main(N, Data_width, Tw_width=8, Num_of_windows=1, type_fft=0, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=0, Fast_DSP=0, 
-         carry_save=0, Bram=1, output_pipeline_bram=0, waves=False):
+         carry_save=0, Bram=1, output_pipeline_bram=0, input_pipeline_bram=0, Cshm=0, waves=False):
     if __debug__:
         if(type_fft == 0):
             print(f"Radix-2 FFT")
@@ -874,11 +1176,23 @@ def main(N, Data_width, Tw_width=8, Num_of_windows=1, type_fft=0, iterations=10,
     total_psnr_real = 0
     total_psnr_imag = 0
 
+    enc = CSHMEncoder(bit_width=Tw_width, alphabets=4, num_slots=2, tolerance_per=0.004)
+    Key_width = enc.word_bits
+
+
     if(bit_growth == 1):
-        snapshot = compile_simulation_xsim(Data_width, Tw_width, type_fft=type_fft, N=N, window_size=Num_of_windows, SimpleMult=SimpleMult, Fast_DSP=Fast_DSP, carry_save=carry_save, Bram=Bram, bit_growth=bit_growth, waves=waves)
+        snapshot = compile_simulation_xsim(Data_width, Tw_width=Tw_width, type_fft=type_fft, bit_growth=bit_growth, N=N,window_size=Num_of_windows, SimpleMult=SimpleMult, 
+                                           Fast_DSP=Fast_DSP, carry_save=carry_save, Bram=Bram, output_pipeline_bram=output_pipeline_bram, 
+                                           input_pipeline_bram=input_pipeline_bram, Cshm=Cshm, Key_width=Key_width, waves=waves)
     else:
-        compile_simulation_verilator(Data_width, Tw_width, type_fft=type_fft, N=N, window_size=Num_of_windows, SimpleMult=SimpleMult, Fast_DSP=Fast_DSP, carry_save=carry_save, Bram=Bram, bit_growth=bit_growth, output_pipeline_bram=output_pipeline_bram, waves=waves)
-    generate_twiddles(N, Tw_width, type_fft, bit_growth)
+        compile_simulation_verilator(Data_width, Tw_width=Tw_width, type_fft=type_fft, N=N, window_size=Num_of_windows, SimpleMult=SimpleMult, 
+                                     Fast_DSP=Fast_DSP, carry_save=carry_save, Bram=Bram, bit_growth=bit_growth, output_pipeline_bram=output_pipeline_bram, 
+                                     input_pipeline_bram=input_pipeline_bram, Cshm=Cshm, Key_width=Key_width, waves=waves)
+
+    if Cshm == 1:
+        generate_twiddles(N=N, twiddle_width=Tw_width, type_fft=type_fft, cshm=enc)
+    else:
+        generate_twiddles(N=N, twiddle_width=Tw_width, type_fft=type_fft, cshm=None)
 
     for i in range(iterations):
         input = generate_input_output(Num_of_windows, N, Tw_width, type_fft, signal_mode)
@@ -922,39 +1236,20 @@ def main(N, Data_width, Tw_width=8, Num_of_windows=1, type_fft=0, iterations=10,
     # characteristics_max_real = analyze_vector_advanced(max_input_real)
     # characteristics_max_imag = analyze_vector_advanced(max_input_imag)
 
-    # print("\nCharacteristics of Input Vector with Minimum PSNR (Real):")
-    # for key, value in characteristics_min_real.items():
-    #     print(f"{key}: {value}")
-
-    # print("\nCharacteristics of Input Vector with Minimum PSNR (Imag):")
-    # for key, value in characteristics_min_imag.items():
-    #     print(f"{key}: {value}")
-
-    # print("\nCharacteristics of Input Vector with Maximum PSNR (Real):")
-    # for key, value in characteristics_max_real.items():
-    #     print(f"{key}: {value}")
-
-    # print("\nCharacteristics of Input Vector with Maximum PSNR (Imag):")
-    # for key, value in characteristics_max_imag.items():
-    #     print(f"{key}: {value}")
-
 if __name__ == "__main__":
+    clean_data_folder()
+    
+    #main(N=256, Data_width=25, Tw_width = 16, Num_of_windows=100, type_fft=0, iterations=10, signal_mode="random", bit_growth=1, Bram=0, Cshm=1, waves=False)
+    #main(N=256, Data_width=25, Tw_width = 16, Num_of_windows=100, type_fft=0, iterations=10, signal_mode="random", bit_growth=1, SimpleMult=1, Fast_DSP=0, carry_save=1, Bram=0, Cshm=0, waves=False)
+    # main(N=256, Data_width=11, Tw_width = 9, Num_of_windows=100, type_fft=1, iterations=10, signal_mode="random", bit_growth=1, SimpleMult=1, Fast_DSP=0, carry_save=1, Bram=0, Cshm=1, waves=False)
+    # main(N=256, Data_width=11, Tw_width = 9, Num_of_windows=100, type_fft=1, iterations=10, signal_mode="random", bit_growth=1, SimpleMult=1, Fast_DSP=0, carry_save=1, Bram=0, Cshm=0, waves=False)
+    main(N=256, Data_width=17, Tw_width = 9, Num_of_windows=100, type_fft=2, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=0, Bram=0, Cshm=1, output_pipeline_bram=0, input_pipeline_bram=1, waves=False)
+    main(N=256, Data_width=17, Tw_width = 9, Num_of_windows=100, type_fft=2, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=1, Bram=0, Cshm=0, output_pipeline_bram=0, input_pipeline_bram=1, waves=False)
+   
+    
 
-    clean_data_folder("../Data")
-    # print("LOW")
-    # main(256, 16, 1, 1, 0, 1000, "low")
-    # print("MIXED")
-    # main(256, 16, 1, 1, 0, 1000, "mixed")
-    # print("HIGH")
-    # main(256, 16, 1, 1, 0, 1000, "high")
-    # print("RANDOM")   
-    main(N=256, Data_width=11, Tw_width = 9, Num_of_windows=100, type_fft=1, iterations=1, signal_mode="random", bit_growth=1, SimpleMult=1, Fast_DSP=0, carry_save=1, Bram=0, waves=False)
-    # main(N=1024, Data_width=11, Tw_width = 9, Num_of_windows=60, type_fft=1, iterations=1, signal_mode="random", bit_growth=1, SimpleMult=1, Fast_DSP=1, carry_save=0, Bram=1, output_pipeline_bram=1, waves=False)
-    # main(N=256, Data_width=11, Tw_width = 9, Num_of_windows=40, type_fft=1, iterations=1, signal_mode="random", bit_growth=1, SimpleMult=0, Fast_DSP=0, carry_save=0, Bram=1, output_pipeline_bram=0, waves=False)
-    # main(N=256, Data_width=11, Tw_width = 9, Num_of_windows=40, type_fft=1, iterations=1, signal_mode="random", bit_growth=1, SimpleMult=1, Fast_DSP=1, carry_save=0, Bram=1, output_pipeline_bram=1, waves=False)
-    # main(N=256, Data_width=11, Tw_width = 9, Num_of_windows=40, type_fft=1, iterations=1, signal_mode="random", bit_growth=1, SimpleMult=0, Fast_DSP=1, carry_save=0, Bram=1, output_pipeline_bram=1, waves=False)
-    # main(N=256, Data_width=11, Tw_width = 9, Num_of_windows=40, type_fft=1, iterations=1, signal_mode="random", bit_growth=1, SimpleMult=1, Fast_DSP=0, carry_save=1, Bram=0, output_pipeline_bram=0, waves=False)
-    # main(N=256, Data_width=11, Tw_width = 9, Num_of_windows=40, type_fft=1, iterations=1, signal_mode="random", bit_growth=1, SimpleMult=0, Fast_DSP=0, carry_save=1, Bram=0, output_pipeline_bram=0, waves=False)
+    
+
 
 
 

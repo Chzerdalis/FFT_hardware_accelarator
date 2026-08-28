@@ -1,0 +1,28 @@
+#-----------------------------------------------------------
+# xsim v2018.3 (64-bit)
+# SW Build 2405991 on Thu Dec  6 23:36:41 MST 2018
+# IP Build 2404404 on Fri Dec  7 01:43:56 MST 2018
+# Start of session at: Thu Aug 27 23:41:20 2026
+# Process ID: 721143
+# Current directory: /home/christodoulos-zerdalis/Desktop/FFT/Cshm_hardware
+# Command line: xsim -mode tcl -source {xsim.dir/work.tb_cshm_2_keys/xsim_script.tcl}
+# Log file: /home/christodoulos-zerdalis/Desktop/FFT/Cshm_hardware/xsim.log
+# Journal file: /home/christodoulos-zerdalis/Desktop/FFT/Cshm_hardware/xsim.jou
+#-----------------------------------------------------------
+source xsim.dir/work.tb_cshm_2_keys/xsim_script.tcl
+# xsim {work.tb_cshm_2_keys} -autoloadwcfg -runall
+Vivado Simulator 2018.3
+Time resolution is 1 ps
+run -all
+=========================================================
+tb_cshm_2_keys   WIDTH=16  Tw_WIDTH=8  PROD=24  LAT=5
+loaded 120 vectors
+=========================================================
+=========================================================
+checks performed : 4800
+errors           : 0
+RESULT: PASS
+=========================================================
+$finish called at time : 24090 ns : File "/home/christodoulos-zerdalis/Desktop/FFT/Cshm_hardware/tb_cshm_2_keys.v" Line 198
+exit
+INFO: [Common 17-206] Exiting xsim at Thu Aug 27 23:41:27 2026...

@@ -1,2 +1,0 @@
-N,type_fft,SimpleMult,Fast_DSP,carry_save,Bram,LUTs,Registers,DSPs,BRAMs,WNS_ns,TNS_ns,Power_W
-256,0,0,0,0,0,1777,1848,21,0,-1.79,-988.565,0.644

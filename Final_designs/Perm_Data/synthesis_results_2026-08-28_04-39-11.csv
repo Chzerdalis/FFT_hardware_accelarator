@@ -1,0 +1,4 @@
+N,Data_width,Tw_width,type_fft,SimpleMult,Fast_DSP,carry_save,Bram,CSHM,LUTs,Registers,DSPs,BRAMs,WNS_ns,TNS_ns,Power_W
+256,10,9,0,0,0,0,0,1,6696,5961,0,0,-0.284,-7.075,1.306
+256,11,9,1,0,0,0,0,1,9709,9352,0,0,-0.176,-6.699,2.085
+256,17,9,2,0,0,0,0,1,15023,16196,0,0,-0.577,-472.698,2.749

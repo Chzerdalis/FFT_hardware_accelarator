@@ -119,8 +119,8 @@ module cshm_2_keys_n #(
 )(
     input  clock,
     input  signed [WIDTH-1:0] a,
-    input  [11:0] key0, 
-    input  [11:0] key1,
+    input  [13:0] key0, 
+    input  [13:0] key1,
     
     output reg signed [PROD-1:0] out0,
     output reg signed [PROD-1:0] out1
@@ -131,7 +131,7 @@ module cshm_2_keys_n #(
     // Prevents external pins from feeding directly into the alphabet adders.
     // =========================================================================
     reg signed [WIDTH-1:0] a_q1;
-    reg [11:0] key0_q1, key1_q1;
+    reg [13:0] key0_q1, key1_q1;
 
     always @(posedge clock) begin
         a_q1    <= a;
@@ -167,28 +167,28 @@ module cshm_2_keys_n #(
     // =========================================================================
     wire signed [WIDTH+2:0] mux00, mux01, mux10, mux11;
 
-    assign mux00 = (key0_q2[11:10] == 2'b00) ? alphabet_1 :
-                   (key0_q2[11:10] == 2'b01) ? alphabet_3 :
-                   (key0_q2[11:10] == 2'b10) ? alphabet_5 :
-                   (key0_q2[11:10] == 2'b11) ? alphabet_7 : {WIDTH+3{1'bx}};
+    assign mux00 = (key0_q2[13:12] == 2'b00) ? alphabet_1 :
+                   (key0_q2[13:12] == 2'b01) ? alphabet_3 :
+                   (key0_q2[13:12] == 2'b10) ? alphabet_5 :
+                   (key0_q2[13:12] == 2'b11) ? alphabet_7 : {WIDTH+3{1'bx}};
 
-    assign mux01 = (key0_q2[5:4] == 2'b00)   ? alphabet_1 :
-                   (key0_q2[5:4] == 2'b01)   ? alphabet_3 :
-                   (key0_q2[5:4] == 2'b10)   ? alphabet_5 :
-                   (key0_q2[5:4] == 2'b11)   ? alphabet_7 : {WIDTH+3{1'bx}};
+    assign mux01 = (key0_q2[6:5] == 2'b00)   ? alphabet_1 :
+                   (key0_q2[6:5] == 2'b01)   ? alphabet_3 :
+                   (key0_q2[6:5] == 2'b10)   ? alphabet_5 :
+                   (key0_q2[6:5] == 2'b11)   ? alphabet_7 : {WIDTH+3{1'bx}};
 
-    assign mux10 = (key1_q2[11:10] == 2'b00) ? alphabet_1 :
-                   (key1_q2[11:10] == 2'b01) ? alphabet_3 :
-                   (key1_q2[11:10] == 2'b10) ? alphabet_5 :
-                   (key1_q2[11:10] == 2'b11) ? alphabet_7 : {WIDTH+3{1'bx}};
+    assign mux10 = (key1_q2[13:12] == 2'b00) ? alphabet_1 :
+                   (key1_q2[13:12] == 2'b01) ? alphabet_3 :
+                   (key1_q2[13:12] == 2'b10) ? alphabet_5 :
+                   (key1_q2[13:12] == 2'b11) ? alphabet_7 : {WIDTH+3{1'bx}};
 
-    assign mux11 = (key1_q2[5:4] == 2'b00)   ? alphabet_1 :
-                   (key1_q2[5:4] == 2'b01)   ? alphabet_3 :
-                   (key1_q2[5:4] == 2'b10)   ? alphabet_5 :
-                   (key1_q2[5:4] == 2'b11)   ? alphabet_7 : {WIDTH+3{1'bx}};
+    assign mux11 = (key1_q2[6:5] == 2'b00)   ? alphabet_1 :
+                   (key1_q2[6:5] == 2'b01)   ? alphabet_3 :
+                   (key1_q2[6:5] == 2'b10)   ? alphabet_5 :
+                   (key1_q2[6:5] == 2'b11)   ? alphabet_7 : {WIDTH+3{1'bx}};
 
     reg signed [WIDTH+2:0] slot00_q3, slot01_q3, slot10_q3, slot11_q3;
-    reg [11:0] key0_q3, key1_q3;
+    reg [13:0] key0_q3, key1_q3;
 
     always @(posedge clock) begin
         slot00_q3 <= mux00;
@@ -204,10 +204,10 @@ module cshm_2_keys_n #(
     // =========================================================================
     wire signed [WIDTH+9:0] shift_out_00_wire, shift_out_01_wire, shift_out_10_wire, shift_out_11_wire;
 
-    barrel_shifter_lossless #(.DATA_WIDTH(WIDTH+3), .SHIFT_WIDTH(3)) shifter00 (.data_in(slot00_q3), .shift_amount(key0_q3[9:7]), .data_out(shift_out_00_wire));
-    barrel_shifter_lossless #(.DATA_WIDTH(WIDTH+3), .SHIFT_WIDTH(3)) shifter01 (.data_in(slot01_q3), .shift_amount(key0_q3[3:1]), .data_out(shift_out_01_wire));
-    barrel_shifter_lossless #(.DATA_WIDTH(WIDTH+3), .SHIFT_WIDTH(3)) shifter10 (.data_in(slot10_q3), .shift_amount(key1_q3[9:7]), .data_out(shift_out_10_wire));
-    barrel_shifter_lossless #(.DATA_WIDTH(WIDTH+3), .SHIFT_WIDTH(3)) shifter11 (.data_in(slot11_q3), .shift_amount(key1_q3[3:1]), .data_out(shift_out_11_wire));
+    barrel_shifter_lossless #(.DATA_WIDTH(WIDTH+3), .SHIFT_WIDTH(3)) shifter00 (.data_in(slot00_q3), .shift_amount(key0_q3[10:7]), .data_out(shift_out_00_wire));
+    barrel_shifter_lossless #(.DATA_WIDTH(WIDTH+3), .SHIFT_WIDTH(3)) shifter01 (.data_in(slot01_q3), .shift_amount(key0_q3[3:0]), .data_out(shift_out_01_wire));
+    barrel_shifter_lossless #(.DATA_WIDTH(WIDTH+3), .SHIFT_WIDTH(3)) shifter10 (.data_in(slot10_q3), .shift_amount(key1_q3[10:7]), .data_out(shift_out_10_wire));
+    barrel_shifter_lossless #(.DATA_WIDTH(WIDTH+3), .SHIFT_WIDTH(3)) shifter11 (.data_in(slot11_q3), .shift_amount(key1_q3[3:0]), .data_out(shift_out_11_wire));
 
     reg signed [WIDTH+9:0] shift_out_00_q4, shift_out_01_q4, shift_out_10_q4, shift_out_11_q4;
     reg sign_00_q4, sign_01_q4, sign_10_q4, sign_11_q4; 
@@ -219,10 +219,10 @@ module cshm_2_keys_n #(
         shift_out_11_q4 <= shift_out_11_wire;
         
         // Extract the target sign bits
-        sign_00_q4 <= key0_q3[6];
-        sign_01_q4 <= key0_q3[0];
-        sign_10_q4 <= key1_q3[6];
-        sign_11_q4 <= key1_q3[0];
+        sign_00_q4 <= key0_q3[11];
+        sign_01_q4 <= key0_q3[4];
+        sign_10_q4 <= key1_q3[11];
+        sign_11_q4 <= key1_q3[4];
     end
 
     // =========================================================================

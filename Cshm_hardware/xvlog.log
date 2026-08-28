@@ -1,0 +1,7 @@
+INFO: [VRFC 10-2263] Analyzing Verilog file "/home/christodoulos-zerdalis/Desktop/FFT/Cshm_hardware/cshm.v" into library work
+INFO: [VRFC 10-311] analyzing module alphabets_1_7
+INFO: [VRFC 10-311] analyzing module barrel_shifter_lossless
+INFO: [VRFC 10-311] analyzing module sign_selection
+INFO: [VRFC 10-311] analyzing module cshm_2_keys
+INFO: [VRFC 10-2263] Analyzing Verilog file "/home/christodoulos-zerdalis/Desktop/FFT/Cshm_hardware/tb_cshm_2_keys.v" into library work
+INFO: [VRFC 10-311] analyzing module tb_cshm_2_keys
