@@ -1180,7 +1180,7 @@ def main(N, Data_width, Tw_width=8, Num_of_windows=1, type_fft=0, iterations=10,
     Key_width = enc.word_bits
 
 
-    if(bit_growth == 1):
+    if(bit_growth == 2):
         snapshot = compile_simulation_xsim(Data_width, Tw_width=Tw_width, type_fft=type_fft, bit_growth=bit_growth, N=N,window_size=Num_of_windows, SimpleMult=SimpleMult, 
                                            Fast_DSP=Fast_DSP, carry_save=carry_save, Bram=Bram, output_pipeline_bram=output_pipeline_bram, 
                                            input_pipeline_bram=input_pipeline_bram, Cshm=Cshm, Key_width=Key_width, waves=waves)
@@ -1243,8 +1243,8 @@ if __name__ == "__main__":
     #main(N=256, Data_width=25, Tw_width = 16, Num_of_windows=100, type_fft=0, iterations=10, signal_mode="random", bit_growth=1, SimpleMult=1, Fast_DSP=0, carry_save=1, Bram=0, Cshm=0, waves=False)
     # main(N=256, Data_width=11, Tw_width = 9, Num_of_windows=100, type_fft=1, iterations=10, signal_mode="random", bit_growth=1, SimpleMult=1, Fast_DSP=0, carry_save=1, Bram=0, Cshm=1, waves=False)
     # main(N=256, Data_width=11, Tw_width = 9, Num_of_windows=100, type_fft=1, iterations=10, signal_mode="random", bit_growth=1, SimpleMult=1, Fast_DSP=0, carry_save=1, Bram=0, Cshm=0, waves=False)
-    main(N=256, Data_width=17, Tw_width = 9, Num_of_windows=100, type_fft=2, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=0, Bram=0, Cshm=1, output_pipeline_bram=0, input_pipeline_bram=1, waves=False)
-    main(N=256, Data_width=17, Tw_width = 9, Num_of_windows=100, type_fft=2, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=1, Bram=0, Cshm=0, output_pipeline_bram=0, input_pipeline_bram=1, waves=False)
+    main(N=256, Data_width=17, Tw_width = 9, Num_of_windows=100, type_fft=0, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=0, Bram=0, Cshm=0, output_pipeline_bram=0, input_pipeline_bram=1, waves=False)
+    main(N=256, Data_width=17, Tw_width = 9, Num_of_windows=100, type_fft=0, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=1, Bram=0, Cshm=0, output_pipeline_bram=0, input_pipeline_bram=1, waves=False)
    
     
 
