@@ -1,5 +1,33 @@
 `timescale 1ns / 1ps
 
+module alphabets_1_15 #(
+    parameter WIDTH = 16
+)(
+    input  clock,
+    input  signed [WIDTH-1:0] multiplier_in,
+    output reg signed [WIDTH+3:0] alphabet_1,
+    output reg signed [WIDTH+3:0] alphabet_3,
+    output reg signed [WIDTH+3:0] alphabet_5,
+    output reg signed [WIDTH+3:0] alphabet_7,
+    output reg signed [WIDTH+3:0] alphabet_9,
+    output reg signed [WIDTH+3:0] alphabet_11,
+    output reg signed [WIDTH+3:0] alphabet_13,
+    output reg signed [WIDTH+3:0] alphabet_15
+);
+ 
+    always @(posedge clock) begin
+        alphabet_1  <= multiplier_in;
+        alphabet_3  <= (multiplier_in << 1) + multiplier_in;                        // 2x + x
+        alphabet_5  <= (multiplier_in << 2) + multiplier_in;                        // 4x + x
+        alphabet_7  <= (multiplier_in << 3) - multiplier_in;                        // 8x - x
+        alphabet_9  <= (multiplier_in << 3) + multiplier_in;                        // 8x + x
+        alphabet_11 <= (multiplier_in << 3) + (multiplier_in << 1) + multiplier_in;  // 8x + 2x + x
+        alphabet_13 <= (multiplier_in << 3) + (multiplier_in << 2) + multiplier_in;  // 8x + 4x + x
+        alphabet_15 <= (multiplier_in << 4) - multiplier_in;                        // 16x - x
+    end
+ 
+endmodule
+
 module alphabets_1_7 #(
     parameter WIDTH = 16
 )(
@@ -60,7 +88,7 @@ module sign_selection #(
 endmodule
 
 (* dont_touch = "true" *)
-module cshm_2_keys #(
+module cshm_2_keys_ #(
     parameter WIDTH = 16,
     parameter Tw_WIDTH = 8,
     parameter PROD  = WIDTH + Tw_WIDTH // Note: Consider increasing PROD to 27 to prevent silent truncation!
@@ -186,4 +214,154 @@ module cshm_2_keys #(
                 (sign_11_q4 ? ~shift_out_11_q4 : shift_out_11_q4) + sign_11_q4;
     end
 
+endmodule
+
+
+(* dont_touch = "true" *)
+module cshm_2_keys #(
+    parameter WIDTH = 16,
+    parameter Tw_WIDTH = 8,
+    parameter PROD  = WIDTH + Tw_WIDTH // Note: Consider increasing PROD to 27 to prevent silent truncation!
+)(
+    input  clock,
+    input  signed [WIDTH-1:0] a,
+    input  [15:0] key0,
+    input  [15:0] key1,
+ 
+    output reg signed [PROD-1:0] out0,
+    output reg signed [PROD-1:0] out1
+);
+ 
+    // =========================================================================
+    // STAGE 1: Input Bounding
+    // Prevents external pins from feeding directly into the alphabet adders.
+    // =========================================================================
+    reg signed [WIDTH-1:0] a_q1;
+    reg [15:0] key0_q1, key1_q1;
+ 
+    always @(posedge clock) begin
+        a_q1    <= a;
+        key0_q1 <= key0;
+        key1_q1 <= key1;
+    end
+ 
+    // =========================================================================
+    // STAGE 2: Alphabet Generation
+    // The alphabets_1_15 module has 1 cycle of latency.
+    // =========================================================================
+    wire signed [WIDTH+3:0] alphabet_1, alphabet_3, alphabet_5,  alphabet_7;
+    wire signed [WIDTH+3:0] alphabet_9, alphabet_11, alphabet_13, alphabet_15;
+ 
+    alphabets_1_15 #(.WIDTH(WIDTH)) alphabets_inst (
+        .clock(clock),
+        .multiplier_in(a_q1),
+        .alphabet_1(alphabet_1),
+        .alphabet_3(alphabet_3),
+        .alphabet_5(alphabet_5),
+        .alphabet_7(alphabet_7),
+        .alphabet_9(alphabet_9),
+        .alphabet_11(alphabet_11),
+        .alphabet_13(alphabet_13),
+        .alphabet_15(alphabet_15)
+    );
+ 
+    // Delay keys to stay aligned with the alphabet generation cycle
+    reg [15:0] key0_q2, key1_q2;
+    always @(posedge clock) begin
+        key0_q2 <= key0_q1;
+        key1_q2 <= key1_q1;
+    end
+ 
+    // =========================================================================
+    // STAGE 3: Multiplexing & Mux Registration
+    // Slices the path between the multiplexer cloud and the shifters.
+    // =========================================================================
+    wire signed [WIDTH+3:0] mux00, mux01, mux10, mux11;
+ 
+    assign mux00 = (key0_q2[15:13] == 3'd0) ? alphabet_1  :
+                   (key0_q2[15:13] == 3'd1) ? alphabet_3  :
+                   (key0_q2[15:13] == 3'd2) ? alphabet_5  :
+                   (key0_q2[15:13] == 3'd3) ? alphabet_7  :
+                   (key0_q2[15:13] == 3'd4) ? alphabet_9  :
+                   (key0_q2[15:13] == 3'd5) ? alphabet_11 :
+                   (key0_q2[15:13] == 3'd6) ? alphabet_13 :
+                   (key0_q2[15:13] == 3'd7) ? alphabet_15 : {WIDTH+4{1'b0}};
+ 
+    assign mux01 = (key0_q2[7:5]   == 3'd0) ? alphabet_1  :
+                   (key0_q2[7:5]   == 3'd1) ? alphabet_3  :
+                   (key0_q2[7:5]   == 3'd2) ? alphabet_5  :
+                   (key0_q2[7:5]   == 3'd3) ? alphabet_7  :
+                   (key0_q2[7:5]   == 3'd4) ? alphabet_9  :
+                   (key0_q2[7:5]   == 3'd5) ? alphabet_11 :
+                   (key0_q2[7:5]   == 3'd6) ? alphabet_13 :
+                   (key0_q2[7:5]   == 3'd7) ? alphabet_15 : {WIDTH+4{1'b0}};
+ 
+    assign mux10 = (key1_q2[15:13] == 3'd0) ? alphabet_1  :
+                   (key1_q2[15:13] == 3'd1) ? alphabet_3  :
+                   (key1_q2[15:13] == 3'd2) ? alphabet_5  :
+                   (key1_q2[15:13] == 3'd3) ? alphabet_7  :
+                   (key1_q2[15:13] == 3'd4) ? alphabet_9  :
+                   (key1_q2[15:13] == 3'd5) ? alphabet_11 :
+                   (key1_q2[15:13] == 3'd6) ? alphabet_13 :
+                   (key1_q2[15:13] == 3'd7) ? alphabet_15 : {WIDTH+4{1'b0}};
+ 
+    assign mux11 = (key1_q2[7:5]   == 3'd0) ? alphabet_1  :
+                   (key1_q2[7:5]   == 3'd1) ? alphabet_3  :
+                   (key1_q2[7:5]   == 3'd2) ? alphabet_5  :
+                   (key1_q2[7:5]   == 3'd3) ? alphabet_7  :
+                   (key1_q2[7:5]   == 3'd4) ? alphabet_9  :
+                   (key1_q2[7:5]   == 3'd5) ? alphabet_11 :
+                   (key1_q2[7:5]   == 3'd6) ? alphabet_13 :
+                   (key1_q2[7:5]   == 3'd7) ? alphabet_15 : {WIDTH+4{1'b0}};
+ 
+    reg signed [WIDTH+3:0] slot00_q3, slot01_q3, slot10_q3, slot11_q3;
+    reg [15:0] key0_q3, key1_q3;
+ 
+    always @(posedge clock) begin
+        slot00_q3 <= mux00;
+        slot01_q3 <= mux01;
+        slot10_q3 <= mux10;
+        slot11_q3 <= mux11;
+        key0_q3   <= key0_q2;
+        key1_q3   <= key1_q2;
+    end
+ 
+    // =========================================================================
+    // STAGE 4: Barrel Shifting
+    // =========================================================================
+    wire signed [PROD-1:0] shift_out_00_wire, shift_out_01_wire, shift_out_10_wire, shift_out_11_wire;
+ 
+    barrel_shifter_lossless #(.DATA_WIDTH(WIDTH+4), .SHIFT_WIDTH(4)) shifter00 (.data_in(slot00_q3), .shift_amount(key0_q3[11:8]), .data_out(shift_out_00_wire));
+    barrel_shifter_lossless #(.DATA_WIDTH(WIDTH+4), .SHIFT_WIDTH(4)) shifter01 (.data_in(slot01_q3), .shift_amount(key0_q3[3:0]),  .data_out(shift_out_01_wire));
+    barrel_shifter_lossless #(.DATA_WIDTH(WIDTH+4), .SHIFT_WIDTH(4)) shifter10 (.data_in(slot10_q3), .shift_amount(key1_q3[11:8]), .data_out(shift_out_10_wire));
+    barrel_shifter_lossless #(.DATA_WIDTH(WIDTH+4), .SHIFT_WIDTH(4)) shifter11 (.data_in(slot11_q3), .shift_amount(key1_q3[3:0]),  .data_out(shift_out_11_wire));
+ 
+    reg signed [PROD-1:0] shift_out_00_q4, shift_out_01_q4, shift_out_10_q4, shift_out_11_q4;
+    reg sign_00_q4, sign_01_q4, sign_10_q4, sign_11_q4;
+ 
+    always @(posedge clock) begin
+        shift_out_00_q4 <= shift_out_00_wire;
+        shift_out_01_q4 <= shift_out_01_wire;
+        shift_out_10_q4 <= shift_out_10_wire;
+        shift_out_11_q4 <= shift_out_11_wire;
+ 
+        // Extract the target sign bits
+        sign_00_q4 <= key0_q3[12];
+        sign_01_q4 <= key0_q3[4];
+        sign_10_q4 <= key1_q3[12];
+        sign_11_q4 <= key1_q3[4];
+    end
+ 
+    // =========================================================================
+    // STAGE 5: Fast Negation & Final Accumulation
+    // =========================================================================
+    always @(posedge clock) begin
+        // Two's complement math: if sign is 1, invert the bits (~x) and add 1 (via the + sign_XX_q4).
+        out0 <= (sign_00_q4 ? ~shift_out_00_q4 : shift_out_00_q4) + sign_00_q4 +
+                (sign_01_q4 ? ~shift_out_01_q4 : shift_out_01_q4) + sign_01_q4;
+ 
+        out1 <= (sign_10_q4 ? ~shift_out_10_q4 : shift_out_10_q4) + sign_10_q4 +
+                (sign_11_q4 ? ~shift_out_11_q4 : shift_out_11_q4) + sign_11_q4;
+    end
+ 
 endmodule

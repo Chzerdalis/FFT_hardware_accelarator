@@ -1,9 +1,15 @@
+import datetime
 import numpy as np
 import math
 import subprocess
 import sys
 import os
 import shutil
+import os
+import csv
+from datetime import datetime
+
+SESSION_TIMESTAMP = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 """
 Twiddle ROM generation with optional inline CSHM (shift-and-add) encoding.
@@ -1176,11 +1182,11 @@ def main(N, Data_width, Tw_width=8, Num_of_windows=1, type_fft=0, iterations=10,
     total_psnr_real = 0
     total_psnr_imag = 0
 
-    enc = CSHMEncoder(bit_width=Tw_width, alphabets=4, num_slots=2, tolerance_per=0.004)
+    enc = CSHMEncoder(bit_width=Tw_width, alphabets=8, num_slots=2, tolerance_per=0.001)
     Key_width = enc.word_bits
 
 
-    if(bit_growth == 2):
+    if(bit_growth == 1):
         snapshot = compile_simulation_xsim(Data_width, Tw_width=Tw_width, type_fft=type_fft, bit_growth=bit_growth, N=N,window_size=Num_of_windows, SimpleMult=SimpleMult, 
                                            Fast_DSP=Fast_DSP, carry_save=carry_save, Bram=Bram, output_pipeline_bram=output_pipeline_bram, 
                                            input_pipeline_bram=input_pipeline_bram, Cshm=Cshm, Key_width=Key_width, waves=waves)
@@ -1222,6 +1228,7 @@ def main(N, Data_width, Tw_width=8, Num_of_windows=1, type_fft=0, iterations=10,
 
     lat1, lat2 = read_values()
 
+    print(f'Options: N={N}, Tw_width={Tw_width}, type_fft={type_fft}, signal_mode={signal_mode}, SimpleMult={SimpleMult}')
     print(f"Minimum PSNR (Real): {min_psnr_real:.2f} dB")
     print(f"Minimum PSNR (Imag): {min_psnr_imag:.2f} dB")
     print(f"Maximum PSNR (Real): {max_psnr_real:.2f} dB")
@@ -1230,22 +1237,74 @@ def main(N, Data_width, Tw_width=8, Num_of_windows=1, type_fft=0, iterations=10,
     print(f"Average PSNR (Imag): {total_psnr_imag/iterations:.2f} dB")
     print(f"Latency FIFO: {lat1} clock cycles")
     print(f"Latency FILO: {lat2} clock cycles")
+    print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
-    # characteristics_min_real = analyze_vector_advanced(min_input_real)
-    # characteristics_min_imag = analyze_vector_advanced(min_input_imag)
-    # characteristics_max_real = analyze_vector_advanced(max_input_real)
-    # characteristics_max_imag = analyze_vector_advanced(max_input_imag)
 
+    average_psnr_real = total_psnr_real / iterations
+    average_psnr_imag = total_psnr_imag / iterations
+
+    data = SESSION_TIMESTAMP
+    csv_filepath = f"../Perm_Data/simulation_results_{data}.csv"
+    file_exists = os.path.isfile(csv_filepath)
+
+    with open(csv_filepath, mode='a', newline='') as csv_file:
+        fieldnames = [
+            'N', 'Tw_width', 'type_fft', 'signal_mode', 'SimpleMult', 
+            'Min_PSNR_Real_dB', 'Min_PSNR_Imag_dB', 
+            'Max_PSNR_Real_dB', 'Max_PSNR_Imag_dB', 
+            'Avg_PSNR_Real_dB', 'Avg_PSNR_Imag_dB', 
+            'Latency_FIFO', 'Latency_FILO'
+        ]
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+
+        # Write the header only if the file is being created for the first time
+        if not file_exists:
+            writer.writeheader()
+
+        # Append the data row
+        writer.writerow({
+            'N': N,
+            'Tw_width': Tw_width,
+            'type_fft': type_fft,
+            'signal_mode': signal_mode,
+            'SimpleMult': SimpleMult,
+            'Min_PSNR_Real_dB': f"{min_psnr_real:.2f}",
+            'Min_PSNR_Imag_dB': f"{min_psnr_imag:.2f}",
+            'Max_PSNR_Real_dB': f"{max_psnr_real:.2f}",
+            'Max_PSNR_Imag_dB': f"{max_psnr_imag:.2f}",
+            'Avg_PSNR_Real_dB': f"{average_psnr_real:.2f}",
+            'Avg_PSNR_Imag_dB': f"{average_psnr_imag:.2f}",
+            'Latency_FIFO': lat1,
+            'Latency_FILO': lat2
+        })
 if __name__ == "__main__":
     clean_data_folder()
     
-    #main(N=256, Data_width=25, Tw_width = 16, Num_of_windows=100, type_fft=0, iterations=10, signal_mode="random", bit_growth=1, Bram=0, Cshm=1, waves=False)
-    #main(N=256, Data_width=25, Tw_width = 16, Num_of_windows=100, type_fft=0, iterations=10, signal_mode="random", bit_growth=1, SimpleMult=1, Fast_DSP=0, carry_save=1, Bram=0, Cshm=0, waves=False)
-    # main(N=256, Data_width=11, Tw_width = 9, Num_of_windows=100, type_fft=1, iterations=10, signal_mode="random", bit_growth=1, SimpleMult=1, Fast_DSP=0, carry_save=1, Bram=0, Cshm=1, waves=False)
-    # main(N=256, Data_width=11, Tw_width = 9, Num_of_windows=100, type_fft=1, iterations=10, signal_mode="random", bit_growth=1, SimpleMult=1, Fast_DSP=0, carry_save=1, Bram=0, Cshm=0, waves=False)
-    main(N=256, Data_width=17, Tw_width = 9, Num_of_windows=100, type_fft=0, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=0, Bram=0, Cshm=0, output_pipeline_bram=0, input_pipeline_bram=1, waves=False)
-    main(N=256, Data_width=17, Tw_width = 9, Num_of_windows=100, type_fft=0, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=1, Bram=0, Cshm=0, output_pipeline_bram=0, input_pipeline_bram=1, waves=False)
-   
+    # main(N=256, Data_width=9+8, Tw_width = 9, Num_of_windows=100, type_fft=0, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=0, Bram=0, Cshm=1, waves=False)
+    # main(N=1024, Data_width=9+10, Tw_width = 9, Num_of_windows=100, type_fft=0, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=0, Bram=0, Cshm=1, waves=False)
+    # main(N=4096, Data_width=9+12, Tw_width = 9, Num_of_windows=100, type_fft=0, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=0, Bram=0, Cshm=1, waves=False)
+
+    # main(N=256, Data_width=13+8, Tw_width = 13, Num_of_windows=100, type_fft=0, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=0, Bram=0, Cshm=1, waves=False)
+    # main(N=1024, Data_width=13+10, Tw_width = 13, Num_of_windows=100, type_fft=0, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=0, Bram=0, Cshm=1, waves=False)
+    # main(N=4096, Data_width=13+12, Tw_width = 13, Num_of_windows=100, type_fft=0, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=0, Bram=0, Cshm=1, waves=False)
+
+    # main(N=256, Data_width=16+8, Tw_width = 16, Num_of_windows=100, type_fft=0, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=0, Bram=0, Cshm=1, waves=False)
+    # main(N=1024, Data_width=16+10, Tw_width = 16, Num_of_windows=100, type_fft=0, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=0, Bram=0, Cshm=1, waves=False)
+    # main(N=4096, Data_width=16+12, Tw_width = 16, Num_of_windows=100, type_fft=0, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=0, Bram=0, Cshm=1, waves=False)
+
+    for i in range(9, 17):
+        #Radix-2 FFT
+        main(N=256, Data_width=i+8, Tw_width = i, Num_of_windows=100, type_fft=0, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=0, Bram=0, Cshm=1, waves=False)
+        main(N=1024, Data_width=i+10, Tw_width = i, Num_of_windows=100, type_fft=0, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=0, Bram=0, Cshm=1, waves=False)
+        main(N=4096, Data_width=i+12, Tw_width = i, Num_of_windows=100, type_fft=0, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=0, Bram=0, Cshm=1, waves=False)
+        #Radix-4 FFT
+        main(N=256, Data_width=i+8, Tw_width = i, Num_of_windows=100, type_fft=1, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=0, Bram=0, Cshm=1, waves=False)
+        main(N=1024, Data_width=i+10, Tw_width = i, Num_of_windows=100, type_fft=1, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=0, Bram=0, Cshm=1, waves=False)
+        main(N=4096, Data_width=i+12, Tw_width = i, Num_of_windows=100, type_fft=1, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=0, Bram=0, Cshm=1, waves=False)
+        #Split-Radix FFT
+        main(N=256, Data_width=i+8, Tw_width = i, Num_of_windows=100, type_fft=2, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=0, Bram=0, Cshm=1, output_pipeline_bram=0, input_pipeline_bram=0, waves=False)
+        main(N=1024, Data_width=i+10, Tw_width = i, Num_of_windows=100, type_fft=2, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=0, Bram=0, Cshm=1, output_pipeline_bram=0, input_pipeline_bram=0, waves=False)
+        main(N=4096, Data_width=i+12, Tw_width = i, Num_of_windows=100, type_fft=2, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=0, Bram=0, Cshm=1, output_pipeline_bram=0, input_pipeline_bram=0, waves=False)
     
 
     

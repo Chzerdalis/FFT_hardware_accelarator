@@ -1,0 +1,129 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\citation{garcia2007fpga}
+\@writefile{toc}{\contentsline {chapter}{\numberline {3}Hardware Implementation of the Proposed Algorithms}{11}{chapter.3}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{Implementation}{{3}{11}{Hardware Implementation of the Proposed Algorithms}{chapter.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3.1}Introduction}{11}{section.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3.2}Shared Architectural Elements}{11}{section.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.1}Twiddle Factors}{11}{subsection.3.2.1}\protected@file@percent }
+\newlabel{fig:twiddle_circle}{{3.1α\anw@true  \anw@print  \relax }{11}{Twiddle factors for N=8 represented on the unit circle}{figure.caption.15}{}}
+\newlabel{sub@fig:twiddle_circle}{{α\anw@true  \anw@print  \relax }{11}{Twiddle factors for N=8 represented on the unit circle}{figure.caption.15}{}}
+\newlabel{fig:twiddle_values}{{3.1β\anw@true  \anw@print  \relax }{11}{Twiddle values for N=8}{figure.caption.15}{}}
+\newlabel{sub@fig:twiddle_values}{{β\anw@true  \anw@print  \relax }{11}{Twiddle values for N=8}{figure.caption.15}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.1}{\ignorespaces Twiddle factor visualization.}}{11}{figure.caption.15}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.2}Datapaths}{11}{subsection.3.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.3}Datatypes}{11}{subsection.3.2.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {3.1}{\ignorespaces Comparison of twiddle factor memory footprint between a naive duplicated storage approach and the proposed stage-specific optimized generation for an 8-stage Radix-2 FFT (DIT).}}{12}{table.caption.16}\protected@file@percent }
+\newlabel{tab:twiddle_memory_comparison}{{3.1}{12}{Comparison of twiddle factor memory footprint between a naive duplicated storage approach and the proposed stage-specific optimized generation for an 8-stage Radix-2 FFT (DIT)}{table.caption.16}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.4}Complex Multiplication Techniques}{12}{subsection.3.2.4}\protected@file@percent }
+\newlabel{eq:trad_mult}{{3.1}{12}{Complex Multiplication Techniques}{equation.3.2.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3.3}Radix-2 Implementation}{12}{section.3.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {3.2}{\ignorespaces Synthesis results and latency for the baseline 256-point FFT architecture.}}{13}{table.caption.17}\protected@file@percent }
+\newlabel{tab:baseline_results_256}{{3.2}{13}{Synthesis results and latency for the baseline 256-point FFT architecture}{table.caption.17}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3.1}Review of Prior Implementation}{13}{subsection.3.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3.2}Overview of Proposed Implementation}{13}{subsection.3.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3.3}Butterfly Radix-2}{13}{subsection.3.3.3}\protected@file@percent }
+\@writefile{loa}{\contentsline {algorithm}{\numberline {1}{\ignorespaces Pipelined Radix-2 Butterfly}}{13}{algorithm.1}\protected@file@percent }
+\newlabel{alg:radix2_butterfly}{{1}{13}{Pipelined Radix-2 Butterfly}{algorithm.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.2}{\ignorespaces Radix-2 fisrt stage top module.}}{14}{figure.caption.18}\protected@file@percent }
+\newlabel{fig:Stage_1_r2}{{3.2}{14}{Radix-2 fisrt stage top module}{figure.caption.18}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3.4}First Stage}{14}{figure.caption.18}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3.5}Control Unit}{14}{subsection.3.3.5}\protected@file@percent }
+\newlabel{fig:tetrada1}{{3.3α\anw@true  \anw@print  \relax }{14}{Stride counter equals 0}{figure.caption.19}{}}
+\newlabel{sub@fig:tetrada1}{{α\anw@true  \anw@print  \relax }{14}{Stride counter equals 0}{figure.caption.19}{}}
+\newlabel{fig:tetrada2}{{3.3β\anw@true  \anw@print  \relax }{14}{Stride counter equals 1 butterfly counter 0}{figure.caption.19}{}}
+\newlabel{sub@fig:tetrada2}{{β\anw@true  \anw@print  \relax }{14}{Stride counter equals 1 butterfly counter 0}{figure.caption.19}{}}
+\newlabel{fig:tetrada3}{{3.3γ\anw@true  \anw@print  \relax }{14}{Stride counter equals 0, butterfly counter 1}{figure.caption.19}{}}
+\newlabel{sub@fig:tetrada3}{{γ\anw@true  \anw@print  \relax }{14}{Stride counter equals 0, butterfly counter 1}{figure.caption.19}{}}
+\newlabel{fig:tetrada4}{{3.3δ\anw@true  \anw@print  \relax }{14}{Stride counter equals 1, butterfly counter 0}{figure.caption.19}{}}
+\newlabel{sub@fig:tetrada4}{{δ\anw@true  \anw@print  \relax }{14}{Stride counter equals 1, butterfly counter 0}{figure.caption.19}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.3}{\ignorespaces Operation flow of the counters managing the pairs of data points.}}{14}{figure.caption.19}\protected@file@percent }
+\newlabel{fig:all_tetradas}{{3.3}{14}{Operation flow of the counters managing the pairs of data points}{figure.caption.19}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3.6}Delay Registers and Final Design}{14}{subsection.3.3.6}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3.4}{\ignorespaces Radix-2 general stage unit top module.}}{15}{figure.caption.20}\protected@file@percent }
+\newlabel{fig:Stage_1_r2}{{3.4}{15}{Radix-2 general stage unit top module}{figure.caption.20}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3.7}Implementation Results using an ISO Clock}{15}{subsection.3.3.7}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3.5}{\ignorespaces Utilization comparison (LUTs, Registers, and DSPs) for Radix-2 FFT implementations across sizes 256, 1024, and 4096 under ISO clock constraints.}}{15}{figure.caption.21}\protected@file@percent }
+\newlabel{fig:radix2_all_resources_combined}{{3.5}{15}{Utilization comparison (LUTs, Registers, and DSPs) for Radix-2 FFT implementations across sizes 256, 1024, and 4096 under ISO clock constraints}{figure.caption.21}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3.3}{\ignorespaces FIFO Radix-2 Latency.}}{16}{table.caption.22}\protected@file@percent }
+\newlabel{tab:baseline_results_256}{{3.3}{16}{FIFO Radix-2 Latency}{table.caption.22}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3.4}Radix-4 Implementation}{16}{section.3.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4.1}Overview of Proposed Implementation}{16}{subsection.3.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4.2}Butterfly Radix-4}{16}{subsection.3.4.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3.6}{\ignorespaces Radix-4 fisrt stage top module.}}{16}{figure.caption.23}\protected@file@percent }
+\newlabel{fig:Stage_1_r2}{{3.6}{16}{Radix-4 fisrt stage top module}{figure.caption.23}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4.3}First Stage}{16}{figure.caption.23}\protected@file@percent }
+\@writefile{loa}{\contentsline {algorithm}{\numberline {2}{\ignorespaces Pipelined Radix-4 Butterfly}}{17}{algorithm.2}\protected@file@percent }
+\newlabel{alg:radix4_butterfly}{{2}{17}{Pipelined Radix-4 Butterfly}{algorithm.2}{}}
+\newlabel{fig:tetrada1}{{3.7α\anw@true  \anw@print  \relax }{18}{Stride counter equals 00}{figure.caption.24}{}}
+\newlabel{sub@fig:tetrada1}{{α\anw@true  \anw@print  \relax }{18}{Stride counter equals 00}{figure.caption.24}{}}
+\newlabel{fig:tetrada2}{{3.7β\anw@true  \anw@print  \relax }{18}{Stride counter equals 01}{figure.caption.24}{}}
+\newlabel{sub@fig:tetrada2}{{β\anw@true  \anw@print  \relax }{18}{Stride counter equals 01}{figure.caption.24}{}}
+\newlabel{fig:tetrada3}{{3.7γ\anw@true  \anw@print  \relax }{18}{Stride counter equals 10, butterfly counter starts}{figure.caption.24}{}}
+\newlabel{sub@fig:tetrada3}{{γ\anw@true  \anw@print  \relax }{18}{Stride counter equals 10, butterfly counter starts}{figure.caption.24}{}}
+\newlabel{fig:tetrada4}{{3.7δ\anw@true  \anw@print  \relax }{18}{Stride counter equals 11, butterfly counter 00}{figure.caption.24}{}}
+\newlabel{sub@fig:tetrada4}{{δ\anw@true  \anw@print  \relax }{18}{Stride counter equals 11, butterfly counter 00}{figure.caption.24}{}}
+\newlabel{fig:tetrada5}{{3.7ε\anw@true  \anw@print  \relax }{18}{Stride counter equals 00, butterfly counter 01}{figure.caption.24}{}}
+\newlabel{sub@fig:tetrada5}{{ε\anw@true  \anw@print  \relax }{18}{Stride counter equals 00, butterfly counter 01}{figure.caption.24}{}}
+\newlabel{fig:tetrada6}{{3.7στ\relax \anw@true  \anw@print  \relax }{18}{Stride counter equals 01, butterfly counter 10}{figure.caption.24}{}}
+\newlabel{sub@fig:tetrada6}{{στ\relax \anw@true  \anw@print  \relax }{18}{Stride counter equals 01, butterfly counter 10}{figure.caption.24}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.7}{\ignorespaces Operation flow of the counters managing the sets of four (quads) data points.}}{18}{figure.caption.24}\protected@file@percent }
+\newlabel{fig:all_tetradas}{{3.7}{18}{Operation flow of the counters managing the sets of four (quads) data points}{figure.caption.24}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4.4}Control Unit}{18}{figure.caption.24}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4.5}Delay Registers}{18}{subsection.3.4.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4.6}}{18}{subsection.3.4.6}\protected@file@percent }
+\@setckpt{chapter3}{
+\setcounter{page}{19}
+\setcounter{equation}{4}
+\setcounter{enumi}{3}
+\setcounter{enumii}{0}
+\setcounter{enumiii}{0}
+\setcounter{enumiv}{0}
+\setcounter{footnote}{0}
+\setcounter{mpfootnote}{0}
+\setcounter{part}{0}
+\setcounter{chapter}{3}
+\setcounter{section}{4}
+\setcounter{subsection}{6}
+\setcounter{subsubsection}{0}
+\setcounter{paragraph}{0}
+\setcounter{subparagraph}{0}
+\setcounter{figure}{7}
+\setcounter{table}{3}
+\setcounter{parentequation}{0}
+\setcounter{eu@}{0}
+\setcounter{eu@i}{0}
+\setcounter{mkern}{0}
+\setcounter{definition}{0}
+\setcounter{proposition}{0}
+\setcounter{theorem}{0}
+\setcounter{corollary}{0}
+\setcounter{lemma}{0}
+\setcounter{example}{0}
+\setcounter{remark}{0}
+\setcounter{notation}{0}
+\setcounter{law}{0}
+\setcounter{float@type}{16}
+\setcounter{algorithm}{2}
+\setcounter{ALG@line}{23}
+\setcounter{ALG@rem}{0}
+\setcounter{ALG@nested}{0}
+\setcounter{ALG@Lnr}{2}
+\setcounter{ALG@blocknr}{10}
+\setcounter{ALG@storecount}{0}
+\setcounter{ALG@tmpcounter}{0}
+\setcounter{caption@flags}{6}
+\setcounter{continuedfloat}{0}
+\setcounter{section@level}{2}
+\setcounter{Item}{8}
+\setcounter{Hfootnote}{0}
+\setcounter{Hy@AnnotLevel}{0}
+\setcounter{bookmark@seq@number}{46}
+\setcounter{subfigure}{6}
+\setcounter{subtable}{0}
+\setcounter{lstnumber}{1}
+\setcounter{cp@cntr}{0}
+\setcounter{lstlisting}{0}
+}

@@ -2,7 +2,7 @@
 
 module helper_top_module #(
     parameter WIDTH = 16,
-    parameter Num_of_samples = 256
+    parameter Num_of_samples = 4096
 )(
     input                   clock,
     input                   reset,

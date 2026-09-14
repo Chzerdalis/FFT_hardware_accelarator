@@ -1,0 +1,7 @@
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {2.1}{\ignorespaces Maximum theoretical SQNR for various hardware bit depths (assuming full-scale square wave input).}}{7}{table.caption.12}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {3.1}{\ignorespaces Comparison of twiddle factor memory footprint between a naive duplicated storage approach and the proposed stage-specific optimized generation for an 8-stage Radix-2 FFT (DIT).}}{12}{table.caption.16}%
+\contentsline {table}{\numberline {3.2}{\ignorespaces Synthesis results and latency for the baseline 256-point FFT architecture.}}{13}{table.caption.17}%
+\contentsline {table}{\numberline {3.3}{\ignorespaces FIFO Radix-2 Latency.}}{16}{table.caption.22}%

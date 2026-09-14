@@ -7,6 +7,10 @@
     ((idx) == 5) ? "../Data/f_twiddle_real_6_1.mem" : \
     ((idx) == 6) ? "../Data/f_twiddle_real_7_1.mem" : \
     ((idx) == 7) ? "../Data/f_twiddle_real_8_1.mem" : \
+    ((idx) == 8) ? "../Data/f_twiddle_real_9_1.mem" : \
+    ((idx) == 9) ? "../Data/f_twiddle_real_10_1.mem" : \
+    ((idx) == 10) ? "../Data/f_twiddle_real_11_1.mem" : \
+    ((idx) == 11) ? "../Data/f_twiddle_real_12_1.mem" : \
     "../Data/f_twiddle_real_1_1.mem"
 
 `define GET_IMAG_FILE_1(idx) \
@@ -18,6 +22,10 @@
     ((idx) == 5) ? "../Data/f_twiddle_imag_6_1.mem" : \
     ((idx) == 6) ? "../Data/f_twiddle_imag_7_1.mem" : \
     ((idx) == 7) ? "../Data/f_twiddle_imag_8_1.mem" : \
+    ((idx) == 8) ? "../Data/f_twiddle_imag_9_1.mem" : \
+    ((idx) == 9) ? "../Data/f_twiddle_imag_10_1.mem" : \
+    ((idx) == 10) ? "../Data/f_twiddle_imag_11_1.mem" : \
+    ((idx) == 11) ? "../Data/f_twiddle_imag_12_1.mem" : \
     "../Data/f_twiddle_imag_1_1.mem"
 
 `define GET_REAL_FILE_2(idx) \
@@ -29,6 +37,10 @@
     ((idx) == 5) ? "../Data/f_twiddle_real_6_2.mem" : \
     ((idx) == 6) ? "../Data/f_twiddle_real_7_2.mem" : \
     ((idx) == 7) ? "../Data/f_twiddle_real_8_2.mem" : \
+    ((idx) == 8) ? "../Data/f_twiddle_real_9_2.mem" : \
+    ((idx) == 9) ? "../Data/f_twiddle_real_10_2.mem" : \
+    ((idx) == 10) ? "../Data/f_twiddle_real_11_2.mem" : \
+    ((idx) == 11) ? "../Data/f_twiddle_real_12_2.mem" : \
     "../Data/f_twiddle_real_1_2.mem"
 
 `define GET_IMAG_FILE_2(idx) \
@@ -40,5 +52,9 @@
     ((idx) == 5) ? "../Data/f_twiddle_imag_6_2.mem" : \
     ((idx) == 6) ? "../Data/f_twiddle_imag_7_2.mem" : \
     ((idx) == 7) ? "../Data/f_twiddle_imag_8_2.mem" : \
+    ((idx) == 8) ? "../Data/f_twiddle_imag_9_2.mem" : \
+    ((idx) == 9) ? "../Data/f_twiddle_imag_10_2.mem" : \
+    ((idx) == 10) ? "../Data/f_twiddle_imag_11_2.mem" : \
+    ((idx) == 11) ? "../Data/f_twiddle_imag_12_2.mem" : \
     "../Data/f_twiddle_imag_1_2.mem"
 

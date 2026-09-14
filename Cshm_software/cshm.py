@@ -122,7 +122,7 @@ def quantize_twiddles(twiddles, bit_width, type_fft="radix-2", fft_size=16, stag
         temp_real_1, temp_idx_real_1 = [], []
         temp_imag_1, temp_idx_imag_1 = [], []
 
-        stride_0 = 2**(stage-2)
+        stride_0 = int(2**(stage-2))
         stride_1 = 3*stride_0
         iter = (fft_size)//(2**(stage))
 
@@ -293,12 +293,11 @@ def find_cshm_instructions_2(fft_size=16, bit_width=8, type_fft="radix-2", stage
     max_target_val = max(abs(t) for t in target_range)
     tolerance = tolerance_per * max_target_val
 
-    print(f"\n{'='*75}")
+    print(f"\n{'='*160}")
     print(f"CSHM Search | Bits: {bit_width} | FFT: {fft_size} ({type_fft}) stage {stage} | Slots: {num_slots} | Alphabet: {alphabets} | Tolerance: {tolerance_per*100:.2f}% | Max_Tolerance: {tolerance:.2f}")
-    print("-" * 75)
+    print("-" * 160)
     print(f"{'Target':>7} | {'Equation':>42} | {'Status'} {'|':>3} {'Encoding(Slot A | ... | Slot N)'}")
-    print("-" * 75)
-
+    print("-" * 160)
     shift_total = 0
     max_shift = 0
     total_approx = 0
@@ -384,7 +383,7 @@ if __name__ == "__main__":
 
         print(f"round: {roun}")
 
-        for i in range(1, stages+1):
-            find_cshm_slots_alfabets_for_fft_size_and_type(max_slots=3, max_alphabet_size=10, fft_size=fft_size, bit_width=bit_width, type_fft=fft_type, stage=i, tolerance_per=tolerance_per, roun=roun)
         # for i in range(1, stages+1):
-        #     find_cshm_instructions_2(fft_size=fft_size, bit_width=bit_width, type_fft=fft_type, stage=i, alphabets=4, num_slots=2, tolerance_per=tolerance_per)
+        #     find_cshm_slots_alfabets_for_fft_size_and_type(max_slots=3, max_alphabet_size=100, fft_size=fft_size, bit_width=bit_width, type_fft=fft_type, stage=i, tolerance_per=tolerance_per, roun=roun)
+        for i in range(1, stages+1):
+            find_cshm_instructions_2(fft_size=fft_size, bit_width=bit_width, type_fft=fft_type, stage=i, alphabets=8, num_slots=2, tolerance_per=tolerance_per)

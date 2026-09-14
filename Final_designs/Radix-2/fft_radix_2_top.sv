@@ -3,12 +3,12 @@
 `include "twiddle_pkg.vh"
 
 module fft_top #(
-    parameter WIDTH = 11,
-    parameter Tw_WIDTH = 9,
-    parameter Num_of_samples = 256,
+    parameter WIDTH = 12,
+    parameter Tw_WIDTH = 11,
+    parameter Num_of_samples = 4096,
     parameter SimpleMult = 1,
-    parameter Fast_DSP = 0,
-    parameter carry_save = 1,
+    parameter Fast_DSP = 1,
+    parameter carry_save = 0,
     parameter Bram = 0,
     parameter bit_growth = 1,
     parameter STAGE_NUM = $clog2(Num_of_samples),

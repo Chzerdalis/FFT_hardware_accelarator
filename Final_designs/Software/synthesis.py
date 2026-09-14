@@ -4041,13 +4041,13 @@ if __name__ == "__main__":
     print("Start Time:", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
     # Define the parameter space
-    N = [256]
-    fft_types   = [0, 1, 2]   # 0 = radix-2, 1 = radix-4, 2 = split-radix
-    simple_mult = [0]
-    fast_dsp    = [0]
+    N = [256, 1024, 4096]
+    fft_types   = [2]   # 0 = radix-2, 1 = radix-4, 2 = split-radix
+    simple_mult = [1, 0]
+    fast_dsp    = [1]
     carry_save  = [0]
-    bram        = [0]
-    cshm_modes  = [1]   # 0 = DSP/carry-save multipliers, 1 = CSHM shift-add
+    bram        = [1]
+    cshm_modes  = [0]   # 0 = DSP/carry-save multipliers, 1 = CSHM shift-add
 
     # Setup CSV logging
     data = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -4083,18 +4083,23 @@ if __name__ == "__main__":
         if c_carry_save == 1 and c_fast_dsp == 1:
             print(f"Skipping: N={c_N}, carry_save={c_carry_save}, Fast_DSP={c_fast_dsp} (Invalid: carry_save=1 with Fast_DSP=1)")
             continue  
-        if c_carry_save == 0 and c_cshm == 0 and c_bram == 0 and c_type_fft == 2:
-            print(f"Skipping: N={c_N}, carry_save={c_carry_save}, Fast_DSP={c_fast_dsp} (Invalid: carry_save=0 with Fast_DSP=0 and type_fft=1)")
-            continue  
+        # if c_carry_save == 0 and c_cshm == 0 and c_bram == 0 and c_type_fft == 2:
+        #     print(f"Skipping: N={c_N}, carry_save={c_carry_save}, Fast_DSP={c_fast_dsp} (Invalid: carry_save=0 with Fast_DSP=0 and type_fft=1)")
+        #     continue  
+        
+        Tw_width = 13
 
         if c_type_fft == 0:
-            Data_width = 10
+            Data_width = Tw_width + 1
         elif c_type_fft == 1:
-            Data_width = 11
+            Data_width = Tw_width + 2
         elif c_type_fft == 2:
-            Data_width = 17
-
-        Tw_width = 9  # Fixed for all configurations
+            if c_N ==256:
+                Data_width = Tw_width + 8
+            elif c_N == 1024:
+                Data_width = Tw_width + 10
+            elif c_N == 4096:
+                Data_width = Tw_width + 12
 
         # 2. Dynamically set Vivado macro flags (Fixed logic)
         flag_no_dsp = (c_carry_save == 1) # If carry_save is 1, we don't want to use DSPs

@@ -1,0 +1,18 @@
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {2.1}{\ignorespaces Representation of a time-domain signal decomposed into multiple signals of different frequencies.}}{3}{figure.caption.6}%
+\contentsline {figure}{\numberline {2.2}{\ignorespaces Comparison of Radix-2, Radix-4 and Split-Radix dataflow structures.}}{4}{figure.caption.7}%
+\contentsline {figure}{\numberline {2.3}{\ignorespaces Recursive logic of the Radix-2 FFT, demonstrating the combination of even and odd sequences from previous stages.}}{5}{figure.caption.8}%
+\contentsline {figure}{\numberline {2.4}{\ignorespaces Comparison of unrolled architectures.}}{7}{figure.caption.9}%
+\contentsline {figure}{\numberline {2.5}{\ignorespaces Simplified diagram of the SDF units discussed in this chapter.}}{7}{figure.caption.10}%
+\contentsline {figure}{\numberline {2.6}{\ignorespaces Formulas for the signal power and Signal-to-Quantization-Noise Ratio (SQNR). $P_{x^\nu }$ represents the average power of the input signal. $\nu $ represents the number of bits (resolution).}}{7}{figure.caption.11}%
+\contentsline {figure}{\numberline {2.7}{\ignorespaces Top diagram of the Carry-Save Array Multiplier discussed in this chapter}}{8}{figure.caption.13}%
+\contentsline {figure}{\numberline {2.8}{\ignorespaces Top diagram of the CSHM Multiplier discussed in this chapter}}{9}{figure.caption.14}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Twiddle factor visualization.}}{11}{figure.caption.15}%
+\contentsline {figure}{\numberline {3.2}{\ignorespaces Radix-2 fisrt stage top module.}}{14}{figure.caption.18}%
+\contentsline {figure}{\numberline {3.3}{\ignorespaces Operation flow of the counters managing the pairs of data points.}}{14}{figure.caption.19}%
+\contentsline {figure}{\numberline {3.4}{\ignorespaces Radix-2 general stage unit top module.}}{15}{figure.caption.20}%
+\contentsline {figure}{\numberline {3.5}{\ignorespaces Utilization comparison (LUTs, Registers, and DSPs) for Radix-2 FFT implementations across sizes 256, 1024, and 4096 under ISO clock constraints.}}{15}{figure.caption.21}%
+\contentsline {figure}{\numberline {3.6}{\ignorespaces Radix-4 fisrt stage top module.}}{16}{figure.caption.23}%
+\contentsline {figure}{\numberline {3.7}{\ignorespaces Operation flow of the counters managing the sets of four (quads) data points.}}{18}{figure.caption.24}%
