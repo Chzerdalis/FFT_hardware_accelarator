@@ -1,0 +1,5 @@
+N,Tw_width,type_fft,signal_mode,SimpleMult,Min_PSNR_Real_dB,Min_PSNR_Imag_dB,Max_PSNR_Real_dB,Max_PSNR_Imag_dB,Avg_PSNR_Real_dB,Avg_PSNR_Imag_dB,Latency_FIFO,Latency_FILO
+256,13,0,random,1,70.53,64.94,70.53,64.94,70.53,64.94,293,421
+256,13,0,random,1,-42.55,-33.69,-42.55,-33.69,-42.55,-33.69,186,314
+256,9,0,random,1,44.35,43.15,44.35,43.15,44.35,43.15,258,386
+256,9,0,random,1,-24.07,-25.89,-24.07,-25.89,-24.07,-25.89,186,314

@@ -598,7 +598,7 @@ endmodule
 
 (* use_dsp = "no" *)
 module Carry_mult #(
-    parameter A_WIDTH = 25,
+    parameter A_WIDTH = 20,
     parameter B_WIDTH = 16,
     parameter CHUNK = 8
 )(

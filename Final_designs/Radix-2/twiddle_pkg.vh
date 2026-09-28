@@ -8,9 +8,6 @@
     ((idx) == 6) ? "../Data/f_twiddle_real_7.mem" : \
     ((idx) == 7) ? "../Data/f_twiddle_real_8.mem" : \
     ((idx) == 8) ? "../Data/f_twiddle_real_9.mem" : \
-    ((idx) == 9) ? "../Data/f_twiddle_real_10.mem" : \
-    ((idx) == 10) ? "../Data/f_twiddle_real_11.mem" : \
-    ((idx) == 11) ? "../Data/f_twiddle_real_12.mem" : \
     "../Data/f_twiddle_real_1.mem"
 
 `define GET_IMAG_FILE(idx) \
@@ -23,8 +20,5 @@
     ((idx) == 6) ? "../Data/f_twiddle_imag_7.mem" : \
     ((idx) == 7) ? "../Data/f_twiddle_imag_8.mem" : \
     ((idx) == 8) ? "../Data/f_twiddle_imag_9.mem" : \
-    ((idx) == 9) ? "../Data/f_twiddle_imag_10.mem" : \
-    ((idx) == 10) ? "../Data/f_twiddle_imag_11.mem" : \
-    ((idx) == 11) ? "../Data/f_twiddle_imag_12.mem" : \
     "../Data/f_twiddle_imag_1.mem"
 

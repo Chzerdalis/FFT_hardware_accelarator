@@ -370,7 +370,7 @@ if __name__ == "__main__":
         fft_type = sys.argv[2]
         fft_size = int(sys.argv[3])
         bit_width = int(sys.argv[4])
-        tolerance_per = int(sys.argv[5]) / 1000.0 
+        tolerance_per = int(sys.argv[5]) / 10000.0 
         roun = int(sys.argv[6])
     else:
         raise ValueError("Usage: python cshm.py <Type_search> <fft_type> <fft_size> <bit_width> <tolerance>")
@@ -383,7 +383,7 @@ if __name__ == "__main__":
 
         print(f"round: {roun}")
 
-        # for i in range(1, stages+1):
-        #     find_cshm_slots_alfabets_for_fft_size_and_type(max_slots=3, max_alphabet_size=100, fft_size=fft_size, bit_width=bit_width, type_fft=fft_type, stage=i, tolerance_per=tolerance_per, roun=roun)
         for i in range(1, stages+1):
-            find_cshm_instructions_2(fft_size=fft_size, bit_width=bit_width, type_fft=fft_type, stage=i, alphabets=8, num_slots=2, tolerance_per=tolerance_per)
+            find_cshm_slots_alfabets_for_fft_size_and_type(max_slots=3, max_alphabet_size=100, fft_size=fft_size, bit_width=bit_width, type_fft=fft_type, stage=i, tolerance_per=tolerance_per, roun=roun)
+        # for i in range(1, stages+1):
+        #     find_cshm_instructions_2(fft_size=fft_size, bit_width=bit_width, type_fft=fft_type, stage=i, alphabets=8, num_slots=2, tolerance_per=tolerance_per)

@@ -1,6 +1,6 @@
 <mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.3.0 Chrome/140.0.7339.249 Electron/38.7.2 Safari/537.36" scale="5" border="4">
   <diagram name="Σελίδα-1" id="EEZ2tZgkhApbc-4yfMH2">
-    <mxGraphModel dx="1134" dy="572" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1645" dy="797" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -565,7 +565,7 @@
             <mxPoint x="1431.3" y="490.22" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="Y4ztQ2dvw_D_t2L-sz3w-118" edge="1" parent="1" source="Y4ztQ2dvw_D_t2L-sz3w-95" style="endArrow=none;html=1;rounded=0;exitX=0.98;exitY=0.38;exitDx=0;exitDy=0;exitPerimeter=0;fontStyle=1;strokeColor=#FFFFFF;strokeWidth=1;" value="">
+        <mxCell id="Y4ztQ2dvw_D_t2L-sz3w-118" edge="1" parent="1" source="Y4ztQ2dvw_D_t2L-sz3w-95" style="endArrow=none;html=1;rounded=0;exitX=0.98;exitY=0.38;exitDx=0;exitDy=0;exitPerimeter=0;fontStyle=1;strokeColor=#000000;strokeWidth=1;" value="">
           <mxGeometry height="50" relative="1" width="50" as="geometry">
             <mxPoint x="1440.5" y="529" as="sourcePoint" />
             <mxPoint x="1430.5" y="510" as="targetPoint" />

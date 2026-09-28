@@ -1292,22 +1292,23 @@ if __name__ == "__main__":
     # main(N=1024, Data_width=16+10, Tw_width = 16, Num_of_windows=100, type_fft=0, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=0, Bram=0, Cshm=1, waves=False)
     # main(N=4096, Data_width=16+12, Tw_width = 16, Num_of_windows=100, type_fft=0, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=0, Bram=0, Cshm=1, waves=False)
 
-    for i in range(9, 17):
+    for i in range(9, 10):
         #Radix-2 FFT
-        main(N=256, Data_width=i+8, Tw_width = i, Num_of_windows=100, type_fft=0, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=0, Bram=0, Cshm=1, waves=False)
-        main(N=1024, Data_width=i+10, Tw_width = i, Num_of_windows=100, type_fft=0, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=0, Bram=0, Cshm=1, waves=False)
-        main(N=4096, Data_width=i+12, Tw_width = i, Num_of_windows=100, type_fft=0, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=0, Bram=0, Cshm=1, waves=False)
-        #Radix-4 FFT
-        main(N=256, Data_width=i+8, Tw_width = i, Num_of_windows=100, type_fft=1, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=0, Bram=0, Cshm=1, waves=False)
-        main(N=1024, Data_width=i+10, Tw_width = i, Num_of_windows=100, type_fft=1, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=0, Bram=0, Cshm=1, waves=False)
-        main(N=4096, Data_width=i+12, Tw_width = i, Num_of_windows=100, type_fft=1, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=0, Bram=0, Cshm=1, waves=False)
-        #Split-Radix FFT
-        main(N=256, Data_width=i+8, Tw_width = i, Num_of_windows=100, type_fft=2, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=0, Bram=0, Cshm=1, output_pipeline_bram=0, input_pipeline_bram=0, waves=False)
-        main(N=1024, Data_width=i+10, Tw_width = i, Num_of_windows=100, type_fft=2, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=0, Bram=0, Cshm=1, output_pipeline_bram=0, input_pipeline_bram=0, waves=False)
-        main(N=4096, Data_width=i+12, Tw_width = i, Num_of_windows=100, type_fft=2, iterations=10, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=0, carry_save=0, Bram=0, Cshm=1, output_pipeline_bram=0, input_pipeline_bram=0, waves=False)
+        # main(N=256, Data_width=i+8, Tw_width = i, Num_of_windows=1, type_fft=0, iterations=1, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=1, carry_save=0, Bram=0, Cshm=0, waves=False)
+        # main(N=1024, Data_width=i+10, Tw_width = i, Num_of_windows=1, type_fft=0, iterations=1, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=1, carry_save=0, Bram=0, Cshm=0, waves=False)
+        # main(N=4096, Data_width=i+12, Tw_width = i, Num_of_windows=1, type_fft=0, iterations=1, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=1, carry_save=0, Bram=0, Cshm=0, waves=False)
+        # #Radix-4 FFT
+        # main(N=256, Data_width=i+8, Tw_width = i, Num_of_windows=1, type_fft=1, iterations=1, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=1, carry_save=0, Bram=0, Cshm=0, waves=False)
+        # main(N=1024, Data_width=i+10, Tw_width = i, Num_of_windows=1, type_fft=1, iterations=1, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=1, carry_save=0, Bram=0, Cshm=0, waves=False)
+        # main(N=4096, Data_width=i+12, Tw_width = i, Num_of_windows=1, type_fft=1, iterations=1, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=1, carry_save=0, Bram=0, Cshm=0, waves=False)
+        # #Split-Radix FFT
+        # main(N=256, Data_width=i+8, Tw_width = i, Num_of_windows=1, type_fft=2, iterations=1, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=1, carry_save=0, Bram=0, Cshm=0, output_pipeline_bram=1, input_pipeline_bram=1, waves=False)
+        # main(N=1024, Data_width=i+10, Tw_width = i, Num_of_windows=1, type_fft=2, iterations=1, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=1, carry_save=0, Bram=0, Cshm=0, output_pipeline_bram=1, input_pipeline_bram=1, waves=False)
+        # main(N=4096, Data_width=i+12, Tw_width = i, Num_of_windows=1, type_fft=2, iterations=1, signal_mode="random", bit_growth=0, SimpleMult=1, Fast_DSP=1, carry_save=0, Bram=0, Cshm=0, output_pipeline_bram=1, input_pipeline_bram=1, waves=False)
     
 
-    
+        main(N=512, Data_width=10, Tw_width = 9, Num_of_windows=1, type_fft=0, iterations=1, signal_mode="random", bit_growth=1, SimpleMult=1, Fast_DSP=1, carry_save=0, Bram=0, Cshm=0, waves=False)
+
 
 
 

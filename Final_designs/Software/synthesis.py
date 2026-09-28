@@ -4042,12 +4042,13 @@ if __name__ == "__main__":
 
     # Define the parameter space
     N = [256, 1024, 4096]
-    fft_types   = [2]   # 0 = radix-2, 1 = radix-4, 2 = split-radix
-    simple_mult = [1, 0]
-    fast_dsp    = [1]
+    fft_types   = [0, 1, 2]   # 0 = radix-2, 1 = radix-4, 2 = split-radix
+    simple_mult = [0]
+    twiddle_widths = [9]  # Fixed for this example
+    fast_dsp    = [0]
     carry_save  = [0]
-    bram        = [1]
-    cshm_modes  = [0]   # 0 = DSP/carry-save multipliers, 1 = CSHM shift-add
+    bram        = [0]
+    cshm_modes  = [1]   # 0 = DSP/carry-save multipliers, 1 = CSHM shift-add
 
     # Setup CSV logging
     data = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -4060,10 +4061,10 @@ if __name__ == "__main__":
                          'LUTs', 'Registers', 'DSPs', 'BRAMs', 'WNS_ns', 'TNS_ns', 'Power_W'])
 
     # Generate all combinations
-    combinations = itertools.product(N, fft_types, simple_mult, fast_dsp, carry_save, bram, cshm_modes)
+    combinations = itertools.product(N, fft_types, simple_mult, fast_dsp, carry_save, bram, cshm_modes, twiddle_widths)
 
     for combo in combinations:
-        c_N, c_type_fft, c_simple_mult, c_fast_dsp, c_carry_save, c_bram, c_cshm = combo
+        c_N, c_type_fft, c_simple_mult, c_fast_dsp, c_carry_save, c_bram, c_cshm, c_Tw_width = combo
 
         # CSHM replaces the multiplier entirely, so SimpleMult / Fast_DSP /
         # carry_save no longer select anything. Run CSHM once per (N, type,
@@ -4073,6 +4074,10 @@ if __name__ == "__main__":
                                 and c_carry_save == 0):
             continue
         
+        if c_carry_save == 1 and c_Tw_width == 9:
+            print(f"Skipping: N={c_N}, carry_save={c_carry_save}, Tw_width={c_Tw_width} (Invalid: carry_save=1 with Tw_width=9)")
+            continue
+
         # 1. Skip conflicting configurations
         if c_type_fft == 0 and c_bram == 1:
             print(f"Skipping: N={c_N}, type_fft={c_type_fft}, Bram={c_bram} (Invalid: Radix-2 with Bram=1)")
@@ -4083,11 +4088,11 @@ if __name__ == "__main__":
         if c_carry_save == 1 and c_fast_dsp == 1:
             print(f"Skipping: N={c_N}, carry_save={c_carry_save}, Fast_DSP={c_fast_dsp} (Invalid: carry_save=1 with Fast_DSP=1)")
             continue  
-        # if c_carry_save == 0 and c_cshm == 0 and c_bram == 0 and c_type_fft == 2:
-        #     print(f"Skipping: N={c_N}, carry_save={c_carry_save}, Fast_DSP={c_fast_dsp} (Invalid: carry_save=0 with Fast_DSP=0 and type_fft=1)")
-        #     continue  
+        if c_carry_save == 0 and c_cshm == 0:
+            print(f"Skipping: N={c_N}, carry_save={c_carry_save}, Fast_DSP={c_fast_dsp} (Invalid: carry_save=0 with Fast_DSP=0 and type_fft=1)")
+            continue  
         
-        Tw_width = 13
+        Tw_width = c_Tw_width
 
         if c_type_fft == 0:
             Data_width = Tw_width + 1
@@ -4112,7 +4117,7 @@ if __name__ == "__main__":
         if(c_fast_dsp == 1):
             input_pipeline_bram = 1
             output_pipeline_bram = 1
-        elif(c_carry_save == 1):
+        elif(c_carry_save == 1 or c_cshm == 1):
             input_pipeline_bram = 1
             output_pipeline_bram = 0
         else:

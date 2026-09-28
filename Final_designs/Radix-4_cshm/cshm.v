@@ -88,7 +88,7 @@ module sign_selection #(
 endmodule
 
 (* dont_touch = "true" *)
-module cshm_2_keys_ #(
+module cshm_2_keys #(
     parameter WIDTH = 16,
     parameter Tw_WIDTH = 8,
     parameter PROD  = WIDTH + Tw_WIDTH // Note: Consider increasing PROD to 27 to prevent silent truncation!
@@ -218,7 +218,7 @@ endmodule
 
 
 (* dont_touch = "true" *)
-module cshm_2_keys #(
+module cshm_2_keys_ #(
     parameter WIDTH = 16,
     parameter Tw_WIDTH = 8,
     parameter PROD  = WIDTH + Tw_WIDTH // Note: Consider increasing PROD to 27 to prevent silent truncation!
